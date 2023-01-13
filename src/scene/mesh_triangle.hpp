@@ -13,7 +13,7 @@ namespace Scene
     {
     public:
         MeshTriangle(const std::string &p_name)
-            : _name(p_name), _ambientMap(), _diffuseMap(), _specularMap(), _normalMap(), _shininessMap(),{};
+            : _name(p_name), _ambientMap(), _diffuseMap(), _specularMap(), _normalMap(), _shininessMap() {};
 
         ~MeshTriangle() = default;
 
@@ -41,7 +41,7 @@ namespace Scene
         void setShininessMap(const std::string &p_path) { _shininessMap = App::getInstance().getRenderer().createTexture(p_path); }
         void setNormalMap(const std::string &p_path) { _normalMap = App::getInstance().getRenderer().createTexture(p_path); }
 
-        void addTriangle(const unsigned int p_v0, const unsigned int p_v1, const unsigned int p_v2) { _triangles.emplace_back(p_v0, p_v1, p_v2); };
+        void addTriangle(const unsigned int p_v0, const unsigned int p_v1, const unsigned int p_v2) { _triangles.emplace_back(p_v0, p_v1, p_v2); }
         void addVertex(const float p_x, const float p_y, const float p_z) { _vertices.emplace_back(p_x, p_y, p_z); }
         void addNormal(const float p_x, const float p_y, const float p_z) { _normals.emplace_back(p_x, p_y, p_z); }
         void addUV(const float p_u, const float p_v) { _uvs.emplace_back(p_u, p_v); }

@@ -2,7 +2,6 @@
 #define __CONTROLLER_CAMERA__
 
 #include "utils/define.hpp"
-#include <SDL_events.h>
 #include <detail/type_quat.hpp>
 #include <gtc/quaternion.hpp>
 
@@ -13,17 +12,11 @@ namespace Controller
     class Camera
     {
     public:
-        // DESTRUCTOR / CONSTRUCTOR
+        // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------
         Camera() { _updateRotation(); }
         virtual ~Camera() = default;
 
-        // VIRTUAL FONCTIONS
-        virtual void receiveEvent(const SDL_Event &p_event) = 0;
-        virtual void clearEvents() = 0;
-        virtual void update(const double &p_deltaTime) = 0;
-        virtual void reset() = 0;
-
-        // GETTERS
+        // ----------------------------------------------------- GETTERS -------------------------------------------------------
         const Quatf &getRotation() const { return _rotation; }
         const Vec3f &getPosition() const { return _position; }
 
@@ -43,72 +36,66 @@ namespace Controller
         float *getFov() { return &_fov; }
         float *getSpeed() { return &_speed; }
 
-        // SETTERS
-        void setScreenSize(const uint p_width, const uint p_height)
-        {
+        // ----------------------------------------------------- SETTERS -------------------------------------------------------
+        void setScreenSize(const uint p_width, const uint p_height) {
             _screenWidth = p_width;
             _screenHeight = p_height;
             _aspectRatio = float(_screenWidth) / float(_screenHeight);
             _updateProjectionMatrix();
         }
 
-        void setPosition(const Vec3f &p_position)
-        {
+        void setPosition(const Vec3f &p_position) {
             _position = p_position;
             _updateViewMatrix();
         }
 
-        void setRotation(const Quatf &p_rotation)
-        {
+        void setRotation(const Quatf &p_rotation) {
             _rotation = glm::normalize(p_rotation);
             _updateRotation();
         }
 
-        void set(const Vec3f &p_position, const Quatf &p_rotation)
-        {
+        void set(const Vec3f &p_position, const Quatf &p_rotation) {
             _position = p_position;
             setRotation(p_rotation);
         }
 
-        void setNear(const float p_near)
-        {
+        void setNear(const float p_near) {
             _near = glm::max(1e-2f, p_near);
             _updateProjectionMatrix();
         }
-        void setFar(const float p_far)
-        {
+        void setFar(const float p_far) {
             _far = glm::max(1e-2f, p_far);
             _updateProjectionMatrix();
         }
 
-        void setFov(const float p_fov)
-        {
+        void setFov(const float p_fov){
             _fov = p_fov;
             _updateProjectionMatrix();
         }
 
-        void setSpeed(const float p_speed)
-        {
-            _speed = p_speed;
-        }
+        void setSpeed(const float p_speed) { _speed = p_speed; }
 
-        //  FONCTIONS
-        void move(const Vec3f &p_delta)
-        {
+        // ----------------------------------------------------- FONCTIONS -------------------------------------------------------
+        void move(const Vec3f &p_delta) {
             _position += _left * p_delta.x;
             _position += _up * p_delta.y;
             _position += _front * p_delta.z;
             _updateViewMatrix();
         }
 
-        void rotate(const Vec3f &p_delta)
-        {
+        void rotate(const Vec3f &p_delta) {
             _rotation = _rotation * Quatf(p_delta);
             _updateRotation();
         }
 
+        //virtual void receiveEvent(const SDL_Event& p_event) = 0;
+        //virtual void clearEvents() = 0;
+        //virtual void update(const double& p_deltaTime) = 0;
+        //virtual void reset() = 0;
+
     protected:
-        //  ATTRIBUTS
+        // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
+        // camera
         uint _screenWidth = 1u;
         uint _screenHeight = 1u;
         float _aspectRatio = 1.f;
@@ -127,9 +114,10 @@ namespace Controller
         Mat4f _viewMatrix{};
         Mat4f _projectionMatrix{};
 
-        //  FONCTIONS
-        void _updateRotation()
-        {
+        // ----------------------------------------------------- FONCTIONS -------------------------------------------------------
+        void _updateViewMatrix() { _viewMatrix = glm::lookAt(_position, _position + _front, _up); }
+        void _updateProjectionMatrix() { _projectionMatrix = glm::perspective(glm::radians(_fov), _aspectRatio, _near, _far); }
+        void _updateRotation() {
             Mat3d rotation = glm::mat3_cast(_rotation);
             _front = rotation * VEC3F_Z;
             _left = glm::normalize(glm::cross(VEC3F_Y, _front));
@@ -137,16 +125,7 @@ namespace Controller
             _updateViewMatrix();
         }
 
-        void _updateViewMatrix()
-        {
-            _viewMatrix = glm::lookAt(_position, _position + _front, _up);
-        }
-
-        void _updateProjectionMatrix()
-        {
-            _projectionMatrix = glm::perspective(glm::radians(_fov), _aspectRatio, _near, _far);
-        }
     };
 } // namespace Controller
-} // namespace TutoVulkan
+} // namespace M3D
 #endif

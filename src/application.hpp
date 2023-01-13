@@ -46,14 +46,14 @@ namespace M3D
 		private:
 		// ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
 		std::string _title;
-		int		  _width;
-		int		  _height;
-		bool		  _running;
+		int		    _width;
+		int		    _height;
+		bool		_running;
 
 		UI::UserInterface*  _ui{};
-		Scene::Scene*		  _scene{};
+		Scene::Scene*		_scene{};
 		Controller::Camera* _camera{};
-		Engine::Engine*	  _renderer{};
+		Engine::Engine*	    _renderer{};
 
 		// ----------------------------------------------------- FONCTIONS -------------------------------------------------------
 		void _update() const;

@@ -18,6 +18,36 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\application.cpp" />
+    <ClCompile Include="src\controller\freefly_camera.cpp" />
+    <ClCompile Include="src\engine\vulkan\vulkan_engine.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\scene\scene.cpp" />
+    <ClCompile Include="src\ui\user_interface.cpp" />
+    <ClCompile Include="src\utils\image.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\application.hpp" />
+    <ClInclude Include="src\controller\camera.hpp" />
+    <ClInclude Include="src\controller\freefly_camera.hpp" />
+    <ClInclude Include="src\controller\keyboard_controller.hpp" />
+    <ClInclude Include="src\controller\mouse_controller.hpp" />
+    <ClInclude Include="src\engine\vulkan\vk_error_helper.hpp" />
+    <ClInclude Include="src\engine\vulkan\vulkan_engine.hpp" />
+    <ClInclude Include="src\scene\mesh_triangle.hpp" />
+    <ClInclude Include="src\scene\scene.hpp" />
+    <ClInclude Include="src\ui\user_interface.hpp" />
+    <ClInclude Include="src\utils\chrono.hpp" />
+    <ClInclude Include="src\utils\constant.hpp" />
+    <ClInclude Include="src\utils\define.hpp" />
+    <ClInclude Include="src\utils\file_path.hpp" />
+    <ClInclude Include="src\engine\gl_utils.hpp" />
+    <ClInclude Include="src\utils\image.hpp" />
+    <ClInclude Include="src\utils\portable_file_dialogs.h" />
+    <ClInclude Include="src\utils\random.hpp" />
+    <ClInclude Include="src\utils\read_file.hpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -126,9 +156,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="M3D_lite.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

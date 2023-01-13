@@ -1,7 +1,5 @@
 #include "application.hpp"
 
-#include "imgui/imgui.h"
-
 #include "controller/freefly_camera.hpp"
 #include "engine/engine.hpp"
 #include "model/scene.hpp"
@@ -39,7 +37,7 @@ namespace M3D
 
 	void Application::_update() const
 	{
-		const float deltaTime = ImGui::GetIO().DeltaTime; // ui.getDeltaTime() ?
+		const float deltaTime =  ui.getDeltaTime();
 
 		_camera->update(deltaTime);
 		_ui->update();

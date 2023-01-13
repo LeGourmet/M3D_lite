@@ -1,5 +1,5 @@
-#ifndef __MODEL_SCENE__
-#define __MODEL_SCENE__
+#ifndef __SCENE__
+#define __SCENE__
 
 #include <assimp/material.h>
 #include <assimp/scene.h>
@@ -25,13 +25,12 @@ namespace Scene
         std::vector<MeshTriangle *> getMeshes() const { return _meshes; }
 
         void addMesh( const std::string &p_path ) { _loadFile(p_path); }
-        void clearScene();
+        void clearScene() { _meshes.clear(); } // clear all texutre/vertex ... from engine + clear _meshes
 
     private:
         void _loadFile( const std::string &p_path );
-        void _loadMesh( const aiMesh * const p_mesh, const aiScene * const p_scene );
-		void _loadMaterial( const aiMaterial * const p_mtl );
-		Texture	 _loadTexture( const aiString & p_path, const std::string & p_type );
+        MeshTriangle* _loadMesh( const aiMesh * const p_mesh);
+        void _loadMaterial( const std::string& p_path, MeshTriangle* triMesh, const aiMaterial* const p_mtl );
 
     private:
         std::vector<MeshTriangle *> _meshes = std::vector<MeshTriangle *>();

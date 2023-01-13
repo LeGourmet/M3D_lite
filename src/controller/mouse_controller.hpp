@@ -1,9 +1,7 @@
-#ifndef __CONTROLLER_MOUSE_CONTROLLER__
-#define __CONTROLLER_MOUSE_CONTROLLER__
+#ifndef __MOUSE_CONTROLLER__
+#define __MOUSE_CONTROLLER__
 
-#include <SDL_events.h>
-
-namespace TutoVulkan
+namespace M3D
 {
 namespace Controller
 {
@@ -99,5 +97,5 @@ namespace Controller
         }
     };
 } // namespace Controller
-} // namespace TutoVulkan
+} // namespace M3D
 #endif

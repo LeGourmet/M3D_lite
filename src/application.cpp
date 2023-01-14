@@ -1,9 +1,10 @@
 #include "application.hpp"
 
+#include "user_interface/window.hpp"
+#include "user_interface/user_interface.hpp"
 #include "controller/freefly_camera.hpp"
+#include "scene/scene.hpp"
 #include "engine/engine.hpp"
-#include "model/scene.hpp"
-#include "ui/user_interface.hpp"
 
 namespace M3D
 {
@@ -11,6 +12,7 @@ namespace M3D
 
 	Application::~Application()
 	{
+		delete _window;
 		delete _ui;
 		delete _scene;
 		delete _camera;
@@ -21,13 +23,14 @@ namespace M3D
 	{
 		_running = true;
 
-		_ui = new UI::UserInterface();
-		_scene = new Scene::Scene();
+		_window = new UserInterface::Window();
+		_ui = new UserInterface::UserInterface();
 		_camera = new Controller::FreeflyCamera();
+		_scene = new Scene::Scene();
 		_renderer = new Engine::Engine();
 
-		_camera->setScreenSize(_width, _height);
-		_renderer->initRenderer(_ui->getWindow());
+		_camera->setScreenSize(_width,_height);
+		_renderer->initRenderer(_window->get());
 
 		while (_running)
 			_update();
@@ -37,10 +40,10 @@ namespace M3D
 
 	void Application::_update() const
 	{
-		const float deltaTime =  ui.getDeltaTime();
+		const float deltaTime = _ui->getDeltaTime();
 
 		_camera->update(deltaTime);
-		_ui->update();
+		_window->captureEvents();
 		_renderer->drawFrame(deltaTime);
 	}
-} // namespace M3D
+}

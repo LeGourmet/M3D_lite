@@ -1,0 +1,18 @@
+camera => 
+	- ajouter possibiliter ortho
+	- ajouter trackball
+	- ajouter freefly contrainte
+	- ajouter gampad
+	- changer pour vrai lookat permettant trackball
+	- degager sdl
+	- degager controller pour les utiliser plus inteligement
+
+scene =>
+	- clear des texture et autres valeurs instancier pour l'engine
+	- graphe de scene / découpage de la scene en tronçons pour rendu plus opti
+	- ajout de lights (sun, autre, texture(env,lightsmap,...))
+
+mesh_triangle =>
+	- stockage valeurs pour vertex/... pour engine
+	- ajout d'autre textures / valeurs
+	- ajout autres loaders

@@ -1,16 +1,15 @@
 #ifndef __APPLICATION_HPP__
 #define __APPLICATION_HPP__
 
-#include "scene/scene.hpp"
 #include <string>
 
 namespace M3D
 {
-
-	namespace UI { class UserInterface; }
+	namespace Window { class Window; }
+	namespace UserInterface { class UserInterface; }
+	namespace Controller { class Camera; }
 	namespace Scene { class Scene; }
 	namespace Engine { class Engine; }
-	namespace Controller { class Camera; }
 
 	class Application final
 	{
@@ -21,7 +20,7 @@ namespace M3D
 			return instance;
 		}
 		
-		// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------
+		// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 		Application();
 		~Application();
 
@@ -34,29 +33,31 @@ namespace M3D
 		unsigned int getHeight() const { return Application::_height; }
 		bool isRunning() const { return Application::_running; }
 		
-		UI::UserInterface& getUI() const { return *_ui; }
-		Scene::Scene& getScene() const { return *_scene; }
+		UserInterface::Window& getWindow() const { return *_window; }
+		UserInterface::UserInterface& getUserInterface() const { return *_ui; }
 		Controller::Camera& getCamera() const { return *_camera; }
+		Scene::Scene& getScene() const { return *_scene; }
 		Engine::Engine& getRenderer() const { return *_renderer; }
 
-		// ---------------------------------------------------- FONCTIONS -------------------------------------------------------
+		// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 		void start();
 		void stop();
 
 		private:
-		// ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
+		// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 		std::string _title;
 		int		    _width;
 		int		    _height;
 		bool		_running;
 
-		UI::UserInterface*  _ui{};
-		Scene::Scene*		_scene{};
-		Controller::Camera* _camera{};
-		Engine::Engine*	    _renderer{};
+		UserInterface::Window*			_window{};
+		UserInterface::UserInterface*	_ui{};
+		Controller::Camera*				_camera{};
+		Scene::Scene*					_scene{};
+		Engine::Engine*					_renderer{};
 
-		// ----------------------------------------------------- FONCTIONS -------------------------------------------------------
+		// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 		void _update() const;
 	};
-} // namespace M3D
-#endif // __APPLICATION_HPP__
+}
+#endif

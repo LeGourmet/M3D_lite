@@ -1,15 +1,19 @@
-#ifndef __CONTROLLER_CAMERA__
-#define __CONTROLLER_CAMERA__
+#ifndef __CONTROLLER_CAMERA_HPP__
+#define __CONTROLLER_CAMERA_HPP__
 
 #include "utils/define.hpp"
-#include <detail/type_quat.hpp>
-#include <gtc/quaternion.hpp>
+#include "keyboard_controller.hpp"
+#include "mouse_controller.hpp"
+#include "gamepad_controller.hpp"
 
-namespace TutoVulkan
+#include "glm/gtc/quaternion.hpp"
+#include "glm/detail/type_quat.hpp"
+
+namespace M3D
 {
 namespace Controller
 {
-    class Camera
+    class Camera : public KeyboardController, public MouseController, public GamepadController
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------
@@ -88,14 +92,23 @@ namespace Controller
             _updateRotation();
         }
 
-        //virtual void receiveEvent(const SDL_Event& p_event) = 0;
-        //virtual void clearEvents() = 0;
-        //virtual void update(const double& p_deltaTime) = 0;
-        //virtual void reset() = 0;
+        void receiveEvent(const SDL_Event& p_event) override {
+            KeyboardController::receiveEvent(p_event);
+            MouseController::receiveEvent(p_event);
+            GamepadController::receiveEvent(p_event);
+        }
+
+        void clearEvents() override {
+            KeyboardController::clearEvents();
+            MouseController::clearEvents();
+            GamepadController::clearEvents();
+        }
+
+        virtual void update(const double& p_deltaTime) = 0;
+        virtual void reset() = 0;
 
     protected:
         // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
-        // camera
         uint _screenWidth = 1u;
         uint _screenHeight = 1u;
         float _aspectRatio = 1.f;
@@ -126,6 +139,6 @@ namespace Controller
         }
 
     };
-} // namespace Controller
-} // namespace M3D
+}
+}
 #endif

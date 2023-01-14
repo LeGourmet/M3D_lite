@@ -1,8 +1,7 @@
-#ifndef __MESH_TRIANGLE__
-#define __MESH_TRIANGLE__
+#ifndef __MESH_TRIANGLE_HPP__
+#define __MESH_TRIANGLE_HPP__
 
 #include "application.hpp"
-#include "engine/engine.hpp"
 #include "utils/define.hpp"
 
 namespace M3D
@@ -35,11 +34,11 @@ namespace Scene
         Engine::Texture const * getShininessMap() { return &_shininessMap; }
         Engine::Texture const * getNormalMap() { return &_normalMap; }
 
-        void setAmbientMap(const std::string &p_path) { _ambientMap = App::getInstance().getRenderer().createTexture(p_path); }
-        void setDiffuseMap(const std::string &p_path) { _diffuseMap = App::getInstance().getRenderer().createTexture(p_path); }
-        void setSpecularMap(const std::string &p_path) { _specularMap = App::getInstance().getRenderer().createTexture(p_path); }
-        void setShininessMap(const std::string &p_path) { _shininessMap = App::getInstance().getRenderer().createTexture(p_path); }
-        void setNormalMap(const std::string &p_path) { _normalMap = App::getInstance().getRenderer().createTexture(p_path); }
+        void setAmbientMap(const std::string &p_path) { _ambientMap = Application::getInstance().getRenderer().createTexture(p_path); }
+        void setDiffuseMap(const std::string &p_path) { _diffuseMap = Application::getInstance().getRenderer().createTexture(p_path); }
+        void setSpecularMap(const std::string &p_path) { _specularMap = Application::getInstance().getRenderer().createTexture(p_path); }
+        void setShininessMap(const std::string &p_path) { _shininessMap = Application::getInstance().getRenderer().createTexture(p_path); }
+        void setNormalMap(const std::string &p_path) { _normalMap = Application::getInstance().getRenderer().createTexture(p_path); }
 
         void addTriangle(const unsigned int p_v0, const unsigned int p_v1, const unsigned int p_v2) { _triangles.emplace_back(p_v0, p_v1, p_v2); }
         void addVertex(const float p_x, const float p_y, const float p_z) { _vertices.emplace_back(p_x, p_y, p_z); }
@@ -61,7 +60,7 @@ namespace Scene
         bool _hasShininessMap = false;
         bool _hasNormalMap = false;
 
-        Mat4f _transformation = MAT4_ID;
+        Mat4f _transformation = MAT4F_ID;
     private:
         std::string _name;
 
@@ -78,7 +77,7 @@ namespace Scene
         Engine::Texture _shininessMap;
         Engine::Texture _normalMap;
     };
-} // namespace Scene
-} // namespace M3D
+}
+}
 
 #endif

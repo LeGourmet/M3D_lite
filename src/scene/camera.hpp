@@ -1,19 +1,16 @@
-#ifndef __CONTROLLER_CAMERA_HPP__
-#define __CONTROLLER_CAMERA_HPP__
+#ifndef __CAMERA_HPP__
+#define __CAMERA_HPP__
 
 #include "utils/define.hpp"
-#include "controller/keyboard_controller.hpp"
-#include "controller/mouse_controller.hpp"
-#include "controller/gamepad_controller.hpp"
 
 #include "glm/gtc/quaternion.hpp"
 #include "glm/detail/type_quat.hpp"
 
 namespace M3D
 {
-namespace Camera
+namespace Scene
 {
-    class Camera : public Controller::KeyboardController, public Controller::MouseController, public Controller::GamepadController
+    class Camera
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------
@@ -58,11 +55,6 @@ namespace Camera
             _updateRotation();
         }
 
-        void set(const Vec3f &p_position, const Quatf &p_rotation) {
-            _position = p_position;
-            setRotation(p_rotation);
-        }
-
         void setNear(const float p_near) {
             _near = glm::max(1e-2f, p_near);
             _updateProjectionMatrix();
@@ -87,25 +79,16 @@ namespace Camera
             _updateViewMatrix();
         }
 
-        void rotate(const Vec3f &p_delta) {
+        // void rotateArround(const Vec3f& p_lookat, const Vec3f& p_delta){} (trackball)
+        void rotate(const Vec3f& p_delta) {
             _rotation = _rotation * Quatf(p_delta);
             _updateRotation();
         }
 
-        void receiveEvent(const SDL_Event& p_event) override {
-            Controller::KeyboardController::receiveEvent(p_event);
-            Controller::MouseController::receiveEvent(p_event);
-            Controller::GamepadController::receiveEvent(p_event);
+        void reset() {
+            setPosition(VEC3F_ZERO);
+            setRotation(Quatf(1.0, { 0.0, 0.0, 0.0 }));
         }
-
-        void clearEvents() override {
-            Controller::KeyboardController::clearEvents();
-            Controller::MouseController::clearEvents();
-            Controller::GamepadController::clearEvents();
-        }
-
-        virtual void update(const double& p_deltaTime) = 0;
-        virtual void reset() = 0;
 
     protected:
         // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
@@ -117,7 +100,7 @@ namespace Camera
         float _fov = 60.f;
         float _speed = 100.f;
 
-        Vec3f _position = VEC3F_Z * -10.f;
+        Vec3f _position = VEC3F_ZERO;
         Quatf _rotation = Quatf(1.0, {0.0, 0.0, 0.0});
 
         Vec3f _front = VEC3F_Z;

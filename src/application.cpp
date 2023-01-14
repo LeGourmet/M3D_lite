@@ -1,10 +1,11 @@
 #include "application.hpp"
 
 #include "user_interface/window.hpp"
-#include "user_interface/user_interface.hpp"
-#include "camera/freefly_camera.hpp"
-#include "scene/scene.hpp"
-#include "engine/engine.hpp"
+#include "user_interface/input_manager.hpp"
+#include "user_interface/audio_manager.hpp"
+#include "user_interface/graphical_user_interface.hpp"
+#include "scene/scene_manager.hpp"
+#include "renderer/renderer_engine.hpp"
 
 namespace M3D
 {
@@ -13,9 +14,10 @@ namespace M3D
 	Application::~Application()
 	{
 		delete _window;
-		delete _ui;
-		delete _scene;
-		delete _camera;
+		delete _inputManager;
+		delete _audioManager;
+		delete _gui;
+		delete _sceneManager;
 		delete _renderer;
 	}
 
@@ -23,14 +25,14 @@ namespace M3D
 	{
 		_running = true;
 
-		_window = new UserInterface::Window();
-		_ui = new UserInterface::UserInterface();
-		_camera = new Camera::FreeflyCamera();
-		_scene = new Scene::Scene();
-		_renderer = new Engine::Engine();
+		_window			= new UserInterface::Window();
+		_inputManager	= new UserInterface::InputManager();
+		_audioManager	= new UserInterface::AudioManager();
+		_gui			= new UserInterface::GraphicalUserInterface();
+		_sceneManager	= new Scene::SceneManager();
+		_renderer		= new Renderer::RenderEngine();
 
-		_camera->setScreenSize(_width,_height);
-		_renderer->initRenderer(_window->get());
+		_renderer->init(_window->get());
 
 		while (_running)
 			_update();
@@ -40,10 +42,12 @@ namespace M3D
 
 	void Application::_update() const
 	{
-		const float deltaTime = _ui->getDeltaTime();
+		const float deltaTime = 0.1f;//getDeltaTime();
 
-		_camera->update(deltaTime);
-		_window->captureEvents();
+		_inputManager->captureEvents();
+		//_audioManager->update(deltaTime);
+		//_gui->update(deltaTime);
+		//_sceneManager->update(deltaTime);
 		_renderer->drawFrame(deltaTime);
 	}
 }

@@ -12,17 +12,7 @@
 
 namespace M3D
 {
-// General settings.
-#ifdef _DEBUG
-	const bool VERBOSE = true;
-#else
-	const bool VERBOSE = false;
-#endif
-
 	// Types.
-	using uint = unsigned int;
-	using uchar = unsigned char;
-
 	using Vec2f = glm::vec2;
 	using Vec2i = glm::ivec2;
 	using Vec2u = glm::uvec2;
@@ -68,12 +58,6 @@ namespace M3D
 	constexpr Mat4f MAT4F_ID = Mat4f(1.f);
 
 	enum ENGINE_TYPE {OPENGL,VULKAN,METAL};
+}
 
-	// Open GL constants.
-	const int  OPENGL_VERSION_MAJOR = 4;
-	const int  OPENGL_VERSION_MINOR = 5;
-	const char GLSL_VERSION[]		= "#version 450";
-
-} // namespace M3D
-
-#endif // __DEFINE_HPP__
+#endif

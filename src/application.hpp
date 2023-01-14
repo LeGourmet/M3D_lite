@@ -6,10 +6,11 @@
 namespace M3D
 {
 	namespace UserInterface { class Window; }
-	namespace UserInterface { class UserInterface; }
-	namespace Camera { class Camera; }
-	namespace Scene { class Scene; }
-	namespace Engine { class Engine; }
+	namespace UserInterface { class InputManager; }
+	namespace UserInterface { class AudioManager; }
+	namespace UserInterface { class GraphicalUserInterface; }
+	namespace Scene { class SceneManager; }
+	namespace Renderer { class RenderEngine; }
 
 	class Application final
 	{
@@ -34,10 +35,11 @@ namespace M3D
 		bool isRunning() const { return Application::_running; }
 		
 		UserInterface::Window& getWindow() const { return *_window; }
-		UserInterface::UserInterface& getUserInterface() const { return *_ui; }
-		Camera::Camera& getCamera() const { return *_camera; }
-		Scene::Scene& getScene() const { return *_scene; }
-		Engine::Engine& getRenderer() const { return *_renderer; }
+		UserInterface::InputManager& getInputManager() const { return *_inputManager; }
+		UserInterface::AudioManager& getAudioManager() const { return *_audioManager; }
+		UserInterface::GraphicalUserInterface& getGraphicalUserInterface() const { return *_gui; }
+		Scene::SceneManager& getSceneManager() const { return *_sceneManager; }
+		Renderer::RenderEngine& getRenderer() const { return *_renderer; }
 
 		// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 		void start();
@@ -50,11 +52,12 @@ namespace M3D
 		int		    _height;
 		bool		_running;
 
-		UserInterface::Window*			_window{};
-		UserInterface::UserInterface*	_ui{};
-		Camera::Camera*				_camera{};
-		Scene::Scene*					_scene{};
-		Engine::Engine*					_renderer{};
+		UserInterface::Window*					_window{};
+		UserInterface::InputManager*			_inputManager{};
+		UserInterface::AudioManager*			_audioManager{};
+		UserInterface::GraphicalUserInterface*	_gui{};
+		Scene::SceneManager*					_sceneManager{};
+		Renderer::RenderEngine*					_renderer{};
 
 		// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 		void _update() const;

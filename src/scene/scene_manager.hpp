@@ -5,6 +5,7 @@
 #include <assimp/scene.h>
 
 #include "mesh_triangle.hpp"
+#include "camera.hpp"
 
 #include <string>
 #include <vector>
@@ -13,19 +14,23 @@ namespace M3D
 {
 namespace Scene
 {
-    class Scene
+    class SceneManager
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-        Scene() {}
-        ~Scene() {}
+        SceneManager() { _camera = new Camera(); }
+        ~SceneManager() { 
+            clearScene();
+            delete _camera; 
+        }
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
         std::vector<MeshTriangle *> getMeshes() const { return _meshes; }
+        Camera& getCamera() const { return *_camera; }
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void addMesh( const std::string &p_path ) { _loadFile(p_path); }
-        void clearScene() { _meshes.clear(); } // clear all texutre/vertex ... from engine + clear _meshes
+        void clearScene() { _meshes.clear(); _camera->reset(); } // + clear all texutre/vertex ... from engine + clear _meshes
 
     private:
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
@@ -35,7 +40,8 @@ namespace Scene
 
     private:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-        std::vector<MeshTriangle *> _meshes = std::vector<MeshTriangle *>();
+        std::vector<MeshTriangle *> _meshes = std::vector<MeshTriangle *>();      
+        Camera* _camera;
     };
 }
 }

@@ -13,7 +13,7 @@ namespace M3D
             // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------
             Window() {
                 try{
-                    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) // add flag
+                    if (SDL_Init(SDL_INIT_VIDEO) != 0) // add flag SDL_INIT_JOYSTICK, SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER
                         throw std::runtime_error("Exception caught: " + std::string(SDL_GetError()));
 
                     SDL_WindowFlags engineTypeFlag;
@@ -44,37 +44,6 @@ namespace M3D
 
             // ----------------------------------------------------- GETTERS -------------------------------------------------------
             SDL_Window* get() const { return _window; }
-
-            // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-            void captureEvents() {
-                SDL_Event event;
-                while (SDL_PollEvent(&event)) {
-                    switch (event.type) {
-                    case SDL_WINDOWEVENT:
-                        switch (event.window.event)
-                        {
-                        case SDL_WINDOWEVENT_SIZE_CHANGED:
-                            Application::getInstance().getCamera().setScreenSize(event.window.data1, event.window.data2);
-                            break;
-                        case SDL_WINDOWEVENT_CLOSE:
-                            Application::getInstance().stop();
-                            break;
-                        default:
-                            break;
-                        }
-                        break;
-
-                    case SDL_QUIT:
-                        Application::getInstance().stop();
-                        break;
-
-                    default:
-                        if(!Application::getInstance().getUserInterface().captureEvent(event))
-                            Application::getInstance().getCamera().receiveEvent(event);
-                        break;
-                    }
-                }
-            }
 
         private:
             // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------

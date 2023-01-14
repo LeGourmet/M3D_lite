@@ -1,18 +1,18 @@
-#ifndef __USER_INTERFACE_HPP__
-#define __USER_INTERFACE_HPP__
+#ifndef __GRAPHICAL_USER_INTERFACE_HPP__
+#define __GRAPHICAL_USER_INTERFACE_HPP__
 
-#include "utils/portable_file_dialogs.h"
+#include <SDL.h>
 
 namespace M3D
 {
 namespace UserInterface
 {
-    class UserInterface
+    class GraphicalUserInterface
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------
-        UserInterface() {
-            try {
+        GraphicalUserInterface() {
+            /*try {
                 if (!IMGUI_CHECKVERSION())
                     throw std::runtime_error("Exception caught: IMGUI_CHECKVERSION() failed");
 
@@ -40,14 +40,14 @@ namespace UserInterface
             {
                 std::cerr << "Exception caught: " << std::endl << p_e.what() << std::endl;
                 _dispose();
-            }
+            }*/
         }
 
-        ~UserInterface() { _dispose(); }
+        ~GraphicalUserInterface() { _dispose(); }
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         bool captureEvent(SDL_Event event) {
-            ImGuiIO& io = ImGui::GetIO();
+            /*ImGuiIO& io = ImGui::GetIO();
             ImGui_ImplSDL2_ProcessEvent(&event);
 
             // New frame.
@@ -117,24 +117,23 @@ namespace UserInterface
 
             ImGui::Render();
 
-            return (io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput);
+            return (io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput);*/
+            return false;
         }
-
-        const float getDeltaTime() { return; }
 
     private:
         // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
-        std::shared_ptr<pfd::open_file> _openFileDialog = nullptr;
-        TRUC_ENUM state;
+        //std::shared_ptr<pfd::open_file> _openFileDialog = nullptr;
+        //TRUC_ENUM state;
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void _dispose() {
-            Application::getInstance().getRenderer().waitIdle();
+            /*Application::getInstance().getRenderer().waitIdle();
             ImGui_ImplVulkan_Shutdown();
             ImGui_ImplSDL2_Shutdown();
             if (ImGui::GetCurrentContext() != nullptr)
                 ImGui::DestroyContext();
-            Application::getInstance().getRenderer().cleanup();
+            Application::getInstance().getRenderer().cleanup();*/
         }
     };
 }

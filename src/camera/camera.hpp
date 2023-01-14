@@ -2,18 +2,18 @@
 #define __CONTROLLER_CAMERA_HPP__
 
 #include "utils/define.hpp"
-#include "keyboard_controller.hpp"
-#include "mouse_controller.hpp"
-#include "gamepad_controller.hpp"
+#include "controller/keyboard_controller.hpp"
+#include "controller/mouse_controller.hpp"
+#include "controller/gamepad_controller.hpp"
 
 #include "glm/gtc/quaternion.hpp"
 #include "glm/detail/type_quat.hpp"
 
 namespace M3D
 {
-namespace Controller
+namespace Camera
 {
-    class Camera : public KeyboardController, public MouseController, public GamepadController
+    class Camera : public Controller::KeyboardController, public Controller::MouseController, public Controller::GamepadController
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------
@@ -93,15 +93,15 @@ namespace Controller
         }
 
         void receiveEvent(const SDL_Event& p_event) override {
-            KeyboardController::receiveEvent(p_event);
-            MouseController::receiveEvent(p_event);
-            GamepadController::receiveEvent(p_event);
+            Controller::KeyboardController::receiveEvent(p_event);
+            Controller::MouseController::receiveEvent(p_event);
+            Controller::GamepadController::receiveEvent(p_event);
         }
 
         void clearEvents() override {
-            KeyboardController::clearEvents();
-            MouseController::clearEvents();
-            GamepadController::clearEvents();
+            Controller::KeyboardController::clearEvents();
+            Controller::MouseController::clearEvents();
+            Controller::GamepadController::clearEvents();
         }
 
         virtual void update(const double& p_deltaTime) = 0;

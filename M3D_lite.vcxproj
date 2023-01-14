@@ -27,12 +27,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application.hpp" />
-    <ClInclude Include="src\controller\camera.hpp" />
-    <ClInclude Include="src\controller\freefly_camera.hpp" />
+    <ClInclude Include="src\camera\camera.hpp" />
+    <ClInclude Include="src\camera\freefly_camera.hpp" />
     <ClInclude Include="src\controller\gamepad_controller.hpp" />
     <ClInclude Include="src\controller\keyboard_controller.hpp" />
     <ClInclude Include="src\controller\mouse_controller.hpp" />
-    <ClInclude Include="src\controller\trackball_camera.hpp" />
+    <ClInclude Include="src\camera\trackball_camera.hpp" />
     <ClInclude Include="src\engine\engine.hpp" />
     <ClInclude Include="src\engine\vulkan\vk_error_helper.hpp" />
     <ClInclude Include="src\engine\vulkan\vulkan_engine.hpp" />

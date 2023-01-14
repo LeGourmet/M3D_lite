@@ -13,8 +13,16 @@ namespace M3D
             // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------
             Window() {
                 try{
-                    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
+                    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) // add flag
                         throw std::runtime_error("Exception caught: " + std::string(SDL_GetError()));
+
+                    SDL_WindowFlags engineTypeFlag;
+                    switch (Application::getInstance().getRenderer().getType()) {
+                        case ENGINE_TYPE::OPENGL : engineTypeFlag = SDL_WINDOW_OPENGL; break;
+                        case ENGINE_TYPE::VULKAN : engineTypeFlag = SDL_WINDOW_VULKAN; break;
+                        case ENGINE_TYPE::METAL : engineTypeFlag = SDL_WINDOW_METAL; break;
+                        default: throw std::runtime_error("Non-supported renderer by this window!"); break;
+                    }
 
                     _window = SDL_CreateWindow(
                         Application::getInstance().getTitle().c_str(),
@@ -22,7 +30,7 @@ namespace M3D
                         SDL_WINDOWPOS_CENTERED,
                         Application::getInstance().getWidth(),
                         Application::getInstance().getHeight(),
-                        SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI); // SDL_WINDOW_ => get engine ?
+                        SDL_WINDOW_SHOWN | engineTypeFlag | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 
                     if (_window == nullptr)
                         throw std::runtime_error("Exception caught: " + std::string(SDL_GetError()));
@@ -61,7 +69,7 @@ namespace M3D
                         break;
 
                     default:
-                        if (!Application::getInstance().getUserInterface().captureEvent(event))
+                        if(!Application::getInstance().getUserInterface().captureEvent(event))
                             Application::getInstance().getCamera().receiveEvent(event);
                         break;
                     }
@@ -74,8 +82,7 @@ namespace M3D
 
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
             void _dispose() {
-                if (_window)
-                    SDL_DestroyWindow(_window);
+                if (_window) SDL_DestroyWindow(_window);
                 _window = nullptr;
                 SDL_Quit();
             }

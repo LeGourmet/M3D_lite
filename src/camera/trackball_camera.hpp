@@ -5,7 +5,7 @@
 
 namespace M3D
 {
-    namespace Controller
+    namespace Camera
     {
         class TrackballCamera : public Camera
         {

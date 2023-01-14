@@ -32,10 +32,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\controller\camera.hpp">
+    <ClInclude Include="src\camera\camera.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\controller\freefly_camera.hpp">
+    <ClInclude Include="src\camera\freefly_camera.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\controller\keyboard_controller.hpp">
@@ -89,7 +89,7 @@
     <ClInclude Include="src\utils\chrono.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\controller\trackball_camera.hpp">
+    <ClInclude Include="src\camera\trackball_camera.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\controller\gamepad_controller.hpp">

@@ -2,7 +2,7 @@
 
 #include "user_interface/window.hpp"
 #include "user_interface/user_interface.hpp"
-#include "controller/freefly_camera.hpp"
+#include "camera/freefly_camera.hpp"
 #include "scene/scene.hpp"
 #include "engine/engine.hpp"
 
@@ -25,7 +25,7 @@ namespace M3D
 
 		_window = new UserInterface::Window();
 		_ui = new UserInterface::UserInterface();
-		_camera = new Controller::FreeflyCamera();
+		_camera = new Camera::FreeflyCamera();
 		_scene = new Scene::Scene();
 		_renderer = new Engine::Engine();
 

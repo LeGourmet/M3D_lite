@@ -5,9 +5,9 @@
 
 namespace M3D
 {
-	namespace Window { class Window; }
+	namespace UserInterface { class Window; }
 	namespace UserInterface { class UserInterface; }
-	namespace Controller { class Camera; }
+	namespace Camera { class Camera; }
 	namespace Scene { class Scene; }
 	namespace Engine { class Engine; }
 
@@ -35,7 +35,7 @@ namespace M3D
 		
 		UserInterface::Window& getWindow() const { return *_window; }
 		UserInterface::UserInterface& getUserInterface() const { return *_ui; }
-		Controller::Camera& getCamera() const { return *_camera; }
+		Camera::Camera& getCamera() const { return *_camera; }
 		Scene::Scene& getScene() const { return *_scene; }
 		Engine::Engine& getRenderer() const { return *_renderer; }
 
@@ -52,7 +52,7 @@ namespace M3D
 
 		UserInterface::Window*			_window{};
 		UserInterface::UserInterface*	_ui{};
-		Controller::Camera*				_camera{};
+		Camera::Camera*				_camera{};
 		Scene::Scene*					_scene{};
 		Engine::Engine*					_renderer{};
 

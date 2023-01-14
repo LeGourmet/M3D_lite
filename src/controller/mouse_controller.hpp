@@ -1,6 +1,8 @@
 #ifndef __MOUSE_CONTROLLER_HPP__
 #define __MOUSE_CONTROLLER_HPP__
 
+#include <SDL_events.h>
+
 namespace M3D
 {
 namespace Controller
@@ -48,8 +50,8 @@ namespace Controller
                     break;
 
                 case SDL_MOUSEMOTION:
-                    _deltaMousePosition.x = p_event.motion.xrel;
-                    _deltaMousePosition.y = p_event.motion.yrel;
+                    _deltaMousePositionX = p_event.motion.xrel;
+                    _deltaMousePositionY = p_event.motion.yrel;
                     break;
 
                 case SDL_MOUSEWHEEL:
@@ -65,8 +67,8 @@ namespace Controller
             _mouseLeftPressed = false;
             _mouseRightPressed = false;
             _mouseMiddlePressed = false;
-            _deltaMousePosition.x = 0;
-            _deltaMousePosition.y = 0;
+            _deltaMousePositionX = 0;
+            _deltaMousePositionY = 0;
             _deltaMouseWheel = 0;
         }
 
@@ -75,7 +77,8 @@ namespace Controller
         bool _mouseLeftPressed = false;
         bool _mouseRightPressed = false;
         bool _mouseMiddlePressed = false;
-        Vec2i _deltaMousePosition = Vec2i(0,0);
+        int  _deltaMousePositionX = 0;
+        int  _deltaMousePositionY = 0;
         int _deltaMouseWheel = 0;
     };
 }

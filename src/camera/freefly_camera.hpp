@@ -5,7 +5,7 @@
 
 namespace M3D
 {
-namespace Controller
+namespace Camera
 {
     class FreeflyCamera : public Camera
     {
@@ -20,11 +20,11 @@ namespace Controller
             // Rotation.
             if (_mouseLeftPressed)
             {
-                rotate(Vec3f(0.005f * float(_deltaMousePosition.y),
-                    -0.005f * float(_deltaMousePosition.x),
+                rotate(Vec3f(0.005f * float(_deltaMousePositionY),
+                    -0.005f * float(_deltaMousePositionX),
                     0.f));
-                _deltaMousePosition.x = 0;
-                _deltaMousePosition.y = 0;
+                _deltaMousePositionX = 0;
+                _deltaMousePositionY = 0;
             }
 
             // Translation.

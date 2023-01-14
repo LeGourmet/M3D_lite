@@ -67,6 +67,8 @@ namespace M3D
 	constexpr Mat3f MAT3F_ID = Mat3f(1.f);
 	constexpr Mat4f MAT4F_ID = Mat4f(1.f);
 
+	enum ENGINE_TYPE {OPENGL,VULKAN,METAL};
+
 	// Open GL constants.
 	const int  OPENGL_VERSION_MAJOR = 4;
 	const int  OPENGL_VERSION_MINOR = 5;

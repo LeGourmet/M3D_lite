@@ -28,8 +28,8 @@ namespace Scene
         const Vec3f &getLeft() const { return _left; }
         const Vec3f &getUp() const { return _up; }
 
-        uint getScreenWidth() const { return _screenWidth; }
-        uint getScreenHeight() const { return _screenHeight; }
+        unsigned int getScreenWidth() const { return _screenWidth; }
+        unsigned int getScreenHeight() const { return _screenHeight; }
         float getAspectRatio() const { return _aspectRatio; }
 
         float *getNear() { return &_near; }
@@ -38,7 +38,7 @@ namespace Scene
         float *getSpeed() { return &_speed; }
 
         // ----------------------------------------------------- SETTERS -------------------------------------------------------
-        void setScreenSize(const uint p_width, const uint p_height) {
+        void setScreenSize(const unsigned int p_width, const unsigned int p_height) {
             _screenWidth = p_width;
             _screenHeight = p_height;
             _aspectRatio = float(_screenWidth) / float(_screenHeight);
@@ -92,8 +92,8 @@ namespace Scene
 
     protected:
         // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
-        uint _screenWidth = 1u;
-        uint _screenHeight = 1u;
+        unsigned int _screenWidth = 1u;
+        unsigned int _screenHeight = 1u;
         float _aspectRatio = 1.f;
         float _near = 0.01f;
         float _far = 1e4f;
@@ -116,7 +116,7 @@ namespace Scene
         void _updateRotation() {
             Mat3d rotation = glm::mat3_cast(_rotation);
             _front = rotation * VEC3F_Z;
-            _left = glm::normalize(glm::cross(VEC3F_Y, _front));
+            _left = glm::normalize(glm::cross(VEC3F_Y, _front)); // care if Vec3f_Y==_front
             _up = glm::normalize(glm::cross(_front, _left));
             _updateViewMatrix();
         }

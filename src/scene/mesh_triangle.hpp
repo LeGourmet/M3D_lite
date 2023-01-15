@@ -3,6 +3,7 @@
 
 #include "application.hpp"
 #include "utils/define.hpp"
+#include "renderer/texture.hpp"
 
 namespace M3D
 {
@@ -28,11 +29,11 @@ namespace Scene
         std::vector<Vec3f> &getTangents() { return _tangents; }
         std::vector<Vec3f> &getBitangents() { return _bitangents; }
 
-        Engine::Texture const * getAmbientMap() { return &_ambientMap; }
-        Engine::Texture const * getDiffuseMap() { return &_diffuseMap; }
-        Engine::Texture const * getSpecularMap() { return &_specularMap; }
-        Engine::Texture const * getShininessMap() { return &_shininessMap; }
-        Engine::Texture const * getNormalMap() { return &_normalMap; }
+        Renderer::Texture const * getAmbientMap() { return &_ambientMap; }
+        Renderer::Texture const * getDiffuseMap() { return &_diffuseMap; }
+        Renderer::Texture const * getSpecularMap() { return &_specularMap; }
+        Renderer::Texture const * getShininessMap() { return &_shininessMap; }
+        Renderer::Texture const * getNormalMap() { return &_normalMap; }
 
         void setAmbientMap(const std::string &p_path) { _ambientMap = Application::getInstance().getRenderer().createTexture(p_path); }
         void setDiffuseMap(const std::string &p_path) { _diffuseMap = Application::getInstance().getRenderer().createTexture(p_path); }
@@ -71,11 +72,11 @@ namespace Scene
         std::vector<Vec3f> _tangents;
         std::vector<Vec3f> _bitangents;
 
-        Engine::Texture _ambientMap;
-        Engine::Texture _diffuseMap;
-        Engine::Texture _specularMap;
-        Engine::Texture _shininessMap;
-        Engine::Texture _normalMap;
+        Renderer::Texture _ambientMap;
+        Renderer::Texture _diffuseMap;
+        Renderer::Texture _specularMap;
+        Renderer::Texture _shininessMap;
+        Renderer::Texture _normalMap;
     };
 }
 }

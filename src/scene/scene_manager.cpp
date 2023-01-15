@@ -12,7 +12,7 @@ namespace M3D
 namespace Scene
 {
 
-    void Scene::_loadMaterial( const std::string& p_path, MeshTriangle* p_meshTri, const aiMaterial* p_mtl)
+    void SceneManager::_loadMaterial( const std::string& p_path, MeshTriangle* p_meshTri, const aiMaterial* p_mtl)
     {
         aiString texturePath;
         aiColor3D aiCol; 
@@ -59,7 +59,7 @@ namespace Scene
         if (p_mtl->Get(AI_MATKEY_SHININESS     , aiS  ) == AI_SUCCESS) p_meshTri->_s  = aiS;
     }
 
-    MeshTriangle* Scene::_loadMesh(const aiMesh *const p_mesh)
+    MeshTriangle* SceneManager::_loadMesh(const aiMesh *const p_mesh)
     {
         MeshTriangle *triMesh = new MeshTriangle(std::string(p_mesh->mName.C_Str()));
         triMesh->_hasUVs = p_mesh->HasTextureCoords(0);
@@ -85,7 +85,7 @@ namespace Scene
         return triMesh;
     }
 
-    void Scene::_loadFile(const std::string &p_path)
+    void SceneManager::_loadFile(const std::string &p_path)
     {
         Assimp::Importer importer;
 

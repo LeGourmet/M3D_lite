@@ -3,6 +3,7 @@
 
 #include <assimp/material.h>
 #include <assimp/scene.h>
+#include <SDL.h>
 
 #include "mesh_triangle.hpp"
 #include "camera.hpp"
@@ -21,7 +22,7 @@ namespace Scene
         SceneManager() { _camera = new Camera(); }
         ~SceneManager() { 
             clearScene();
-            delete _camera; 
+            delete _camera;
         }
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
@@ -29,9 +30,13 @@ namespace Scene
         Camera& getCamera() const { return *_camera; }
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-        void addMesh( const std::string &p_path ) { _loadFile(p_path); }
+        void addMeshes( const std::string &p_path ) { _loadFile(p_path); }
+        //void addMesh( const std::string& p_path, const std::string& p_name) { } // load only one meshes from obj
+        void update(const float p_deltaTime) {}
+        bool captureEvent(SDL_Event p_event) { return false; }
+        void removeMesh( MeshTriangle * const p_mesh ) { _meshes.erase( std::find( _meshes.begin(), _meshes.end(), p_mesh ) ); }
         void clearScene() { _meshes.clear(); _camera->reset(); } // + clear all texutre/vertex ... from engine + clear _meshes
-
+        
     private:
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void _loadFile( const std::string &p_path );
@@ -40,8 +45,8 @@ namespace Scene
 
     private:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+        Camera *_camera;
         std::vector<MeshTriangle *> _meshes = std::vector<MeshTriangle *>();      
-        Camera* _camera;
     };
 }
 }

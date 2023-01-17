@@ -11,6 +11,8 @@ namespace M3D
             // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
             Texture() {}
             ~Texture() {}
+
+            virtual void bind(int p_id) = 0;
         };
     }
 }

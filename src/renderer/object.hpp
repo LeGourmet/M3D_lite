@@ -1,16 +1,16 @@
-#ifndef __RENDERER_ENGINE_HPP__
-#define __RENDERER_ENGINE_HPP__
+#ifndef __OBJECT_HPP__
+#define __OBJECT_HPP__
 
 namespace M3D
 {
     namespace Renderer
     {
-        class RendererEngine
+        class Object
         {
         public:
             // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-            RendererEngine() {}
-            ~RendererEngine() {}
+            Object() {}
+            ~Object() {}
         };
     }
 }

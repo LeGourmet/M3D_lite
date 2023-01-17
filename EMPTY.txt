@@ -1,0 +1,21 @@
+application 
+	=> audio + gui sont créés mais pas utilisé
+		\=> les deux classes sont vides
+	=> deltaTime doit être repensé
+	=> fonction resize ?
+
+scene_manager
+	=> update() et captureEvent sont vide
+	=> addMesh() commenté
+	=> clearScene incomplet
+	=> removeMesh() et addMeshes() inutilisés
+	
+- mesh_Triangle
+	\=> renderer.CreateTexture(path) ne marche pas
+	\=> Transformation jamais changé
+	\=> renderer::dataOBJ pas défini
+-camera
+	\=>rotate_arround peu ne pas marché
+	\=>param jamais changé / fonctions jamais utilisé
+
+renderer

@@ -6,11 +6,10 @@
 namespace M3D
 {
 	namespace UserInterface { class Window; }
-	namespace UserInterface { class InputManager; }
 	namespace UserInterface { class AudioManager; }
 	namespace UserInterface { class GraphicalUserInterface; }
 	namespace Scene { class SceneManager; }
-	namespace Renderer { class RenderEngine; }
+	namespace Renderer { class RendererManager; }
 
 	class Application final
 	{
@@ -35,11 +34,10 @@ namespace M3D
 		bool isRunning() const { return Application::_running; }
 		
 		UserInterface::Window& getWindow() const { return *_window; }
-		UserInterface::InputManager& getInputManager() const { return *_inputManager; }
 		UserInterface::AudioManager& getAudioManager() const { return *_audioManager; }
 		UserInterface::GraphicalUserInterface& getGraphicalUserInterface() const { return *_gui; }
 		Scene::SceneManager& getSceneManager() const { return *_sceneManager; }
-		Renderer::RenderEngine& getRenderer() const { return *_renderer; }
+		Renderer::RendererManager& getRendererManager() const { return *_rendererManager; }
 
 		// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 		void start();
@@ -53,11 +51,10 @@ namespace M3D
 		bool		_running;
 
 		UserInterface::Window*					_window{};
-		UserInterface::InputManager*			_inputManager{};
 		UserInterface::AudioManager*			_audioManager{};
 		UserInterface::GraphicalUserInterface*	_gui{};
 		Scene::SceneManager*					_sceneManager{};
-		Renderer::RenderEngine*					_renderer{};
+		Renderer::RendererManager*				_rendererManager{};
 
 		// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 		void _update() const;

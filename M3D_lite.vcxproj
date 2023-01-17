@@ -21,11 +21,16 @@
   <ItemGroup>
     <ClCompile Include="src\application.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\renderer\OpenGL\renderer_ogl.cpp" />
     <ClCompile Include="src\scene\scene_manager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application.hpp" />
-    <ClInclude Include="src\renderer\renderer_engine.hpp" />
+    <ClInclude Include="src\renderer\object.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\renderer_ogl.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\texture_ogl.hpp" />
+    <ClInclude Include="src\renderer\renderer.hpp" />
+    <ClInclude Include="src\renderer\renderer_manager.hpp" />
     <ClInclude Include="src\scene\camera.hpp" />
     <ClInclude Include="src\controller\gamepad_controller.hpp" />
     <ClInclude Include="src\controller\keyboard_controller.hpp" />
@@ -34,7 +39,6 @@
     <ClInclude Include="src\scene\mesh_triangle.hpp" />
     <ClInclude Include="src\scene\scene_manager.hpp" />
     <ClInclude Include="src\user_interface\audio_manager.hpp" />
-    <ClInclude Include="src\user_interface\input_manager.hpp" />
     <ClInclude Include="src\user_interface\graphical_user_interface.hpp" />
     <ClInclude Include="src\utils\define.hpp" />
     <ClInclude Include="src\user_interface\window.hpp" />

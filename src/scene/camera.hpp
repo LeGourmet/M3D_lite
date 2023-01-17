@@ -15,7 +15,7 @@ namespace Scene
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------
         Camera() { _updateRotation(); }
-        virtual ~Camera() = default;
+        ~Camera() {}
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
         const Quatf &getRotation() const { return _rotation; }
@@ -79,15 +79,22 @@ namespace Scene
             _updateViewMatrix();
         }
 
-        // void rotateArround(const Vec3f& p_lookat, const Vec3f& p_delta){} (trackball)
+        // need test
+        void rotateArround(const Vec3f& p_lookat, const Vec3f& p_delta){
+            _rotation *= Quatf(p_delta);
+            _position *= _rotation * Vec3f(p_delta) + p_lookat;
+            _updateRotation();
+        }
+        
         void rotate(const Vec3f& p_delta) {
-            _rotation = _rotation * Quatf(p_delta);
+            _rotation *= Quatf(p_delta);
             _updateRotation();
         }
 
         void reset() {
-            setPosition(VEC3F_ZERO);
-            setRotation(Quatf(1.0, { 0.0, 0.0, 0.0 }));
+            _position = VEC3F_ZERO;
+            _rotation = Quatf(1.0, { 0.0, 0.0, 0.0 });
+            _updateRotation();
         }
 
     protected:
@@ -103,9 +110,9 @@ namespace Scene
         Vec3f _position = VEC3F_ZERO;
         Quatf _rotation = Quatf(1.0, {0.0, 0.0, 0.0});
 
-        Vec3f _front = VEC3F_Z;
-        Vec3f _left = VEC3F_X;
-        Vec3f _up = VEC3F_Y;
+        Vec3f _front = -VEC3F_Z;     
+        Vec3f _left = -VEC3F_X;      
+        Vec3f _up = VEC3F_Y;        
 
         Mat4f _viewMatrix{};
         Mat4f _projectionMatrix{};
@@ -113,11 +120,11 @@ namespace Scene
         // ----------------------------------------------------- FONCTIONS -------------------------------------------------------
         void _updateViewMatrix() { _viewMatrix = glm::lookAt(_position, _position + _front, _up); }
         void _updateProjectionMatrix() { _projectionMatrix = glm::perspective(glm::radians(_fov), _aspectRatio, _near, _far); }
-        void _updateRotation() {
+        void _updateRotation() {  // need test
             Mat3d rotation = glm::mat3_cast(_rotation);
-            _front = rotation * VEC3F_Z;
-            _left = glm::normalize(glm::cross(VEC3F_Y, _front)); // care if Vec3f_Y==_front
-            _up = glm::normalize(glm::cross(_front, _left));
+            _front = rotation * -VEC3F_Z;
+            _left = rotation * -VEC3F_X;
+            _up = rotation * VEC3F_Y;
             _updateViewMatrix();
         }
 

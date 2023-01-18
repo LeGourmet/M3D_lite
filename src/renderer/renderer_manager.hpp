@@ -20,7 +20,7 @@ namespace M3D
             }
             ~RendererManager() { delete _renderer; }
 
-            Renderer& getRenderer() const { *_renderer; }
+            Renderer& getRenderer() const { return *_renderer; }
             SDL_WindowFlags getRendererWindowFlags() const {
                 SDL_WindowFlags engineTypeFlag;
                 switch (_type) {
@@ -34,7 +34,7 @@ namespace M3D
 
         private:
             RENDERER_TYPE _type;
-            Renderer* _renderer;
+            Renderer* _renderer = nullptr;
         };
     }
 }

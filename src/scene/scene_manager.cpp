@@ -1,7 +1,5 @@
 #include "scene_manager.hpp"
 
-#include "application.hpp"
-
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 
@@ -11,6 +9,41 @@ namespace M3D
 {
 namespace Scene
 {
+    SceneManager::SceneManager() {
+        _camera = new Camera();
+        _meshes = std::vector<MeshTriangle*>();
+    }
+            
+
+    SceneManager::~SceneManager() { 
+        clearScene();
+        delete _camera;
+    }
+
+    void SceneManager::addMeshes(const std::string& p_path) { _loadFile(p_path); }
+    
+    void SceneManager::addMesh( const std::string& p_path, const std::string& p_name) { } // load only one meshes from obj
+    
+    void SceneManager::update(const float p_deltaTime) {}
+    
+    bool SceneManager::captureEvent(SDL_Event p_event) { return false; }
+
+    void SceneManager::removeMesh(const unsigned int p_id) {
+        delete _meshes[p_id];
+        _meshes.erase(_meshes.begin() + p_id);
+    }
+
+    void SceneManager::removeMesh(MeshTriangle* const p_mesh) {
+        std::vector<MeshTriangle*>::iterator it = std::find(_meshes.begin(), _meshes.end(), p_mesh);
+        delete _meshes[std::distance(_meshes.begin(), it)];
+        _meshes.erase(it);
+    }
+
+    void SceneManager::clearScene() {
+        for (int i = 0; i < _meshes.size();i++) delete _meshes[i];
+        _meshes.clear();
+        _camera->reset();
+    }
 
     void SceneManager::_loadMaterial( const std::string& p_path, MeshTriangle* p_meshTri, const aiMaterial* p_mtl)
     {

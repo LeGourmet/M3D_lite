@@ -15,17 +15,8 @@ namespace Scene
     class MeshTriangle
     {
     public:
-        MeshTriangle(const std::string &p_name)
-            : _name(p_name), _ambientMap(), _diffuseMap(), _specularMap(), _normalMap(), _shininessMap() {};
-
-        ~MeshTriangle() {
-            delete _ambientMap;
-            delete _diffuseMap;
-            delete _specularMap;
-            delete _shininessMap;
-            delete _normalMap;
-            delete _rendererDatas;
-        }
+        MeshTriangle(const std::string &p_name);
+        ~MeshTriangle();
 
         std::string getName() { return _name; }
 

@@ -3,6 +3,7 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include "application.hpp"
+#include "scene/scene_manager.hpp"
 #include "scene/mesh_triangle.hpp"
 
 #include <fstream>

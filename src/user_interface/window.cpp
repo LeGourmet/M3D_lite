@@ -1,11 +1,16 @@
 #include "window.hpp"
 
 #include "application.hpp"
+#include "scene/scene_manager.hpp"
+#include "graphical_user_interface.hpp"
 
 namespace M3D
 {
     namespace UserInterface
     {
+        Window::Window() : _window(nullptr) {}
+        Window::~Window() { _dispose(); }
+
         void Window::create(SDL_WindowFlags p_rendererTypeFlag) {
             try {
                 if (SDL_Init(SDL_INIT_VIDEO) != 0) // add flag SDL_INIT_JOYSTICK, SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER

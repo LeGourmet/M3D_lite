@@ -19,38 +19,23 @@ namespace Scene
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-        SceneManager() { _camera = new Camera(); }
-        ~SceneManager() { 
-            clearScene();
-            delete _camera;
-        }
+        SceneManager();
+        ~SceneManager();
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
         std::vector<MeshTriangle *> getMeshes() const { return _meshes; }
         Camera& getCamera() const { return *_camera; }
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-        void addMeshes( const std::string &p_path ) { _loadFile(p_path); }
-        //void addMesh( const std::string& p_path, const std::string& p_name) { } // load only one meshes from obj
-        void update(const float p_deltaTime) {}
-        bool captureEvent(SDL_Event p_event) { return false; }
+        void addMeshes(const std::string& p_path);
+        void addMesh(const std::string& p_path, const std::string& p_name);
+        
+        void update(const float p_deltaTime);
+        bool captureEvent(SDL_Event p_event);
 
-        void removeMesh(const unsigned int p_id) { 
-            delete _meshes[p_id]; 
-            _meshes.erase(_meshes.begin() + p_id); 
-        }
- 
-        void removeMesh(MeshTriangle* const p_mesh) {
-            std::vector<MeshTriangle*>::iterator it = std::find(_meshes.begin(), _meshes.end(), p_mesh);
-            delete _meshes[std::distance(_meshes.begin(),it)];
-            _meshes.erase(it);
-        }
-
-        void clearScene() { 
-            for (int i=0; i<_meshes.size() ;i++) delete _meshes[i];
-            _meshes.clear(); 
-            _camera->reset(); 
-        }
+        void removeMesh(const unsigned int p_id);
+        void removeMesh(MeshTriangle* const p_mesh);
+        void clearScene();
         
     private:
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
@@ -62,7 +47,7 @@ namespace Scene
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
         Camera *_camera;
         // lights ?
-        std::vector<MeshTriangle *> _meshes = std::vector<MeshTriangle *>();      
+        std::vector<MeshTriangle *> _meshes;      
     };
 }
 }

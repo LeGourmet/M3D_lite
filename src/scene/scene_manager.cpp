@@ -66,14 +66,16 @@ namespace Scene
 
         for (unsigned int v = 0; v < p_mesh->mNumVertices; ++v)
         {
-            triMesh->addVertex(p_mesh->mVertices[v].x, p_mesh->mVertices[v].y, p_mesh->mVertices[v].z);
-            triMesh->addNormal(p_mesh->mNormals[v].x, p_mesh->mNormals[v].y, p_mesh->mNormals[v].z);
+            Vertex vertex;
+            vertex._position = Vec3f(p_mesh->mVertices[v].x, p_mesh->mVertices[v].y, p_mesh->mVertices[v].z);
+            vertex._normal = Vec3f(p_mesh->mNormals[v].x, p_mesh->mNormals[v].y, p_mesh->mNormals[v].z);
             if (triMesh->_hasUVs)
             {
-                triMesh->addUV(p_mesh->mTextureCoords[0][v].x, p_mesh->mTextureCoords[0][v].y);
-                triMesh->addTangent(p_mesh->mTangents[v].x, p_mesh->mTangents[v].y, p_mesh->mTangents[v].z);
-                triMesh->addBitangent(p_mesh->mBitangents[v].x, p_mesh->mBitangents[v].y, p_mesh->mBitangents[v].z);
+                vertex._uvs = Vec2i(p_mesh->mTextureCoords[0][v].x, p_mesh->mTextureCoords[0][v].y);
+                vertex._tangent = Vec3f(p_mesh->mTangents[v].x, p_mesh->mTangents[v].y, p_mesh->mTangents[v].z);
+                vertex._bitangent = Vec3f(p_mesh->mBitangents[v].x, p_mesh->mBitangents[v].y, p_mesh->mBitangents[v].z);
             }
+            triMesh->addVertex(vertex);
         }
 
         for (unsigned int f = 0; f < p_mesh->mNumFaces; ++f)

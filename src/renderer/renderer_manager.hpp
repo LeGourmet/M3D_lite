@@ -15,7 +15,6 @@ namespace M3D
         public:
             // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
             RendererManager() {
-                // avec define, defini quel renderer choisir
                 _renderer = new RendererOGL();
                 _type = RENDERER_TYPE::OPENGL;
             }

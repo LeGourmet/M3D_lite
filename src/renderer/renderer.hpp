@@ -3,7 +3,9 @@
 
 #include <SDL.h>
 
+#include "scene/vertex.hpp"
 #include "texture.hpp"
+#include "object.hpp"
 
 #include <string>
 
@@ -23,12 +25,7 @@ namespace M3D
             virtual void resize(const int p_width, const int p_height) = 0;
             virtual void drawFrame() = 0;
             virtual Texture* createTexture(const std::string p_path) = 0;
-            virtual Object* createObject(   std::vector<Vec3f> p_vertices, 
-                                            std::vector<Vec3f> _normals, 
-                                            std::vector<Vec3u> _triangles, 
-                                            std::vector<Vec2f> _uvs, 
-                                            std::vector<Vec3f> _tangents, 
-                                            std::vector<Vec3f> _bitangents) = 0;
+            virtual Object* createObject(std::vector<Vertex> _vertices, std::vector<unsigned int> _indices ) = 0;
         };
     }
 }

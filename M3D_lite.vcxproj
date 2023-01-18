@@ -22,11 +22,14 @@
     <ClCompile Include="src\application.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\renderer\OpenGL\renderer_ogl.cpp" />
+    <ClCompile Include="src\scene\mesh_triangle.cpp" />
     <ClCompile Include="src\scene\scene_manager.cpp" />
+    <ClCompile Include="src\user_interface\window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application.hpp" />
     <ClInclude Include="src\renderer\object.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\object_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\renderer_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\texture_ogl.hpp" />
     <ClInclude Include="src\renderer\renderer.hpp" />
@@ -38,10 +41,12 @@
     <ClInclude Include="src\renderer\texture.hpp" />
     <ClInclude Include="src\scene\mesh_triangle.hpp" />
     <ClInclude Include="src\scene\scene_manager.hpp" />
+    <ClInclude Include="src\scene\vertex.hpp" />
     <ClInclude Include="src\user_interface\audio_manager.hpp" />
     <ClInclude Include="src\user_interface\graphical_user_interface.hpp" />
     <ClInclude Include="src\utils\define.hpp" />
     <ClInclude Include="src\user_interface\window.hpp" />
+    <ClInclude Include="src\utils\image.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

@@ -2,7 +2,10 @@
 #define __RENDERER_OGL_HPP__
 
 #include "GL/gl3w.h"
-#include "../renderer.hpp"
+
+#include "texture_ogl.hpp"
+#include "object_ogl.hpp"
+#include "renderer/renderer.hpp"
 
 namespace M3D
 {
@@ -11,54 +14,32 @@ namespace M3D
 		class RendererOGL : public Renderer
 		{
 		public:
-			RendererOGL() : Renderer() {}
+			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
+			RendererOGL() {}
 			~RendererOGL() {}
 
-			void init(SDL_Window* p_window) override;
+			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+			void init(SDL_Window* p_window) override {
+				_program = _initProgram("./shaders/pass0.vert","./shaders/pass0.frag");
+				_uMVPMatrixLoc = glGetUniformLocation(_program, "uMVPMatrix");
+				_uCamPosLoc = glGetUniformLocation(_program, "uCamPos");
+			}
 			void resize(const int p_width, const int p_height) { glViewport(0, 0, p_width, p_height); };
 			void drawFrame() override;
-			Texture* createTexture(const std::string p_path) override;
-
-
-			/*
-				void TriangleMeshModel::cleanGL()
-					{
-						for ( size_t i = 0; i < _meshes.size(); i++ )
-						{
-							_meshes[ i ].cleanGL();
-						}
-						for ( size_t i = 0; i < _loadedTextures.size(); i++ )
-						{
-							glDeleteTextures( 1, &( _loadedTextures[ i ]._id ) );
-						}
-						_loadedTextures.clear();
-					}
 			
-				void TriangleMesh::cleanGL()
-					{
-						glDisableVertexArrayAttrib( _vao, 0 );
-						glDisableVertexArrayAttrib( _vao, 1 );
-						glDisableVertexArrayAttrib( _vao, 2 );
-						glDisableVertexArrayAttrib( _vao, 3 );
-						glDisableVertexArrayAttrib( _vao, 4 );
-						glDeleteVertexArrays( 1, &_vao );
-						glDeleteBuffers( 1, &_vbo );
-						glDeleteBuffers( 1, &_ebo );
-						glDeleteTextures( 1, &( _material._ambientMap._id ) );
-						glDeleteTextures( 1, &( _material._diffuseMap._id ) );
-						glDeleteTextures( 1, &( _material._specularMap._id ) );
-						glDeleteTextures( 1, &( _material._shininessMap._id ) );
-						glDeleteTextures( 1, &( _material._normalMap._id ) );
-					}
-			*/
+			Texture* createTexture(const std::string p_path) override { return new TextureOGL(p_path); }
+			Object* createObject(const std::vector<Vertex> p_vertices, const std::vector<unsigned int> p_indices) override { return new ObjectOGL(p_vertices,p_indices); }
 
 		private:
-			bool _initProgram();
-
-		private:
+			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 			GLuint _program = GL_INVALID_INDEX;
 			GLint  _uMVPMatrixLoc = GL_INVALID_INDEX;
 			GLint  _uCamPosLoc = GL_INVALID_INDEX;
+
+			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+			const GLchar* _readShader(std::string p_path);
+			void _readCompileShader(GLuint p_shader, std::string p_path);
+			GLuint _initProgram(std::string p_pathVert, std::string p_pathFrag);
 		};
 	}
 }

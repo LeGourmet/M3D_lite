@@ -3,9 +3,9 @@
 
 #include <SDL.h>
 
-#include "scene/vertex.hpp"
 #include "texture.hpp"
-#include "object.hpp"
+#include "buffer.hpp"
+#include "utils/define.hpp"
 
 #include <string>
 
@@ -25,7 +25,7 @@ namespace M3D
             virtual void resize(const int p_width, const int p_height) = 0;
             virtual void drawFrame() = 0;
             virtual Texture* createTexture(const std::string p_path) = 0;
-            virtual Object* createObject(std::vector<Vertex> _vertices, std::vector<unsigned int> _indices ) = 0;
+            virtual Buffer* createObject(std::vector<Vertex> _vertices, std::vector<unsigned int> _indices ) = 0;
         };
     }
 }

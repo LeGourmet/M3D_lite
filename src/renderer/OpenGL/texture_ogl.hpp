@@ -30,7 +30,7 @@ namespace M3D
 						default: format = GL_RGBA; internalFormat = GL_RGBA32F; break;
 					}
 
-					unsigned int lvMipMap = std::floor(std::log2(std::max<int>(image._width, image._height))) + 1;
+					unsigned int lvMipMap = (unsigned int)std::floor(std::log2(std::max<int>(image._width, image._height))) + 1;
 					glTextureStorage2D(_id, lvMipMap, internalFormat, image._width, image._height);
 					glTextureParameteri(_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
 					glTextureParameteri(_id, GL_TEXTURE_WRAP_T, GL_REPEAT);

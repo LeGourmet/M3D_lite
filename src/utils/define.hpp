@@ -56,6 +56,14 @@ namespace M3D
 
 	constexpr Mat3f MAT3F_ID = Mat3f(1.f);
 	constexpr Mat4f MAT4F_ID = Mat4f(1.f);
+
+	typedef struct Vertex {
+		Vec3f _position;
+		Vec3f _normal;
+		Vec2f _uvs;
+		Vec3f _tangent;
+		Vec3f _bitangent;
+	} Vertex;
 }
 
 #endif

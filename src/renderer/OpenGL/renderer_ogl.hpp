@@ -4,7 +4,7 @@
 #include "GL/gl3w.h"
 
 #include "texture_ogl.hpp"
-#include "object_ogl.hpp"
+#include "buffer_ogl.hpp"
 #include "renderer/renderer.hpp"
 
 namespace M3D
@@ -28,7 +28,7 @@ namespace M3D
 			void drawFrame() override;
 			
 			Texture* createTexture(const std::string p_path) override { return new TextureOGL(p_path); }
-			Object* createObject(const std::vector<Vertex> p_vertices, const std::vector<unsigned int> p_indices) override { return new ObjectOGL(p_vertices,p_indices); }
+			Buffer* createObject(const std::vector<Vertex> p_vertices, const std::vector<unsigned int> p_indices) override { return new BufferOGL(p_vertices,p_indices); }
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------

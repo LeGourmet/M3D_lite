@@ -3,10 +3,8 @@
 
 #include "application.hpp"
 #include "utils/define.hpp"
-#include "vertex.hpp"
 #include "renderer/texture.hpp"
-#include "renderer/object.hpp"
-
+#include "renderer/buffer.hpp"
 
 namespace M3D
 {
@@ -18,8 +16,6 @@ namespace Scene
         MeshTriangle(const std::string &p_name);
         ~MeshTriangle();
 
-        std::string getName() { return _name; }
-
         std::vector<Vertex> &getVertices() { return _vertices; }
         std::vector<unsigned int> &getIndices() { return _indices; }
 
@@ -28,19 +24,21 @@ namespace Scene
         Renderer::Texture& getSpecularMap() const { return *_specularMap; }
         Renderer::Texture& getShininessMap() const { return *_shininessMap; }
         Renderer::Texture& getNormalMap() const { return *_normalMap; }
-        Renderer::Object& getRendererDatas() const { return *_rendererDatas; }
+        Renderer::Buffer& getVAO() const { return *_vao; }
 
         void setAmbientMap(const std::string& p_path);
         void setDiffuseMap(const std::string& p_path);
         void setSpecularMap(const std::string& p_path);
         void setShininessMap(const std::string& p_path);
         void setNormalMap(const std::string& p_path);
-        void setRendererDatas();
+        void setVAO();
 
         void addTriangle(const unsigned int p_v0, const unsigned int p_v1, const unsigned int p_v2);
         void addVertex(const Vertex p_vertex);
 
     public:
+        std::string _name;
+
         Vec3f _ka = VEC3F_ZERO;
         Vec3f _kd = VEC3F_ZERO;
         Vec3f _ks = VEC3F_ZERO;
@@ -55,8 +53,6 @@ namespace Scene
 
         Mat4f _transformation = MAT4F_ID;
     private:
-        std::string _name;
-
         std::vector<Vertex> _vertices;
         std::vector<unsigned int> _indices;
 
@@ -65,7 +61,7 @@ namespace Scene
         Renderer::Texture* _specularMap = nullptr;
         Renderer::Texture* _shininessMap = nullptr;
         Renderer::Texture* _normalMap = nullptr;
-        Renderer::Object*  _rendererDatas = nullptr;
+        Renderer::Buffer*  _vao = nullptr;
     };
 }
 }

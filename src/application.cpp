@@ -1,7 +1,6 @@
 #include "application.hpp"
 
-#include "user_interface/window.hpp"
-#include "user_interface/audio_manager.hpp"
+#include "input_output/window.hpp"
 #include "user_interface/graphical_user_interface.hpp"
 #include "scene/scene_manager.hpp"
 #include "renderer/renderer_manager.hpp"
@@ -13,7 +12,6 @@ namespace M3D
 	Application::~Application()
 	{
 		delete _window;
-		delete _audioManager;
 		delete _gui;
 		delete _sceneManager;
 		delete _rendererManager;
@@ -23,8 +21,7 @@ namespace M3D
 	{
 		_running = true;
 
-		_window			 = new UserInterface::Window();
-		_audioManager	 = new UserInterface::AudioManager();
+		_window			 = new InputOutput::Window();
 		_gui			 = new UserInterface::GraphicalUserInterface();
 		_sceneManager	 = new Scene::SceneManager();
 		_rendererManager = new Renderer::RendererManager();
@@ -38,6 +35,11 @@ namespace M3D
 	}
 
 	void Application::stop() { _running = false; }
+
+	void Application::resize(int p_width, int p_height) {
+		_sceneManager->getCamera().setScreenSize(p_width,p_height);
+		_rendererManager->getRenderer().resize(p_width,p_height);
+	}
 
 	void Application::_update() const
 	{

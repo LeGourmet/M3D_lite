@@ -19,7 +19,7 @@ namespace M3D
             delete _specularMap;
             delete _shininessMap;
             delete _normalMap;
-            delete _rendererDatas;
+            delete _vao;
         }
 
         void MeshTriangle::setAmbientMap(const std::string& p_path) { _ambientMap = Application::getInstance().getRendererManager().getRenderer().createTexture(p_path); }
@@ -27,7 +27,7 @@ namespace M3D
         void MeshTriangle::setSpecularMap(const std::string& p_path) { _specularMap = Application::getInstance().getRendererManager().getRenderer().createTexture(p_path); }
         void MeshTriangle::setShininessMap(const std::string& p_path) { _shininessMap = Application::getInstance().getRendererManager().getRenderer().createTexture(p_path); }
         void MeshTriangle::setNormalMap(const std::string& p_path) { _normalMap = Application::getInstance().getRendererManager().getRenderer().createTexture(p_path); }
-        void MeshTriangle::setRendererDatas() { _rendererDatas = Application::getInstance().getRendererManager().getRenderer().createObject(_vertices, _indices); }
+        void MeshTriangle::setVAO() { _vao = Application::getInstance().getRendererManager().getRenderer().createObject(_vertices, _indices); }
 
         void MeshTriangle::addVertex(const Vertex p_vertex) { _vertices.push_back(p_vertex); }
         void MeshTriangle::addTriangle(const unsigned int p_v0, const unsigned int p_v1, const unsigned int p_v2) { 

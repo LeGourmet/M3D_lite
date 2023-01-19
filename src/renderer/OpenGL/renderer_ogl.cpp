@@ -45,7 +45,7 @@ namespace M3D
 					glProgramUniform1i(_program, glGetUniformLocation(_program, "uHasNormalMap"), mesh->_hasNormalMap);
 					if (mesh->_hasNormalMap) mesh->getNormalMap().bind(4);
 
-					mesh->getRendererDatas().bind();
+					mesh->getVAO().bind();
 					glDrawElements(GL_TRIANGLES, mesh->getIndices().size(), GL_UNSIGNED_INT, 0);
 					glBindVertexArray(0);
 				}

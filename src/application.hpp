@@ -5,8 +5,7 @@
 
 namespace M3D
 {
-	namespace UserInterface { class Window; }
-	namespace UserInterface { class AudioManager; }
+	namespace InputOutput { class Window; }
 	namespace UserInterface { class GraphicalUserInterface; }
 	namespace Scene { class SceneManager; }
 	namespace Renderer { class RendererManager; }
@@ -33,8 +32,7 @@ namespace M3D
 		unsigned int getHeight() const { return Application::_height; }
 		bool isRunning() const { return Application::_running; }
 		
-		UserInterface::Window& getWindow() const { return *_window; }
-		UserInterface::AudioManager& getAudioManager() const { return *_audioManager; }
+		InputOutput::Window& getWindow() const { return *_window; }
 		UserInterface::GraphicalUserInterface& getGraphicalUserInterface() const { return *_gui; }
 		Scene::SceneManager& getSceneManager() const { return *_sceneManager; }
 		Renderer::RendererManager& getRendererManager() const { return *_rendererManager; }
@@ -43,6 +41,8 @@ namespace M3D
 		void start();
 		void stop();
 
+		void resize(int p_width, int p_height);
+
 		private:
 		// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 		std::string _title;
@@ -50,8 +50,7 @@ namespace M3D
 		int		    _height;
 		bool		_running;
 
-		UserInterface::Window*					_window{};
-		UserInterface::AudioManager*			_audioManager{};
+		InputOutput::Window*					_window{};
 		UserInterface::GraphicalUserInterface*	_gui{};
 		Scene::SceneManager*					_sceneManager{};
 		Renderer::RendererManager*				_rendererManager{};

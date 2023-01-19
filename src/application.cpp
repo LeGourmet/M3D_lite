@@ -47,6 +47,6 @@ namespace M3D
 
 		_window->captureEvents();
 		_sceneManager->update(deltaTime);
-		_rendererManager->getRenderer().drawFrame();
+		_rendererManager->getRenderer().drawFrame(_window->get());
 	}
 }

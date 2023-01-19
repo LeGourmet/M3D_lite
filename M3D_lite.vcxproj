@@ -32,8 +32,7 @@
     <ClInclude Include="lib\gl3w\GL\gl3w.h" />
     <ClInclude Include="lib\gl3w\GL\glcorearb.h" />
     <ClInclude Include="src\application.hpp" />
-    <ClInclude Include="src\renderer\buffer.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\buffer_ogl.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\vao_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\renderer_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\texture_ogl.hpp" />
     <ClInclude Include="src\renderer\renderer.hpp" />
@@ -42,7 +41,6 @@
     <ClInclude Include="src\controller\gamepad_controller.hpp" />
     <ClInclude Include="src\controller\keyboard_controller.hpp" />
     <ClInclude Include="src\controller\mouse_controller.hpp" />
-    <ClInclude Include="src\renderer\texture.hpp" />
     <ClInclude Include="src\scene\mesh_triangle.hpp" />
     <ClInclude Include="src\scene\scene_manager.hpp" />
     <ClInclude Include="src\user_interface\graphical_user_interface.hpp" />

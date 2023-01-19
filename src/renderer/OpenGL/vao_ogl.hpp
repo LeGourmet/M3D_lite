@@ -1,19 +1,18 @@
-#ifndef __BUFFER_OGL_HPP__
-#define __BUFFER_OGL_HPP__
+#ifndef __VAO_OGL_HPP__
+#define __VAO_OGL_HPP__
 
 #include "GL/gl3w.h"
-#include "renderer/buffer.hpp"
 #include "utils/define.hpp"
 
 namespace M3D
 {
 	namespace Renderer
 	{
-		class BufferOGL : public Buffer
+		class VAO_OGL
 		{
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-			BufferOGL(const std::vector<Vertex> p_vertices, const std::vector<unsigned int> p_indices) {
+			VAO_OGL(const std::vector<Vertex> p_vertices, const std::vector<unsigned int> p_indices) {
 				glCreateBuffers(1, &_ebo);
 				glNamedBufferData(_ebo, p_indices.size() * sizeof(unsigned int), p_indices.data(), GL_STATIC_DRAW);
 
@@ -29,7 +28,7 @@ namespace M3D
 				_bindValue(4, 3, offsetof(Vertex, _bitangent)); 
 				glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));
 			}
-			~BufferOGL() {
+			~VAO_OGL() {
 				glDisableVertexArrayAttrib(_vao, 0);
 				glDisableVertexArrayAttrib(_vao, 1);
 				glDisableVertexArrayAttrib(_vao, 2);
@@ -41,7 +40,7 @@ namespace M3D
 			}
 
 			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-			void bind() override { glBindVertexArray(_vao); }
+			unsigned int getId() { return (unsigned int) _vao; }
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------

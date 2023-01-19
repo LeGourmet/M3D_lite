@@ -2,7 +2,6 @@
 #define __TEXTURE_OGL_HPP__
 
 #include "GL/gl3w.h"
-#include "renderer/texture.hpp"
 #include "utils/image.hpp"
 
 #include <string>
@@ -13,11 +12,11 @@ namespace M3D
 {
     namespace Renderer
     {
-        class TextureOGL : public Texture
+        class Texture_OGL
         {
         public:
             // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-            TextureOGL(std::string p_path) {
+            Texture_OGL(std::string p_path) {
 				Image image;
 				if (image.load(p_path)) {
 					glCreateTextures(GL_TEXTURE_2D, 1, &_id);
@@ -41,10 +40,10 @@ namespace M3D
 					glGenerateTextureMipmap(_id);
 				}
             }
-            ~TextureOGL() { glDeleteTextures(1, &_id); }
+            ~Texture_OGL() { glDeleteTextures(1, &_id); }
 
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-            void bind(int p_num) override { glBindTextureUnit(p_num, _id); }
+			unsigned int getId() { return (unsigned int)_id; }
 
         private:
             // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------

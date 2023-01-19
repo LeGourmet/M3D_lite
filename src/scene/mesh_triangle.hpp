@@ -3,8 +3,6 @@
 
 #include "application.hpp"
 #include "utils/define.hpp"
-#include "renderer/texture.hpp"
-#include "renderer/buffer.hpp"
 
 namespace M3D
 {
@@ -19,12 +17,12 @@ namespace Scene
         std::vector<Vertex> &getVertices() { return _vertices; }
         std::vector<unsigned int> &getIndices() { return _indices; }
 
-        Renderer::Texture& getAmbientMap() const { return *_ambientMap; }
-        Renderer::Texture& getDiffuseMap() const { return *_diffuseMap; }
-        Renderer::Texture& getSpecularMap() const { return *_specularMap; }
-        Renderer::Texture& getShininessMap() const { return *_shininessMap; }
-        Renderer::Texture& getNormalMap() const { return *_normalMap; }
-        Renderer::Buffer& getVAO() const { return *_vao; }
+        unsigned int getIdAmbientMap() const { return _idAmbientMap; }
+        unsigned int getIdDiffuseMap() const { return _idDiffuseMap; }
+        unsigned int getIdSpecularMap() const { return _idSpecularMap; }
+        unsigned int getIdShininessMap() const { return _idShininessMap; }
+        unsigned int getIdNormalMap() const { return _idNormalMap; }
+        unsigned int getIdVAO() const { return _idVao; }
 
         void setAmbientMap(const std::string& p_path);
         void setDiffuseMap(const std::string& p_path);
@@ -53,15 +51,15 @@ namespace Scene
 
         Mat4f _transformation = MAT4F_ID;
     private:
+        unsigned int _idAmbientMap = 0;
+        unsigned int _idDiffuseMap = 0;
+        unsigned int _idSpecularMap = 0;
+        unsigned int _idShininessMap = 0;
+        unsigned int _idNormalMap = 0;
+        unsigned int _idVao = 0;
+
         std::vector<Vertex> _vertices;
         std::vector<unsigned int> _indices;
-
-        Renderer::Texture* _ambientMap = nullptr;
-        Renderer::Texture* _diffuseMap = nullptr;
-        Renderer::Texture* _specularMap = nullptr;
-        Renderer::Texture* _shininessMap = nullptr;
-        Renderer::Texture* _normalMap = nullptr;
-        Renderer::Buffer*  _vao = nullptr;
     };
 }
 }

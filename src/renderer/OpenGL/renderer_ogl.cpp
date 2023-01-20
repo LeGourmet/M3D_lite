@@ -16,7 +16,7 @@ namespace M3D
 			void RendererOGL::drawFrame(SDL_Window* p_window){
 				glUseProgram(_program);
 				glEnable(GL_DEPTH_TEST);
-				glClearColor(0., 0., 0., 1.); // define.hpp ? => here because color can change
+				glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.a);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 				const Mat4f MV = Application::getInstance().getSceneManager().getCamera().getProjectionMatrix() * Application::getInstance().getSceneManager().getCamera().getViewMatrix();

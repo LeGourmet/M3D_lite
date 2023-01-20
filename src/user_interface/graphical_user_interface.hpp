@@ -11,11 +11,12 @@ namespace UserInterface
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------
-        GraphicalUserInterface() { }
-        ~GraphicalUserInterface() { }
+        GraphicalUserInterface();
+        ~GraphicalUserInterface();
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-        bool captureEvent(SDL_Event event) { return false; }
+        void init();
+        bool captureEvent(SDL_Event event);
 
     private:
         // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------

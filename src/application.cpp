@@ -29,6 +29,8 @@ namespace M3D
 		_window->create(_rendererManager->getRendererWindowFlags());
 		_rendererManager->getRenderer().init(_window->get());
 		_sceneManager->getCamera().setScreenSize(_width, _height);
+		_sceneManager->getCamera().setPosition(Vec3f(0., 0., -1.));
+		_gui->init();
 
 		while (_running)
 			_update();

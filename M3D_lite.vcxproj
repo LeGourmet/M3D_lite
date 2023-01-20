@@ -26,6 +26,7 @@
     <ClCompile Include="src\scene\mesh_triangle.cpp" />
     <ClCompile Include="src\scene\scene_manager.cpp" />
     <ClCompile Include="src\input_output\window.cpp" />
+    <ClCompile Include="src\user_interface\graphical_user_interface.cpp" />
     <ClCompile Include="src\utils\image.cpp" />
   </ItemGroup>
   <ItemGroup>

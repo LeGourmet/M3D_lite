@@ -32,10 +32,10 @@ namespace Scene
         unsigned int getScreenHeight() const { return _screenHeight; }
         float getAspectRatio() const { return _aspectRatio; }
 
-        float *getNear() { return &_near; }
-        float *getFar() { return &_far; }
-        float *getFov() { return &_fov; }
-        float *getSpeed() { return &_speed; }
+        float getNear() const { return _near; }
+        float getFar() const { return _far; }
+        float getFov() const { return _fov; }
+        float getSpeed() const { return _speed; }
 
         // ----------------------------------------------------- SETTERS -------------------------------------------------------
         void setScreenSize(const unsigned int p_width, const unsigned int p_height) {
@@ -114,8 +114,8 @@ namespace Scene
         Vec3f _left = -VEC3F_X;      
         Vec3f _up = VEC3F_Y;        
 
-        Mat4f _viewMatrix{};
-        Mat4f _projectionMatrix{};
+        Mat4f _viewMatrix = MAT4F_ID;
+        Mat4f _projectionMatrix = MAT4F_ID;
 
         // ----------------------------------------------------- FONCTIONS -------------------------------------------------------
         void _updateViewMatrix() { _viewMatrix = glm::lookAt(_position, _position + _front, _up); }

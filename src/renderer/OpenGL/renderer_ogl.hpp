@@ -22,9 +22,9 @@ namespace M3D
 			void init(SDL_Window* p_window) override {
 				if( SDL_GL_CreateContext(p_window) == nullptr ) throw std::exception(SDL_GetError());
 				if (gl3wInit()) throw std::exception("gl3wInit() failed");
-				//SDL_GL_SetSwapInterval(true);
+				SDL_GL_SetSwapInterval(_vSync);
 
-				_program = _initProgram("C:/Users/babow/Desktop/M3D_lite/src/renderer/OpenGL/shaders/pass0.vert","C:/Users/babow/Desktop/M3D_lite/src/renderer/OpenGL/shaders/pass0.frag");
+				_program = _initProgram("src/renderer/OpenGL/shaders/pass0.vert", "src/renderer/OpenGL/shaders/pass0.frag");
 				_uMVPMatrixLoc = glGetUniformLocation(_program, "uMVPMatrix");
 				_uCamPosLoc = glGetUniformLocation(_program, "uCamPos");
 			}

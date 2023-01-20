@@ -26,6 +26,9 @@ namespace M3D
             virtual unsigned int createVAO(std::vector<Vertex> _vertices, std::vector<unsigned int> _indices ) = 0;
             virtual void deleteTexture(unsigned int p_id) = 0;
             virtual void deleteVAO(unsigned int p_id) = 0;
+
+            bool _vSync = true;
+            Vec4f _clearColor = Vec4f(0.5, 0.5, 0.5, 1.);
         };
     }
 }

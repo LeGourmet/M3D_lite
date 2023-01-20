@@ -117,6 +117,7 @@ namespace Scene
             triMesh->addTriangle(face.mIndices[0], face.mIndices[1], face.mIndices[2]);
         }
 
+        triMesh->setVAO();
         return triMesh;
     }
 

@@ -4,7 +4,6 @@
 
 #include "application.hpp"
 #include "scene/scene_manager.hpp"
-#include "scene/mesh_triangle.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -14,17 +13,14 @@ namespace M3D
 	namespace Renderer
 	{
 			void RendererOGL::drawFrame(SDL_Window* p_window){
-				glUseProgram(_program);
-				glEnable(GL_DEPTH_TEST);
-				glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.a);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-				const Mat4f MV = Application::getInstance().getSceneManager().getCamera().getProjectionMatrix() * Application::getInstance().getSceneManager().getCamera().getViewMatrix();
+				const Mat4f VP = Application::getInstance().getSceneManager().getCamera().getProjectionMatrix() * Application::getInstance().getSceneManager().getCamera().getViewMatrix();
 				const Vec3f posCam = Application::getInstance().getSceneManager().getCamera().getPosition();
 				glProgramUniform3f(_program, _uCamPosLoc, posCam.x, posCam.y, posCam.z);
 
 				for (Scene::MeshTriangle* mesh : Application::getInstance().getSceneManager().getMeshes()) {
-					glProgramUniformMatrix4fv(_program, _uMVPMatrixLoc, 1, false, glm::value_ptr(MV * mesh->_transformation));
+					glProgramUniformMatrix4fv(_program, _uMVPMatrixLoc, 1, false, glm::value_ptr(VP * mesh->_transformation));
 
 					glProgramUniform1i(_program, glGetUniformLocation(_program, "uHasAmbientMap"), mesh->_hasAmbientMap);
 					glProgramUniform3fv(_program, glGetUniformLocation(_program, "uAmbient"), 1, glm::value_ptr(mesh->_ka));
@@ -52,34 +48,34 @@ namespace M3D
 				SDL_GL_SwapWindow(p_window);
 			}
 
-			unsigned int RendererOGL::createTexture(const std::string p_path) {
-				Texture_OGL* texture = new Texture_OGL(p_path); 
+			void RendererOGL::createTexture(const std::string p_path, Scene::MeshTriangle* mesh) {
+				/*Texture_OGL* texture = new Texture_OGL(p_path);
 				_textures.push_back(texture);
-				return texture->getId();
+				return texture->getId();*/
 			}
 
-			unsigned int RendererOGL::createVAO(const std::vector<Vertex> p_vertices, const std::vector<unsigned int> p_indices) {
-				VAO_OGL* vao = new VAO_OGL(p_vertices, p_indices); 
+			void RendererOGL::createVAO(const std::vector<Vertex> p_vertices, const std::vector<unsigned int> p_indices, Scene::MeshTriangle* mesh) {
+				/*VAO_OGL* vao = new VAO_OGL(p_vertices, p_indices);
 				_VAOs.push_back(vao);
-				return vao->getId();
+				return vao->getId();*/
 			}
 			
-			void RendererOGL::deleteTexture(unsigned int p_id) {
-				for (int i=0; i<_textures.size() ;i++)
+			void RendererOGL::deleteTexture(unsigned int p_id, Scene::MeshTriangle* mesh) {
+				/*for (int i = 0; i<_textures.size();i++)
 					if (_textures[i]->getId() == p_id) {
 						delete _textures[i];
 						_textures.erase(_textures.begin() + i);
 						break;
-					}
+					}*/
 			}
 			
-			void RendererOGL::deleteVAO(unsigned int p_id) {
-				for (int i = 0; i < _VAOs.size();i++)
+			void RendererOGL::deleteVAO(unsigned int p_id, Scene::MeshTriangle* mesh) {
+				/*for (int i = 0; i < _VAOs.size();i++)
 					if (_VAOs[i]->getId() == p_id) {
 						delete _VAOs[i];
 						_VAOs.erase(_VAOs.begin() + i);
 						break;
-					}
+					}*/
 			}
 
 			const GLchar* RendererOGL::_readShader(std::string p_path) {

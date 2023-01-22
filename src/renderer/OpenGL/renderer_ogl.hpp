@@ -3,9 +3,10 @@
 
 #include "GL/gl3w.h"
 
-#include "texture_ogl.hpp"
-#include "vao_ogl.hpp"
+#include "object_ogl.hpp"
 #include "renderer/renderer.hpp"
+
+#include <map>
 
 namespace M3D
 {
@@ -27,14 +28,22 @@ namespace M3D
 				_program = _initProgram("src/renderer/OpenGL/shaders/pass0.vert", "src/renderer/OpenGL/shaders/pass0.frag");
 				_uMVPMatrixLoc = glGetUniformLocation(_program, "uMVPMatrix");
 				_uCamPosLoc = glGetUniformLocation(_program, "uCamPos");
+
+				glUseProgram(_program);
+				glEnable(GL_DEPTH_TEST);
+				glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.a);
 			}
 			void resize(const int p_width, const int p_height) { glViewport(0, 0, p_width, p_height); };
 			void drawFrame(SDL_Window* p_window) override;
 			
-			unsigned int createTexture(const std::string p_path) override;
-			unsigned int createVAO(const std::vector<Vertex> p_vertices, const std::vector<unsigned int> p_indices) override;
-			void deleteTexture(unsigned int p_id) override;
-			void deleteVAO(unsigned int p_id) override;
+			void createMesh(Scene::MeshTriangle* p_mesh) override { _objects.insert(std::pair<Scene::MeshTriangle*, Object_OGL>(p_mesh, Object_OGL())); }
+			void createAmbiantMap(std::string p_path) { _generateTexture(p_path, &_ambientMap); }
+			void createDiffuseMap(std::string p_path) { _generateTexture(p_path, &_diffuseMap); }
+			void createSpecularMap(std::string p_path) { _generateTexture(p_path, &_specularMap); }
+			void createShininessMap(std::string p_path) { _generateTexture(p_path, &_shininessMap); }
+			void createNormalMap(std::string p_path) { _generateTexture(p_path, &_normalMap); }
+			void createVAO(const std::vector<Vertex> p_vertices, const std::vector<unsigned int> p_indices, Scene::MeshTriangle* mesh) override;
+			void deleteMesh(Scene::MeshTriangle* mesh) override;
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
@@ -42,9 +51,7 @@ namespace M3D
 			GLint  _uMVPMatrixLoc = GL_INVALID_INDEX;
 			GLint  _uCamPosLoc = GL_INVALID_INDEX;
 
-			// TODO convert to set
-			std::vector<VAO_OGL*> _VAOs = std::vector<VAO_OGL*>();
-			std::vector<Texture_OGL*> _textures = std::vector<Texture_OGL*>();
+			std::map<Scene::MeshTriangle*,Object_OGL> _objects;
 
 			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 			const GLchar* _readShader(std::string p_path);

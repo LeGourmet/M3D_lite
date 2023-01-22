@@ -35,7 +35,6 @@ namespace Scene
         float getNear() const { return _near; }
         float getFar() const { return _far; }
         float getFov() const { return _fov; }
-        float getSpeed() const { return _speed; }
 
         // ----------------------------------------------------- SETTERS -------------------------------------------------------
         void setScreenSize(const unsigned int p_width, const unsigned int p_height) {
@@ -68,8 +67,6 @@ namespace Scene
             _fov = p_fov;
             _updateProjectionMatrix();
         }
-
-        void setSpeed(const float p_speed) { _speed = p_speed; }
 
         // ----------------------------------------------------- FONCTIONS -------------------------------------------------------
         void move(const Vec3f &p_delta) {
@@ -105,25 +102,24 @@ namespace Scene
         float _near = 0.01f;
         float _far = 1e4f;
         float _fov = 60.f;
-        float _speed = 100.f;
 
         Vec3f _position = VEC3F_ZERO;
         Quatf _rotation = Quatf(1.0, {0.0, 0.0, 0.0});
 
-        Vec3f _front = -VEC3F_Z;     
-        Vec3f _left = -VEC3F_X;      
-        Vec3f _up = VEC3F_Y;        
+        Vec3f _front = VEC3F_Z;
+        Vec3f _left = VEC3F_X;
+        Vec3f _up = VEC3F_Y;
 
         Mat4f _viewMatrix = MAT4F_ID;
         Mat4f _projectionMatrix = MAT4F_ID;
 
         // ----------------------------------------------------- FONCTIONS -------------------------------------------------------
         void _updateViewMatrix() { _viewMatrix = glm::lookAt(_position, _position + _front, _up); }
-        void _updateProjectionMatrix() { _projectionMatrix = glm::perspective(glm::radians(_fov), _aspectRatio, _near, _far); }
+        void _updateProjectionMatrix() { _projectionMatrix = glm::perspective(_fov, _aspectRatio, _near, _far); } // glm::radians() ?
         void _updateRotation() {  // need test
             Mat3d rotation = glm::mat3_cast(_rotation);
-            _front = rotation * -VEC3F_Z;
-            _left = rotation * -VEC3F_X;
+            _front = rotation * VEC3F_Z;
+            _left = rotation * VEC3F_X;
             _up = rotation * VEC3F_Y;
             _updateViewMatrix();
         }

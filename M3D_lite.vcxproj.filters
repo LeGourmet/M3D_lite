@@ -36,6 +36,12 @@
     <ClCompile Include="src\utils\image.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
+    <ClCompile Include="lib\gl3w\GL\gl3w.c">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user_interface\graphical_user_interface.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\scene\camera.hpp">
@@ -68,9 +74,6 @@
     <ClInclude Include="src\input_output\window.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\texture.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="src\renderer\renderer_manager.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
@@ -83,14 +86,24 @@
     <ClInclude Include="src\renderer\OpenGL\renderer_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\buffer.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\buffer_ogl.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="src\utils\image.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="lib\gl3w\GL\gl3w.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\gl3w\GL\glcorearb.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\vao_ogl.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\object_ogl.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\renderer\OpenGL\shaders\pass0.frag" />
+    <None Include="src\renderer\OpenGL\shaders\pass0.vert" />
   </ItemGroup>
 </Project>

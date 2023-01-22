@@ -17,9 +17,11 @@ out vec3 camPos;
 void main()
 {
 	uv = aVertexTexCoords;
-	normal = vec4(aVertexNormal,1.f).xyz; // need to convert to world pos ?
+	normal = aVertexNormal; // need to convert to world pos ?
 	camPos = uCamPos;
-	fragPos = uMVPMatrix * vec4( aVertexPosition, 1.f );
 
-	gl_Position = fragPos;
+	vec4 pos = uMVPMatrix*vec4(aVertexPosition,1.);
+
+	fragPos = pos.xyz/pos.w;
+	gl_Position = pos;
 }

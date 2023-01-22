@@ -49,7 +49,7 @@ namespace Scene
     {
         aiString texturePath;
         aiColor3D aiCol; 
-        float aiS = 0.f;
+        float aiS;
 
         if (p_mtl->GetTextureCount(aiTextureType_AMBIENT) > 0)
         {

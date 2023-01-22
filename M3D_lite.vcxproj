@@ -33,6 +33,7 @@
     <ClInclude Include="lib\gl3w\GL\gl3w.h" />
     <ClInclude Include="lib\gl3w\GL\glcorearb.h" />
     <ClInclude Include="src\application.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\object_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\vao_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\renderer_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\texture_ogl.hpp" />

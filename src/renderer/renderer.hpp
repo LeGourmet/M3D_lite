@@ -23,10 +23,15 @@ namespace M3D
             virtual void init(SDL_Window* p_window) = 0;
             virtual void resize(const int p_width, const int p_height) = 0;
             virtual void drawFrame(SDL_Window* p_window) = 0;
-            virtual void createTexture(const std::string p_path, Scene::MeshTriangle* mesh) = 0;
-            virtual void deleteTexture(unsigned int p_id, Scene::MeshTriangle* mesh) = 0;
-            virtual void createVAO(std::vector<Vertex> _vertices, std::vector<unsigned int> _indices, Scene::MeshTriangle* mesh) = 0;
-            virtual void deleteVAO(unsigned int p_id, Scene::MeshTriangle* mesh) = 0;
+
+            virtual void createMesh(Scene::MeshTriangle* p_mesh) = 0;
+            virtual void createAmbiantMap(std::string p_path, Scene::MeshTriangle* p_mesh) = 0;
+            virtual void createDiffuseMap(std::string p_path, Scene::MeshTriangle* p_mesh) = 0; 
+            virtual void createSpecularMap(std::string p_path, Scene::MeshTriangle* p_mesh) = 0;
+            virtual void createShininessMap(std::string p_path, Scene::MeshTriangle* p_mesh) = 0;
+            virtual void createNormalMap(std::string p_path, Scene::MeshTriangle* p_mesh) = 0;
+            virtual void createVAO(const std::vector<Vertex> p_vertices, const std::vector<unsigned int> p_indices, Scene::MeshTriangle* p_mesh) = 0;
+            virtual void deleteMesh(Scene::MeshTriangle* p_mesh) = 0;
 
             bool _vSync = true;
             Vec4f _clearColor = Vec4f(0.5, 0.5, 0.5, 1.);

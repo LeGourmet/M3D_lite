@@ -37,13 +37,13 @@ namespace M3D
 			void drawFrame(SDL_Window* p_window) override;
 			
 			void createMesh(Scene::MeshTriangle* p_mesh) override { _objects.insert(std::pair<Scene::MeshTriangle*, Object_OGL>(p_mesh, Object_OGL())); }
-			void createAmbiantMap(std::string p_path) { _generateTexture(p_path, &_ambientMap); }
-			void createDiffuseMap(std::string p_path) { _generateTexture(p_path, &_diffuseMap); }
-			void createSpecularMap(std::string p_path) { _generateTexture(p_path, &_specularMap); }
-			void createShininessMap(std::string p_path) { _generateTexture(p_path, &_shininessMap); }
-			void createNormalMap(std::string p_path) { _generateTexture(p_path, &_normalMap); }
-			void createVAO(const std::vector<Vertex> p_vertices, const std::vector<unsigned int> p_indices, Scene::MeshTriangle* mesh) override;
-			void deleteMesh(Scene::MeshTriangle* mesh) override;
+			void createAmbiantMap(std::string p_path, Scene::MeshTriangle* p_mesh) override { _objects.at(p_mesh).generateAmbiantMap(p_path); }
+			void createDiffuseMap(std::string p_path, Scene::MeshTriangle* p_mesh) override { _objects.at(p_mesh).generateDiffuseMap(p_path); }
+			void createSpecularMap(std::string p_path, Scene::MeshTriangle* p_mesh) override { _objects.at(p_mesh).generateSpecularMap(p_path); }
+			void createShininessMap(std::string p_path, Scene::MeshTriangle* p_mesh) override { _objects.at(p_mesh).generateShininessMap(p_path); }
+			void createNormalMap(std::string p_path, Scene::MeshTriangle* p_mesh) override { _objects.at(p_mesh).generateNormalMap(p_path); }
+			void createVAO(const std::vector<Vertex> p_vertices, const std::vector<unsigned int> p_indices, Scene::MeshTriangle* p_mesh) override { _objects.at(p_mesh).generateVAO(p_vertices, p_indices); }
+			void deleteMesh(Scene::MeshTriangle* p_mesh) override { _objects.erase(_objects.find(p_mesh)); }
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------

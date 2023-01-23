@@ -27,7 +27,7 @@ namespace M3D
 
         private:
             // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
-            SDL_Window* _window;
+            SDL_Window* _window = nullptr;
             // add audio => liste de piste preload au lancerment de la window + celles qui vont s'add ==> use set
 
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------

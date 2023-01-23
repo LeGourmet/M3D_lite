@@ -80,9 +80,6 @@
     <ClInclude Include="src\renderer\renderer.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\texture_ogl.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="src\renderer\OpenGL\renderer_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
@@ -93,9 +90,6 @@
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="lib\gl3w\GL\glcorearb.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\vao_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\OpenGL\object_ogl.hpp">

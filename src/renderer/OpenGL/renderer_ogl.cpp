@@ -21,61 +21,32 @@ namespace M3D
 
 				for (Scene::MeshTriangle* mesh : Application::getInstance().getSceneManager().getMeshes()) {
 					glProgramUniformMatrix4fv(_program, _uMVPMatrixLoc, 1, false, glm::value_ptr(VP * mesh->_transformation));
+					Object_OGL meshDatas = _objects.at(mesh);
 
 					glProgramUniform1i(_program, glGetUniformLocation(_program, "uHasAmbientMap"), mesh->_hasAmbientMap);
 					glProgramUniform3fv(_program, glGetUniformLocation(_program, "uAmbient"), 1, glm::value_ptr(mesh->_ka));
-					if (mesh->_hasAmbientMap) glBindTextureUnit(0, (GLuint)mesh->getIdAmbientMap());
+					if (mesh->_hasAmbientMap) glBindTextureUnit(0, meshDatas.getAmbientMap());
 
 					glProgramUniform1i(_program, glGetUniformLocation(_program, "uHasDiffuseMap"), mesh->_hasDiffuseMap);
 					glProgramUniform3fv(_program, glGetUniformLocation(_program, "uDiffuse"), 1, glm::value_ptr(mesh->_kd));
-					if (mesh->_hasDiffuseMap) glBindTextureUnit(1, (GLuint)mesh->getIdDiffuseMap());
+					if (mesh->_hasDiffuseMap) glBindTextureUnit(1, meshDatas.getDiffuseMap());
 
 					glProgramUniform1i(_program, glGetUniformLocation(_program, "uHasSpecularMap"), mesh->_hasSpecularMap);
 					glProgramUniform3fv(_program, glGetUniformLocation(_program, "uSpecular"), 1, glm::value_ptr(mesh->_ks));
-					if (mesh->_hasSpecularMap)  glBindTextureUnit(2, (GLuint)mesh->getIdSpecularMap());
+					if (mesh->_hasSpecularMap)  glBindTextureUnit(2, meshDatas.getSpecularMap());
 
 					glProgramUniform1i(_program, glGetUniformLocation(_program, "uHasShininessMap"), mesh->_hasShininessMap);
 					glProgramUniform1f(_program, glGetUniformLocation(_program, "uShininess"), mesh->_s);
-					if (mesh->_hasShininessMap) glBindTextureUnit(3, (GLuint)mesh->getIdShininessMap());
+					if (mesh->_hasShininessMap) glBindTextureUnit(3, meshDatas.getShininessMap());
 
 					glProgramUniform1i(_program, glGetUniformLocation(_program, "uHasNormalMap"), mesh->_hasNormalMap);
-					if (mesh->_hasNormalMap) glBindTextureUnit(4, (GLuint)mesh->getIdNormalMap());
+					if (mesh->_hasNormalMap) glBindTextureUnit(4, meshDatas.getNormalMap());
 
-					glBindVertexArray((GLuint)mesh->getIdVAO());
+					glBindVertexArray(meshDatas.getVao());
 					glDrawElements(GL_TRIANGLES, (GLsizei)mesh->getIndices().size(), GL_UNSIGNED_INT, 0);
 					glBindVertexArray(0);
 				}
 				SDL_GL_SwapWindow(p_window);
-			}
-
-			void RendererOGL::createTexture(const std::string p_path, Scene::MeshTriangle* mesh) {
-				/*Texture_OGL* texture = new Texture_OGL(p_path);
-				_textures.push_back(texture);
-				return texture->getId();*/
-			}
-
-			void RendererOGL::createVAO(const std::vector<Vertex> p_vertices, const std::vector<unsigned int> p_indices, Scene::MeshTriangle* mesh) {
-				/*VAO_OGL* vao = new VAO_OGL(p_vertices, p_indices);
-				_VAOs.push_back(vao);
-				return vao->getId();*/
-			}
-			
-			void RendererOGL::deleteTexture(unsigned int p_id, Scene::MeshTriangle* mesh) {
-				/*for (int i = 0; i<_textures.size();i++)
-					if (_textures[i]->getId() == p_id) {
-						delete _textures[i];
-						_textures.erase(_textures.begin() + i);
-						break;
-					}*/
-			}
-			
-			void RendererOGL::deleteVAO(unsigned int p_id, Scene::MeshTriangle* mesh) {
-				/*for (int i = 0; i < _VAOs.size();i++)
-					if (_VAOs[i]->getId() == p_id) {
-						delete _VAOs[i];
-						_VAOs.erase(_VAOs.begin() + i);
-						break;
-					}*/
 			}
 
 			const GLchar* RendererOGL::_readShader(std::string p_path) {

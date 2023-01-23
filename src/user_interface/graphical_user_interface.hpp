@@ -20,7 +20,7 @@ namespace UserInterface
 
     private:
         // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
-        //TRUC_ENUM state;
+        //ENUM state;
     };
 }
 }

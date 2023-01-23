@@ -8,7 +8,7 @@ namespace M3D
 {
     namespace InputOutput
     {
-        Window::Window() : _window(nullptr) {}
+        Window::Window() {}
         Window::~Window() { _dispose(); }
 
         void Window::create(SDL_WindowFlags p_rendererTypeFlag) {

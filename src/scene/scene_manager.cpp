@@ -3,6 +3,9 @@
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 
+#include "application.hpp"
+#include "renderer/renderer_manager.hpp"
+
 #include <iostream>
 
 namespace M3D
@@ -12,8 +15,7 @@ namespace Scene
     SceneManager::SceneManager() {
         _camera = new Camera();
         _meshes = std::vector<MeshTriangle*>();
-    }
-            
+    }       
 
     SceneManager::~SceneManager() { 
         clearScene();
@@ -54,35 +56,35 @@ namespace Scene
         if (p_mtl->GetTextureCount(aiTextureType_AMBIENT) > 0)
         {
             p_mtl->GetTexture(aiTextureType_AMBIENT, 0, &texturePath);
-            p_meshTri->setAmbientMap(p_path + texturePath.C_Str());
+            Application::getInstance().getRendererManager().getRenderer().createAmbiantMap(p_path + texturePath.C_Str(), p_meshTri);
             p_meshTri->_hasAmbientMap = true;
         }
 
         if (p_mtl->GetTextureCount(aiTextureType_DIFFUSE) > 0)
         {
             p_mtl->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath);
-            p_meshTri->setDiffuseMap(p_path + texturePath.C_Str());
+            Application::getInstance().getRendererManager().getRenderer().createDiffuseMap(p_path + texturePath.C_Str(), p_meshTri);
             p_meshTri->_hasDiffuseMap = true;
         }
 
         if (p_mtl->GetTextureCount(aiTextureType_SPECULAR) > 0)
         {
             p_mtl->GetTexture(aiTextureType_SPECULAR, 0, &texturePath);
-            p_meshTri->setSpecularMap(p_path + texturePath.C_Str());
+            Application::getInstance().getRendererManager().getRenderer().createSpecularMap(p_path + texturePath.C_Str(), p_meshTri);
             p_meshTri->_hasSpecularMap = true;
         }
 
         if (p_mtl->GetTextureCount(aiTextureType_SHININESS) > 0)
         {
             p_mtl->GetTexture(aiTextureType_SHININESS, 0, &texturePath);
-            p_meshTri->setShininessMap(p_path + texturePath.C_Str());
+            Application::getInstance().getRendererManager().getRenderer().createShininessMap(p_path + texturePath.C_Str(), p_meshTri);
             p_meshTri->_hasShininessMap = true;
         }
 
         if (p_mtl->GetTextureCount(aiTextureType_NORMALS) > 0)
         {
             p_mtl->GetTexture(aiTextureType_NORMALS, 0, &texturePath);
-            p_meshTri->setNormalMap(p_path + texturePath.C_Str());
+            Application::getInstance().getRendererManager().getRenderer().createNormalMap(p_path + texturePath.C_Str(), p_meshTri);
             p_meshTri->_hasNormalMap = true;
         }
 
@@ -95,6 +97,7 @@ namespace Scene
     MeshTriangle* SceneManager::_loadMesh(const aiMesh *const p_mesh)
     {
         MeshTriangle *triMesh = new MeshTriangle(std::string(p_mesh->mName.C_Str()));
+        Application::getInstance().getRendererManager().getRenderer().createMesh(triMesh);
         triMesh->_hasUVs = p_mesh->HasTextureCoords(0);
 
         for (unsigned int v = 0; v < p_mesh->mNumVertices; ++v)
@@ -117,7 +120,7 @@ namespace Scene
             triMesh->addTriangle(face.mIndices[0], face.mIndices[1], face.mIndices[2]);
         }
 
-        triMesh->setVAO();
+        Application::getInstance().getRendererManager().getRenderer().createVAO(triMesh->getVertices(), triMesh->getIndices(), triMesh);
         return triMesh;
     }
 
@@ -132,12 +135,11 @@ namespace Scene
         {
             const aiMesh *const mesh = scene->mMeshes[m];
             if (mesh == nullptr) throw std::runtime_error("Fail to load file: " + p_path + ": " + importer.GetErrorString());
-            
 
             MeshTriangle* triMesh  = _loadMesh(mesh);
             
             const aiMaterial* const mtl = scene->mMaterials[mesh->mMaterialIndex];
-            if (mtl != nullptr) _loadMaterial(p_path,triMesh, mtl);
+            if (mtl != nullptr) _loadMaterial(p_path,triMesh,mtl);
 
             _meshes.push_back(triMesh);
         }

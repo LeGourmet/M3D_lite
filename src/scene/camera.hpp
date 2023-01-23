@@ -117,7 +117,7 @@ namespace Scene
         void _updateViewMatrix() { _viewMatrix = glm::lookAt(_position, _position + _front, _up); }
         void _updateProjectionMatrix() { _projectionMatrix = glm::perspective(_fov, _aspectRatio, _near, _far); } // glm::radians() ?
         void _updateRotation() {  // need test
-            Mat3d rotation = glm::mat3_cast(_rotation);
+            Mat3f rotation = glm::mat3_cast(_rotation);
             _front = rotation * VEC3F_Z;
             _left = rotation * VEC3F_X;
             _up = rotation * VEC3F_Y;

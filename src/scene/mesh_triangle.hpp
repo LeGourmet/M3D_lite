@@ -1,7 +1,6 @@
 #ifndef __MESH_TRIANGLE_HPP__
 #define __MESH_TRIANGLE_HPP__
 
-#include "application.hpp"
 #include "utils/define.hpp"
 
 namespace M3D
@@ -16,20 +15,6 @@ namespace Scene
 
         std::vector<Vertex> &getVertices() { return _vertices; }
         std::vector<unsigned int> &getIndices() { return _indices; }
-
-        unsigned int getIdAmbientMap() const { return _idAmbientMap; }
-        unsigned int getIdDiffuseMap() const { return _idDiffuseMap; }
-        unsigned int getIdSpecularMap() const { return _idSpecularMap; }
-        unsigned int getIdShininessMap() const { return _idShininessMap; }
-        unsigned int getIdNormalMap() const { return _idNormalMap; }
-        unsigned int getIdVAO() const { return _idVao; }
-
-        void setAmbientMap(const std::string& p_path);
-        void setDiffuseMap(const std::string& p_path);
-        void setSpecularMap(const std::string& p_path);
-        void setShininessMap(const std::string& p_path);
-        void setNormalMap(const std::string& p_path);
-        void setVAO();
 
         void addTriangle(const unsigned int p_v0, const unsigned int p_v1, const unsigned int p_v2);
         void addVertex(const Vertex p_vertex);
@@ -50,14 +35,8 @@ namespace Scene
         bool _hasNormalMap = false;
 
         Mat4f _transformation = MAT4F_ID;
-    private:
-        unsigned int _idAmbientMap = 0;
-        unsigned int _idDiffuseMap = 0;
-        unsigned int _idSpecularMap = 0;
-        unsigned int _idShininessMap = 0;
-        unsigned int _idNormalMap = 0;
-        unsigned int _idVao = 0;
 
+    private:
         std::vector<Vertex> _vertices;
         std::vector<unsigned int> _indices;
     };

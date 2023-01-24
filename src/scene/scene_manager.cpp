@@ -96,7 +96,7 @@ namespace Scene
 
     MeshTriangle* SceneManager::_loadMesh(const aiMesh *const p_mesh)
     {
-        MeshTriangle *triMesh = new MeshTriangle(std::string(p_mesh->mName.C_Str()));
+        MeshTriangle *triMesh = new MeshTriangle();
         Application::getInstance().getRendererManager().getRenderer().createMesh(triMesh);
         triMesh->_hasUVs = p_mesh->HasTextureCoords(0);
 

@@ -32,8 +32,7 @@ namespace M3D
 		_sceneManager->getCamera().setPosition(Vec3f(0., 0., -1.));
 		_gui->init();
 
-		while (_running)
-			_update();
+		while (_running) _update();
 	}
 
 	void Application::stop() { _running = false; }

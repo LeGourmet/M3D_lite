@@ -16,22 +16,32 @@ namespace M3D
 		{
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-			RendererOGL() {}
-			~RendererOGL() {}
+			RendererOGL() {
+				//SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+				//SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+				SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+				SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+			}
+			~RendererOGL() {
+				//_scene.cleanGL();
+				glDeleteProgram(_program);
+			}
 
 			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 			void init(SDL_Window* p_window) override {
 				if( SDL_GL_CreateContext(p_window) == nullptr ) throw std::exception(SDL_GetError());
+				updateVSync(_vSync);
 				if (gl3wInit()) throw std::exception("gl3wInit() failed");
-				SDL_GL_SetSwapInterval(_vSync);
+				//if (!gl3wIsSupported(4, 5)) throw std::exception("OpenGL version not supported");
+
+				glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.a);
+				glEnable(GL_DEPTH_TEST);
 
 				_program = _initProgram("src/renderer/OpenGL/shaders/pass0.vert", "src/renderer/OpenGL/shaders/pass0.frag");
 				_uMVPMatrixLoc = glGetUniformLocation(_program, "uMVPMatrix");
 				_uCamPosLoc = glGetUniformLocation(_program, "uCamPos");
 
 				glUseProgram(_program);
-				glEnable(GL_DEPTH_TEST);
-				glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.a);
 			}
 			void resize(const int p_width, const int p_height) { glViewport(0, 0, p_width, p_height); };
 			void drawFrame(SDL_Window* p_window) override;
@@ -54,7 +64,7 @@ namespace M3D
 			std::map<Scene::MeshTriangle*,Object_OGL> _objects;
 
 			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-			const GLchar* _readShader(std::string p_path);
+			std::string _readShader(std::string p_path);
 			void _readCompileShader(GLuint p_shader, std::string p_path);
 			GLuint _initProgram(std::string p_pathVert, std::string p_pathFrag);
 		};

@@ -8,14 +8,14 @@ namespace M3D
 {
     namespace InputOutput
     {
-        Window::Window() {}
+        Window::Window() {
+            if (SDL_Init(SDL_INIT_VIDEO) != 0) // add flag SDL_INIT_JOYSTICK | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO
+                throw std::runtime_error("Exception caught: " + std::string(SDL_GetError()));
+        }
         Window::~Window() { _dispose(); }
 
         void Window::create(SDL_WindowFlags p_rendererTypeFlag) {
             try {
-                if (SDL_Init(SDL_INIT_VIDEO) != 0) // add flag SDL_INIT_JOYSTICK | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO
-                    throw std::runtime_error("Exception caught: " + std::string(SDL_GetError()));
-
                 _window = SDL_CreateWindow(
                     Application::getInstance().getTitle().c_str(),
                     SDL_WINDOWPOS_CENTERED,

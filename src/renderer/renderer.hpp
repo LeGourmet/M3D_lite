@@ -33,6 +33,9 @@ namespace M3D
             virtual void createVAO(const std::vector<Vertex> p_vertices, const std::vector<unsigned int> p_indices, Scene::MeshTriangle* p_mesh) = 0;
             virtual void deleteMesh(Scene::MeshTriangle* p_mesh) = 0;
 
+            void updateVSync(bool p_vSync) { _vSync = p_vSync; SDL_GL_SetSwapInterval(p_vSync); }
+
+        protected:
             bool _vSync = true;
             Vec4f _clearColor = Vec4f(0.5, 0.5, 0.5, 1.);
         };

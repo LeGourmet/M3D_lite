@@ -10,7 +10,7 @@ namespace Scene
     class MeshTriangle
     {
     public:
-        MeshTriangle(const std::string &p_name);
+        MeshTriangle();
         ~MeshTriangle();
 
         std::vector<Vertex> &getVertices() { return _vertices; }
@@ -20,8 +20,6 @@ namespace Scene
         void addVertex(const Vertex p_vertex);
 
     public:
-        std::string _name;
-
         Vec3f _ka = VEC3F_ZERO;
         Vec3f _kd = VEC3F_ZERO;
         Vec3f _ks = VEC3F_ZERO;
@@ -37,8 +35,8 @@ namespace Scene
         Mat4f _transformation = MAT4F_ID;
 
     private:
-        std::vector<Vertex> _vertices;
-        std::vector<unsigned int> _indices;
+        std::vector<Vertex> _vertices = std::vector<Vertex>();
+        std::vector<unsigned int> _indices = std::vector<unsigned int>();
     };
 }
 }

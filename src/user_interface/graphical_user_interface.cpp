@@ -11,8 +11,9 @@ namespace M3D
 		GraphicalUserInterface::~GraphicalUserInterface() { }
 
 		void GraphicalUserInterface::init(){
-			//Application::getInstance().getSceneManager().addMeshes("assets/MyBlenderScene.obj"); 
-			Application::getInstance().getSceneManager().addMeshes("assets/Bunny.obj");
+			Application::getInstance().getSceneManager().addMeshes("assets/MyBlenderScene.obj"); 
+			//Application::getInstance().getSceneManager().addMeshes("assets/Teapot.obj");
+			//Application::getInstance().getSceneManager().addMeshes("assets/Bunny.obj");
 		}
 
 		bool GraphicalUserInterface::captureEvent(SDL_Event event) {

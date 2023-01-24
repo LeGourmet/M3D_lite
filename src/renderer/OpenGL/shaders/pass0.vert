@@ -9,19 +9,17 @@ layout( location = 4 ) in vec3 aVertexBitangent;
 uniform mat4 uMVPMatrix;
 uniform vec3 uCamPos;
 
-out vec2 uv;
 out vec3 normal;
 out vec3 fragPos;
 out vec3 camPos;
 
 void main()
 {
-	uv = aVertexTexCoords;
-	normal = aVertexNormal; // need to convert to world pos ?
+	vec4 pos = uMVPMatrix * vec4( aVertexPosition, 1.f );
+
+	normal = vec4(aVertexNormal,1.f).xyz;
 	camPos = uCamPos;
+	fragPos = pos.xyz;
 
-	vec4 pos = uMVPMatrix*vec4(aVertexPosition,1.);
-
-	fragPos = pos.xyz/pos.w;
 	gl_Position = pos;
 }

@@ -49,26 +49,27 @@ namespace M3D
 				SDL_GL_SwapWindow(p_window);
 			}
 
-			const GLchar* RendererOGL::_readShader(std::string p_path) {
+			std::string RendererOGL::_readShader(std::string p_path) {
 				std::ifstream ifstream(p_path, std::ifstream::in);
 				if (!ifstream.is_open()) throw std::ios_base::failure("Cannot open file: " + p_path);
 				std::stringstream stream;
 				stream << ifstream.rdbuf();
 				ifstream.close();
-				return stream.str().c_str();
+				return stream.str();
 			}
 
 			void RendererOGL::_readCompileShader(GLuint p_shader, std::string p_path) {
-				const GLchar* shaderSrc = _readShader(p_path);
+				const std::string file = _readShader(p_path);
+				const GLchar* shaderSrc = file.c_str();
 				glShaderSource(p_shader, 1, &shaderSrc, NULL);
 				glCompileShader(p_shader);
 			}
 
 			GLuint RendererOGL::_initProgram(std::string p_pathVert, std::string p_pathFrag) {
-				const GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-				_readCompileShader(vertexShader, p_pathVert);
+				GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+				GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
-				const GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+				_readCompileShader(vertexShader, p_pathVert);
 				_readCompileShader(fragmentShader, p_pathFrag);
 
 				GLuint program = glCreateProgram();

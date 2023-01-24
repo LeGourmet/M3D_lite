@@ -7,11 +7,7 @@ namespace M3D
 {
     namespace Scene
     {
-        MeshTriangle::MeshTriangle(const std::string& p_name)
-            : _name(p_name) {
-            _vertices = std::vector<Vertex>();
-            _indices = std::vector<unsigned int>();
-        };
+        MeshTriangle::MeshTriangle() { }
 
         MeshTriangle::~MeshTriangle() {
             Application::getInstance().getRendererManager().getRenderer().deleteMesh(this);       

@@ -4,35 +4,49 @@
 #include "assimp/postprocess.h"
 
 #include "application.hpp"
-#include "renderer/renderer_manager.hpp"
-
-#include <iostream>
+#include "renderer/renderer.hpp"
 
 namespace M3D
 {
 namespace Scene
 {
-    SceneManager::SceneManager() {
-        _camera = new Camera();
-        _meshes = std::vector<MeshTriangle*>();
-    }       
-
-    SceneManager::~SceneManager() { 
-        clearScene();
-        delete _camera;
-    }
+    SceneManager::SceneManager() { }       
+    SceneManager::~SceneManager() { clearScene(); }
 
     void SceneManager::addMeshes(const std::string& p_path) { _loadFile(p_path); }
-    
-    void SceneManager::addMesh( const std::string& p_path, const std::string& p_name) { } // load only one meshes from obj
-    
-    void SceneManager::update(const float p_deltaTime) {}
-    
-    bool SceneManager::captureEvent(SDL_Event p_event) { return false; }
 
-    void SceneManager::removeMesh(const unsigned int p_id) {
-        delete _meshes[p_id];
-        _meshes.erase(_meshes.begin() + p_id);
+    void SceneManager::update(unsigned long long p_deltaTime) {
+        if (_mouseLeftPressed) {
+            _camera.rotate(Vec3f(0.001 * _deltaMousePositionY, -0.001 * _deltaMousePositionX, 0.f));
+            _deltaMousePositionX = 0;
+            _deltaMousePositionY = 0;
+        }
+        
+        Vec3f translation = VEC3F_ZERO;
+        if (_isKeyPressed(SDL_SCANCODE_W) || _isKeyPressed(SDL_SCANCODE_UP)) translation.z++;
+        if (_isKeyPressed(SDL_SCANCODE_S) || _isKeyPressed(SDL_SCANCODE_DOWN)) translation.z--;
+        if (_isKeyPressed(SDL_SCANCODE_A) || _isKeyPressed(SDL_SCANCODE_LEFT)) translation.x++;
+        if (_isKeyPressed(SDL_SCANCODE_D) || _isKeyPressed(SDL_SCANCODE_RIGHT)) translation.x--;
+        if (_isKeyPressed(SDL_SCANCODE_R)) translation.y++;
+        if (_isKeyPressed(SDL_SCANCODE_F)) translation.y--;
+        translation *= p_deltaTime *0.01;
+
+        _camera.move(translation);
+
+        /*Vec3f rotation = VEC3F_ZERO;
+        if (_isKeyPressed(SDL_SCANCODE_W) || _isKeyPressed(SDL_SCANCODE_UP)) rotation.x++;
+        if (_isKeyPressed(SDL_SCANCODE_S) || _isKeyPressed(SDL_SCANCODE_DOWN)) rotation.x--;
+        if (_isKeyPressed(SDL_SCANCODE_A) || _isKeyPressed(SDL_SCANCODE_LEFT)) rotation.y--;
+        if (_isKeyPressed(SDL_SCANCODE_D) || _isKeyPressed(SDL_SCANCODE_RIGHT)) rotation.y++;
+        rotation *= p_deltaTime * 0.0001;
+
+        if(rotation != VEC3F_ZERO) _camera.rotateArround(Vec3f(0., 0., 0.), rotation);*/
+    }
+
+    bool SceneManager::captureEvent(SDL_Event p_event) { 
+        Controller::KeyboardController::receiveEvent(p_event);
+        Controller::MouseController::receiveEvent(p_event);
+        return true; 
     }
 
     void SceneManager::removeMesh(MeshTriangle* const p_mesh) {
@@ -42,9 +56,8 @@ namespace Scene
     }
 
     void SceneManager::clearScene() {
-        for (int i = 0; i < _meshes.size();i++) delete _meshes[i];
+        for (int i=0; i<_meshes.size() ;i++) delete _meshes[i];
         _meshes.clear();
-        _camera->reset();
     }
 
     void SceneManager::_loadMaterial( const std::string& p_path, MeshTriangle* p_meshTri, const aiMaterial* p_mtl)
@@ -56,35 +69,35 @@ namespace Scene
         if (p_mtl->GetTextureCount(aiTextureType_AMBIENT) > 0)
         {
             p_mtl->GetTexture(aiTextureType_AMBIENT, 0, &texturePath);
-            Application::getInstance().getRendererManager().getRenderer().createAmbiantMap(p_path + texturePath.C_Str(), p_meshTri);
+            p_meshTri->_ambientMapPath = (p_path + texturePath.C_Str());
             p_meshTri->_hasAmbientMap = true;
         }
 
         if (p_mtl->GetTextureCount(aiTextureType_DIFFUSE) > 0)
         {
             p_mtl->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath);
-            Application::getInstance().getRendererManager().getRenderer().createDiffuseMap(p_path + texturePath.C_Str(), p_meshTri);
+            p_meshTri->_diffuseMapPath = (p_path + texturePath.C_Str());
             p_meshTri->_hasDiffuseMap = true;
         }
 
         if (p_mtl->GetTextureCount(aiTextureType_SPECULAR) > 0)
         {
             p_mtl->GetTexture(aiTextureType_SPECULAR, 0, &texturePath);
-            Application::getInstance().getRendererManager().getRenderer().createSpecularMap(p_path + texturePath.C_Str(), p_meshTri);
+            p_meshTri->_specularMapPath = (p_path + texturePath.C_Str());
             p_meshTri->_hasSpecularMap = true;
         }
 
         if (p_mtl->GetTextureCount(aiTextureType_SHININESS) > 0)
         {
             p_mtl->GetTexture(aiTextureType_SHININESS, 0, &texturePath);
-            Application::getInstance().getRendererManager().getRenderer().createShininessMap(p_path + texturePath.C_Str(), p_meshTri);
+            p_meshTri->_shininessMapPath = (p_path + texturePath.C_Str());
             p_meshTri->_hasShininessMap = true;
         }
 
         if (p_mtl->GetTextureCount(aiTextureType_NORMALS) > 0)
         {
             p_mtl->GetTexture(aiTextureType_NORMALS, 0, &texturePath);
-            Application::getInstance().getRendererManager().getRenderer().createNormalMap(p_path + texturePath.C_Str(), p_meshTri);
+            p_meshTri->_normalMapPath = (p_path + texturePath.C_Str());
             p_meshTri->_hasNormalMap = true;
         }
 
@@ -97,9 +110,9 @@ namespace Scene
     MeshTriangle* SceneManager::_loadMesh(const aiMesh *const p_mesh)
     {
         MeshTriangle *triMesh = new MeshTriangle();
-        Application::getInstance().getRendererManager().getRenderer().createMesh(triMesh);
         triMesh->_hasUVs = p_mesh->HasTextureCoords(0);
 
+        triMesh->getVertices().reserve(p_mesh->mNumVertices);
         for (unsigned int v = 0; v < p_mesh->mNumVertices; ++v)
         {
             Vertex vertex;
@@ -107,20 +120,20 @@ namespace Scene
             vertex._normal = Vec3f(p_mesh->mNormals[v].x, p_mesh->mNormals[v].y, p_mesh->mNormals[v].z);
             if (triMesh->_hasUVs)
             {
-                vertex._uvs = Vec2i(p_mesh->mTextureCoords[0][v].x, p_mesh->mTextureCoords[0][v].y);
+                vertex._uv = Vec2f(p_mesh->mTextureCoords[0][v].x, p_mesh->mTextureCoords[0][v].y);
                 vertex._tangent = Vec3f(p_mesh->mTangents[v].x, p_mesh->mTangents[v].y, p_mesh->mTangents[v].z);
                 vertex._bitangent = Vec3f(p_mesh->mBitangents[v].x, p_mesh->mBitangents[v].y, p_mesh->mBitangents[v].z);
             }
             triMesh->addVertex(vertex);
         }
 
+        triMesh->getIndices().reserve(p_mesh->mNumFaces*3);
         for (unsigned int f = 0; f < p_mesh->mNumFaces; ++f)
         {
             const aiFace &face = p_mesh->mFaces[f];
             triMesh->addTriangle(face.mIndices[0], face.mIndices[1], face.mIndices[2]);
         }
 
-        Application::getInstance().getRendererManager().getRenderer().createVAO(triMesh->getVertices(), triMesh->getIndices(), triMesh);
         return triMesh;
     }
 
@@ -128,7 +141,8 @@ namespace Scene
     {
         Assimp::Importer importer;
 
-        const aiScene *const scene = importer.ReadFile(p_path, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_GenUVCoords | aiProcess_CalcTangentSpace);
+        const aiScene *const scene = importer.ReadFile(p_path, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_GenUVCoords | aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices);
+        // aiProcessPreset_TargetRealtime_Fast add =>  aiProcess_SortByPType + maria add | aiProcess_FlipUVs
         if (scene == nullptr) throw std::runtime_error("Fail to load file: " + p_path);
 
         for (unsigned int m = 0; m < scene->mNumMeshes; ++m) 
@@ -141,9 +155,10 @@ namespace Scene
             const aiMaterial* const mtl = scene->mMaterials[mesh->mMaterialIndex];
             if (mtl != nullptr) _loadMaterial(p_path,triMesh,mtl);
 
+            Application::getInstance().getRenderer().createMesh(triMesh);
+
             _meshes.push_back(triMesh);
         }
     }
-
 }
 }

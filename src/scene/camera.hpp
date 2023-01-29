@@ -24,18 +24,6 @@ namespace Scene
         const Mat4f &getViewMatrix() const { return _viewMatrix; }
         const Mat4f &getProjectionMatrix() const { return _projectionMatrix; }
 
-        const Vec3f &getFront() const { return _front; }
-        const Vec3f &getLeft() const { return _left; }
-        const Vec3f &getUp() const { return _up; }
-
-        unsigned int getScreenWidth() const { return _screenWidth; }
-        unsigned int getScreenHeight() const { return _screenHeight; }
-        float getAspectRatio() const { return _aspectRatio; }
-
-        float getNear() const { return _near; }
-        float getFar() const { return _far; }
-        float getFov() const { return _fov; }
-
         // ----------------------------------------------------- SETTERS -------------------------------------------------------
         void setScreenSize(const unsigned int p_width, const unsigned int p_height) {
             _screenWidth = p_width;
@@ -76,11 +64,9 @@ namespace Scene
             _updateViewMatrix();
         }
 
-        // need test
-        void rotateArround(const Vec3f& p_lookat, const Vec3f& p_delta){
-            _rotation *= Quatf(p_delta);
-            _position *= _rotation * Vec3f(p_delta) + p_lookat;
-            _updateRotation();
+        void rotateArround(const Vec3f& p_pivot, const Vec3f& p_delta){
+            _position = Quatf(p_delta) * (_position - p_pivot) + p_pivot;
+            lookAt(p_pivot);
         }
         
         void rotate(const Vec3f& p_delta) {
@@ -88,13 +74,20 @@ namespace Scene
             _updateRotation();
         }
 
-        void reset() {
-            _position = VEC3F_ZERO;
-            _rotation = Quatf(1.0, { 0.0, 0.0, 0.0 });
+        // ne marche pas 
+        void lookAt(const Vec3f& p_lookAt) {
+            Vec3f dir = glm::normalize(p_lookAt - _position);
+            float cosAngle = glm::dot(dir, _front);
+
+            if (glm::abs(cosAngle+1.) < 0.001) _rotation = Quatf(PIf, {_up});
+            else if(glm::abs(cosAngle-1.) < 0.001) _rotation = Quatf(1.0, { 0.0, 0.0, 0.0 });//QUAT_ID;
+
+            float halfAngle = (float)(glm::acos(cosAngle) * 0.5);
+            _rotation = Quatf(glm::cos(halfAngle), { glm::normalize(glm::cross(dir, _front)) * glm::sin(halfAngle) });
             _updateRotation();
         }
 
-    protected:
+    private:
         // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
         unsigned int _screenWidth = 1u;
         unsigned int _screenHeight = 1u;
@@ -104,7 +97,7 @@ namespace Scene
         float _fov = 60.f;
 
         Vec3f _position = VEC3F_ZERO;
-        Quatf _rotation = Quatf(1.0, {0.0, 0.0, 0.0});
+        Quatf _rotation = Quatf(1.0, { 0.0, 0.0, 0.0 });//QUAT_ID;
 
         Vec3f _front = VEC3F_Z;
         Vec3f _left = VEC3F_X;
@@ -115,12 +108,20 @@ namespace Scene
 
         // ----------------------------------------------------- FONCTIONS -------------------------------------------------------
         void _updateViewMatrix() { _viewMatrix = glm::lookAt(_position, _position + _front, _up); }
-        void _updateProjectionMatrix() { _projectionMatrix = glm::perspective(_fov, _aspectRatio, _near, _far); } // glm::radians() ?
-        void _updateRotation() {  // need test
+        void _updateProjectionMatrix() { _projectionMatrix = glm::perspective( glm::radians(_fov), _aspectRatio, _near, _far); }
+        void _updateRotation() {
             Mat3f rotation = glm::mat3_cast(_rotation);
+            
+            // trop sensible mais marche sauf quand on regarde en up
             _front = rotation * VEC3F_Z;
+            _left = glm::normalize(glm::cross(VEC3F_Y, _front));
+            _up = glm::normalize(glm::cross(_front, _left));
+
+            // induit bug => tourne sur lui même
+            /*_front = rotation * VEC3F_Z;
             _left = rotation * VEC3F_X;
-            _up = rotation * VEC3F_Y;
+            _up = rotation * VEC3F_Y;*/
+
             _updateViewMatrix();
         }
 

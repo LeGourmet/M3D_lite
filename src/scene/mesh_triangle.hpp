@@ -32,6 +32,12 @@ namespace Scene
         bool _hasShininessMap = false;
         bool _hasNormalMap = false;
 
+        std::string _ambientMapPath;
+        std::string _diffuseMapPath;
+        std::string _specularMapPath;
+        std::string _shininessMapPath;
+        std::string _normalMapPath;
+
         Mat4f _transformation = MAT4F_ID;
 
     private:

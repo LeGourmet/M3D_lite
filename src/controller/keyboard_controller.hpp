@@ -13,25 +13,24 @@ namespace Controller
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
         KeyboardController() {}
-        virtual ~KeyboardController() = default;
+        ~KeyboardController() {}
 
         // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
-        virtual void receiveEvent(const SDL_Event &p_event) {
+        void receiveEvent(const SDL_Event &p_event) {
             switch (p_event.type) {
                 case SDL_KEYDOWN:
-                    _pressedButtons.emplace(p_event.key.keysym.scancode);
+                    _pressedButtons.insert(p_event.key.keysym.scancode);
                     break;
 
                 case SDL_KEYUP:
                     _pressedButtons.erase(p_event.key.keysym.scancode);
                     break;
 
-                default:
-                    break;
+                default: break;
             }
         }
 
-        virtual void clearEvents() { _pressedButtons.clear(); }
+        void clearEvents() { _pressedButtons.clear(); }
 
     protected:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------

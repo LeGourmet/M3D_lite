@@ -1,10 +1,12 @@
-#ifndef __SCENE_HPP__
-#define __SCENE_HPP__
+#ifndef __SCENE_MANAGER_HPP__
+#define __SCENE_MANAGER_HPP__
 
 #include <assimp/material.h>
 #include <assimp/scene.h>
 #include <SDL.h>
 
+#include "controller/keyboard_controller.hpp"
+#include "controller/mouse_controller.hpp"
 #include "mesh_triangle.hpp"
 #include "camera.hpp"
 
@@ -15,7 +17,7 @@ namespace M3D
 {
 namespace Scene
 {
-    class SceneManager
+    class SceneManager : Controller::KeyboardController, Controller::MouseController
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
@@ -24,16 +26,16 @@ namespace Scene
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
         std::vector<MeshTriangle *> getMeshes() const { return _meshes; }
-        Camera& getCamera() const { return *_camera; }
+        Camera &getCamera() { return _camera; }
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void addMeshes(const std::string& p_path);
-        void addMesh(const std::string& p_path, const std::string& p_name);
+        //void addMesh(const std::string& p_path, const std::string& p_name);
         
-        void update(const float p_deltaTime);
+        void update(unsigned long long p_deltaTime);
         bool captureEvent(SDL_Event p_event);
 
-        void removeMesh(const unsigned int p_id);
+        //void removeMesh(const unsigned int p_id);
         void removeMesh(MeshTriangle* const p_mesh);
         void clearScene();
         
@@ -45,9 +47,9 @@ namespace Scene
 
     private:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-        Camera *_camera;
+        Camera _camera = Camera();
         // lights ?
-        std::vector<MeshTriangle *> _meshes;      
+        std::vector<MeshTriangle *> _meshes = std::vector<MeshTriangle*>();
     };
 }
 }

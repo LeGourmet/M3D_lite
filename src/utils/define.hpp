@@ -23,8 +23,6 @@ namespace M3D
 
 	using Quatf = glm::quat;
 
-	using Path = std::filesystem::path;
-
 	// Constants.
 	constexpr float FLOAT_MIN = std::numeric_limits<float>::lowest();
 	constexpr float FLOAT_MAX = std::numeric_limits<float>::max();
@@ -47,13 +45,15 @@ namespace M3D
 	constexpr Mat3f MAT3F_ID = Mat3f(1.f);
 	constexpr Mat4f MAT4F_ID = Mat4f(1.f);
 
-	typedef struct Vertex {
+	//constexpr Quatf QUAT_ID = Quatf(1.0, { 0.0, 0.0, 0.0 });
+
+	struct Vertex {
 		Vec3f _position;
 		Vec3f _normal;
-		Vec2f _uvs;
+		Vec2f _uv;
 		Vec3f _tangent;
 		Vec3f _bitangent;
-	} Vertex;
+	};
 }
 
 #endif

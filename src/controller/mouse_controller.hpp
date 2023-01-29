@@ -11,11 +11,11 @@ namespace Controller
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-        MouseController() {}
-        virtual ~MouseController() = default;
+        MouseController() { clearEvents(); }
+        ~MouseController() {}
 
         // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
-        virtual void receiveEvent(const SDL_Event &p_event){
+        void receiveEvent(const SDL_Event &p_event){
             switch (p_event.type){
                 case SDL_MOUSEBUTTONDOWN:
                     switch (p_event.button.button){
@@ -28,8 +28,7 @@ namespace Controller
                         case SDL_BUTTON_MIDDLE:
                             _mouseMiddlePressed = true;
                             break;
-                        default:
-                            break;
+                        default: break;
                     }
                     break;
 
@@ -44,8 +43,7 @@ namespace Controller
                         case SDL_BUTTON_MIDDLE:
                             _mouseMiddlePressed = false;
                             break;
-                        default:
-                            break;
+                        default: break;
                     }
                     break;
 
@@ -58,12 +56,11 @@ namespace Controller
                     _deltaMouseWheel = p_event.wheel.y;
                     break;
 
-                default:
-                    break;
+                default: break;
             }
         }
 
-        virtual void clearEvents(){
+        void clearEvents(){
             _mouseLeftPressed = false;
             _mouseRightPressed = false;
             _mouseMiddlePressed = false;
@@ -74,12 +71,12 @@ namespace Controller
 
     protected:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-        bool _mouseLeftPressed = false;
-        bool _mouseRightPressed = false;
-        bool _mouseMiddlePressed = false;
-        int  _deltaMousePositionX = 0;
-        int  _deltaMousePositionY = 0;
-        int _deltaMouseWheel = 0;
+        bool _mouseLeftPressed;
+        bool _mouseRightPressed;
+        bool _mouseMiddlePressed;
+        int  _deltaMousePositionX;
+        int  _deltaMousePositionY;
+        int _deltaMouseWheel;
     };
 }
 }

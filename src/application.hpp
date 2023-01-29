@@ -8,7 +8,7 @@ namespace M3D
 	namespace InputOutput { class Window; }
 	namespace UserInterface { class GraphicalUserInterface; }
 	namespace Scene { class SceneManager; }
-	namespace Renderer { class RendererManager; }
+	namespace Renderer { class Renderer; }
 
 	class Application final
 	{
@@ -35,12 +35,13 @@ namespace M3D
 		InputOutput::Window& getWindow() const { return *_window; }
 		UserInterface::GraphicalUserInterface& getGraphicalUserInterface() const { return *_gui; }
 		Scene::SceneManager& getSceneManager() const { return *_sceneManager; }
-		Renderer::RendererManager& getRendererManager() const { return *_rendererManager; }
+		Renderer::Renderer& getRenderer() const { return *_renderer; }
 
 		// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 		void start();
 		void stop();
-
+		void pause();
+		void resume();
 		void resize(int p_width, int p_height);
 
 		private:
@@ -53,7 +54,7 @@ namespace M3D
 		InputOutput::Window*					_window{};
 		UserInterface::GraphicalUserInterface*	_gui{};
 		Scene::SceneManager*					_sceneManager{};
-		Renderer::RendererManager*				_rendererManager{};
+		Renderer::Renderer*						_renderer{};
 
 		// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 		void _update() const;

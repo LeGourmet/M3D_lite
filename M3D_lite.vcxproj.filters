@@ -33,9 +33,6 @@
     <ClCompile Include="src\renderer\OpenGL\renderer_ogl.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="src\utils\image.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
     <ClCompile Include="lib\gl3w\GL\gl3w.c">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
@@ -43,6 +40,15 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="src\renderer\Vulkan\renderer_vulkan.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\Vulkan\mesh_vulkan.hpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\image.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\OpenGL\mesh_ogl.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,16 +83,10 @@
     <ClInclude Include="src\input_output\window.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\renderer_manager.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="src\renderer\renderer.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\OpenGL\renderer_ogl.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\image.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="lib\gl3w\GL\gl3w.h">
@@ -95,17 +95,26 @@
     <ClInclude Include="lib\gl3w\GL\glcorearb.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\object_ogl.hpp">
+    <ClInclude Include="src\renderer\OpenGL\mesh_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\Vulkan\renderer_vulkan.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="src\utils\image.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\renderer\OpenGL\shaders\pass0.frag" />
-    <None Include="src\renderer\OpenGL\shaders\pass0.vert" />
+    <None Include="src\renderer\OpenGL\shaders\shadingPass.frag" />
+    <None Include="src\renderer\OpenGL\shaders\shadingPass.vert" />
     <None Include="src\renderer\Vulkan\shaders\pass0.frag" />
     <None Include="src\renderer\Vulkan\shaders\pass0.vert" />
+    <None Include="src\renderer\OpenGL\shaders\finalPass.frag" />
+    <None Include="src\renderer\OpenGL\shaders\finalPass.vert" />
+    <None Include="src\renderer\OpenGL\shaders\basePass.vert" />
+    <None Include="src\renderer\OpenGL\shaders\basePass.frag" />
+    <None Include="src\renderer\OpenGL\shaders\shadowPass.vert" />
+    <None Include="src\renderer\OpenGL\shaders\shadowPass.frag" />
   </ItemGroup>
 </Project>

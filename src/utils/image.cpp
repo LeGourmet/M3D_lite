@@ -1,13 +1,19 @@
 #include "image.hpp"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb/stb_image.h"
+
 namespace M3D
 {
-	Image::Image() {}
-	Image::~Image() { /*stbi_image_free(_pixels);*/ }
+namespace Image
+{
 
-	bool Image::load(const std::string p_path) {
-		//_pixels = stbi_load(p_path.c_str(), &_width, &_height, &_nbChannels, 0);
-		_pixels = nullptr;
-		return _pixels != nullptr;
+	unsigned char* load(std::string p_path, int* p_width, int* p_height, int* p_nbChannels) {
+		// stbi_set_flip_vertically_on_load(true); 
+		return stbi_load(p_path.c_str(), p_width, p_height, p_nbChannels, 0);
 	}
+
+	void free(unsigned char* p_image) { stbi_image_free(p_image); }
+
+}
 }

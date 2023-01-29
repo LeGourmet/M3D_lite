@@ -19,24 +19,22 @@ namespace M3D
             Renderer() {}
             virtual ~Renderer() = default;
 
+            // ----------------------------------------------------- GETTERS -------------------------------------------------------
+            virtual SDL_WindowFlags getWindowFlag() = 0;
+            bool getVSync() { return _vSync; }
+
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
             virtual void init(SDL_Window* p_window) = 0;
             virtual void resize(const int p_width, const int p_height) = 0;
+            virtual void setVSync(bool p_vSync) = 0;
             virtual void drawFrame(SDL_Window* p_window) = 0;
 
             virtual void createMesh(Scene::MeshTriangle* p_mesh) = 0;
-            virtual void createAmbiantMap(std::string p_path, Scene::MeshTriangle* p_mesh) = 0;
-            virtual void createDiffuseMap(std::string p_path, Scene::MeshTriangle* p_mesh) = 0; 
-            virtual void createSpecularMap(std::string p_path, Scene::MeshTriangle* p_mesh) = 0;
-            virtual void createShininessMap(std::string p_path, Scene::MeshTriangle* p_mesh) = 0;
-            virtual void createNormalMap(std::string p_path, Scene::MeshTriangle* p_mesh) = 0;
-            virtual void createVAO(const std::vector<Vertex> p_vertices, const std::vector<unsigned int> p_indices, Scene::MeshTriangle* p_mesh) = 0;
             virtual void deleteMesh(Scene::MeshTriangle* p_mesh) = 0;
-
-            void updateVSync(bool p_vSync) { _vSync = p_vSync; SDL_GL_SetSwapInterval(p_vSync); }
 
         protected:
             bool _vSync = true;
+            float _gamma = 2.2f;
             Vec4f _clearColor = Vec4f(0.5, 0.5, 0.5, 1.);
         };
     }

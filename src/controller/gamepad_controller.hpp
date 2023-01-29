@@ -12,17 +12,17 @@ namespace M3D
         public:
             // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
             GamepadController() {}
-            virtual ~GamepadController() = default;
+            ~GamepadController() {}
 
             // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
-            virtual void receiveEvent(const SDL_Event& p_event) {
+            void receiveEvent(const SDL_Event& p_event) {
                 switch (p_event.type) {
                     default:
                         break;
                 }
             }
 
-            virtual void clearEvents() {}
+            void clearEvents() {}
 
         protected:
         };

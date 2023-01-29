@@ -13,40 +13,107 @@ namespace M3D
 	namespace Renderer
 	{
 			void RendererOGL::drawFrame(SDL_Window* p_window){
+				_collectTexture();
+				_computeShading();
+				_applyPostProcess();
+
+				SDL_GL_SwapWindow(p_window);
+			}
+
+			void RendererOGL::_collectTexture() {
+				glBindFramebuffer(GL_FRAMEBUFFER, _fboBasePass);
+
+				glEnable(GL_DEPTH_TEST);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+				glUseProgram(_basePass);
+
 				const Mat4f VP = Application::getInstance().getSceneManager().getCamera().getProjectionMatrix() * Application::getInstance().getSceneManager().getCamera().getViewMatrix();
-				const Vec3f posCam = Application::getInstance().getSceneManager().getCamera().getPosition();
-				glProgramUniform3f(_program, _uCamPosLoc, posCam.x, posCam.y, posCam.z);
 
 				for (Scene::MeshTriangle* mesh : Application::getInstance().getSceneManager().getMeshes()) {
-					glProgramUniformMatrix4fv(_program, _uMVPMatrixLoc, 1, false, glm::value_ptr(VP * mesh->_transformation));
-					Object_OGL meshDatas = _objects.at(mesh);
+					glProgramUniformMatrix4fv(_basePass, _uMatrix_MVPLoc, 1, false, glm::value_ptr(VP * mesh->_transformation));
+					glProgramUniformMatrix4fv(_basePass, _uMatrix_MLoc, 1, false, glm::value_ptr(mesh->_transformation));
+					glProgramUniformMatrix4fv(_basePass, _uMatrix_NormalLoc, 1, false, glm::value_ptr(glm::transpose(mesh->_transformation)));
+					MeshOGL* meshOGL = _meshes.at(mesh);
 
-					glProgramUniform1i(_program, glGetUniformLocation(_program, "uHasAmbientMap"), mesh->_hasAmbientMap);
-					glProgramUniform3fv(_program, glGetUniformLocation(_program, "uAmbient"), 1, glm::value_ptr(mesh->_ka));
-					if (mesh->_hasAmbientMap) glBindTextureUnit(0, meshDatas.getAmbientMap());
+					glProgramUniform1i(_basePass, _uHasAmbientMapLoc, mesh->_hasAmbientMap);
+					glProgramUniform3fv(_basePass, _uAmbientLoc, 1, glm::value_ptr(mesh->_ka));
+					if (mesh->_hasAmbientMap) glBindTextureUnit(0, meshOGL->getIdAmbientMap());
 
-					glProgramUniform1i(_program, glGetUniformLocation(_program, "uHasDiffuseMap"), mesh->_hasDiffuseMap);
-					glProgramUniform3fv(_program, glGetUniformLocation(_program, "uDiffuse"), 1, glm::value_ptr(mesh->_kd));
-					if (mesh->_hasDiffuseMap) glBindTextureUnit(1, meshDatas.getDiffuseMap());
+					glProgramUniform1i(_basePass, _uHasDiffuseMapLoc, mesh->_hasDiffuseMap);
+					glProgramUniform3fv(_basePass, _uDiffuseLoc, 1, glm::value_ptr(mesh->_kd));
+					if (mesh->_hasDiffuseMap) glBindTextureUnit(1, meshOGL->getIdDiffuseMap());
 
-					glProgramUniform1i(_program, glGetUniformLocation(_program, "uHasSpecularMap"), mesh->_hasSpecularMap);
-					glProgramUniform3fv(_program, glGetUniformLocation(_program, "uSpecular"), 1, glm::value_ptr(mesh->_ks));
-					if (mesh->_hasSpecularMap)  glBindTextureUnit(2, meshDatas.getSpecularMap());
+					glProgramUniform1i(_basePass, _uHasSpecularMapLoc, mesh->_hasSpecularMap);
+					glProgramUniform3fv(_basePass, _uSpecularLoc, 1, glm::value_ptr(mesh->_ks));
+					if (mesh->_hasSpecularMap)  glBindTextureUnit(2, meshOGL->getIdSpecularMap());
 
-					glProgramUniform1i(_program, glGetUniformLocation(_program, "uHasShininessMap"), mesh->_hasShininessMap);
-					glProgramUniform1f(_program, glGetUniformLocation(_program, "uShininess"), mesh->_s);
-					if (mesh->_hasShininessMap) glBindTextureUnit(3, meshDatas.getShininessMap());
+					glProgramUniform1i(_basePass, _uHasShininessMapLoc, mesh->_hasShininessMap);
+					glProgramUniform1f(_basePass, _uShininessLoc, mesh->_s);
+					if (mesh->_hasShininessMap) glBindTextureUnit(3, meshOGL->getIdShininessMap());
 
-					glProgramUniform1i(_program, glGetUniformLocation(_program, "uHasNormalMap"), mesh->_hasNormalMap);
-					if (mesh->_hasNormalMap) glBindTextureUnit(4, meshDatas.getNormalMap());
+					glProgramUniform1i(_basePass, _uHasNormalMapLoc, mesh->_hasNormalMap);
+					if (mesh->_hasNormalMap) glBindTextureUnit(4, meshOGL->getIdNormalMap());
 
-					glBindVertexArray(meshDatas.getVao());
+					glBindVertexArray(meshOGL->getVao());
 					glDrawElements(GL_TRIANGLES, (GLsizei)mesh->getIndices().size(), GL_UNSIGNED_INT, 0);
 					glBindVertexArray(0);
 				}
-				SDL_GL_SwapWindow(p_window);
+			}
+
+			void RendererOGL::_computeShading() {
+				glBindFramebuffer(GL_FRAMEBUFFER, _fboShadingPass);
+				
+				glDisable(GL_DEPTH_TEST);
+				glClear(GL_COLOR_BUFFER_BIT);
+
+				glUseProgram(_shadingPass);
+				
+				glProgramUniform3fv(_shadingPass, _uCamPosLoc, 1, glm::value_ptr(Application::getInstance().getSceneManager().getCamera().getPosition()));
+				for (int i=0; i<10 ;i++) {
+					glProgramUniform4fv(_shadingPass, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(10., 20., 0., 1.)));
+					glProgramUniform4fv(_shadingPass, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(-0.5, -0.5, 0., 0.9)));
+					glProgramUniform4fv(_shadingPass, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(25.,25.,50., 0.95)));
+
+					/*glProgramUniform4fv(_shadingPass, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(0., 20., 10., 1.)));
+					glProgramUniform4fv(_shadingPass, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(0., -0.5, -0.5, 0.9)));
+					glProgramUniform4fv(_shadingPass, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(500.,100.,100., 0.95)));*/
+
+					glBindTextureUnit(0, _ambientMap);
+					glBindTextureUnit(1, _diffuseMap);
+					glBindTextureUnit(2, _specularMap);
+					glBindTextureUnit(3, _shininessMap);
+					glBindTextureUnit(4, _normalMap);
+					glBindTextureUnit(5, _positionMap);
+
+					glBindVertexArray(_vaoEmpty);
+					glDrawArrays(GL_TRIANGLES, 0, 6);
+				}
+				
+			}
+
+			void RendererOGL::_applyPostProcess() {
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+				glDisable(GL_DEPTH_TEST);
+				glClear(GL_COLOR_BUFFER_BIT);
+
+				glUseProgram(_finalPass);
+				
+				glProgramUniform1f(_finalPass, _uGammaLoc, _gamma);
+				glBindTextureUnit(0, _resultMap);
+			
+				glBindVertexArray(_vaoEmpty);
+				glDrawArrays(GL_TRIANGLES, 0, 6);
+			}
+
+			void RendererOGL::_generateAndAttachMap(GLuint* p_texture, int p_id) {
+				glGenTextures(1, p_texture);
+				glBindTexture(GL_TEXTURE_2D, *p_texture);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1280, 720, 0, GL_RGBA, GL_FLOAT, 0);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+p_id, *p_texture, 0);
 			}
 
 			std::string RendererOGL::_readShader(std::string p_path) {

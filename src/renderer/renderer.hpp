@@ -35,7 +35,7 @@ namespace M3D
         protected:
             bool _vSync = true;
             float _gamma = 2.2f;
-            Vec4f _clearColor = Vec4f(0.5, 0.5, 0.5, 1.);
+            Vec4f _clearColor = Vec4f(0., 0., 0., 1.);
         };
     }
 }

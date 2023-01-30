@@ -24,6 +24,10 @@ namespace Scene
         const Mat4f &getViewMatrix() const { return _viewMatrix; }
         const Mat4f &getProjectionMatrix() const { return _projectionMatrix; }
 
+        const Vec3f getFront() { return _front; }
+        const Vec3f getLeft() { return _left; }
+        const Vec3f getUp() { return _up; }
+
         // ----------------------------------------------------- SETTERS -------------------------------------------------------
         void setScreenSize(const unsigned int p_width, const unsigned int p_height) {
             _screenWidth = p_width;

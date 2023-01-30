@@ -2,12 +2,11 @@
 
 layout( location = 0 ) out vec4 fragColor;
 
-layout( binding = 0 ) uniform sampler2D uAmbientMap;
-layout( binding = 1 ) uniform sampler2D uDiffuseMap;
-layout( binding = 2 ) uniform sampler2D uSpecularMap;
-layout( binding = 3 ) uniform sampler2D uShininessMap;
-layout( binding = 4 ) uniform sampler2D uNormalMap;
-layout( binding = 5 ) uniform sampler2D uPositionMap;
+layout( binding = 0 ) uniform sampler2D uAlbedoMap;
+layout( binding = 1 ) uniform sampler2D uSpecularMap;
+layout( binding = 2 ) uniform sampler2D uShininessMap;
+layout( binding = 3 ) uniform sampler2D uNormalMap;
+layout( binding = 4 ) uniform sampler2D uPositionMap;
 
 uniform vec3 uCamPos;
 uniform vec4 uLightPosition;	 // position  + type
@@ -38,8 +37,8 @@ void main()
 
 	float cosT = max(0.,dot(N,Li));
 
-	vec3 Diffuse_Componant  = cosT													* texture2D(uDiffuseMap,uv).xyz;
+	vec3 Diffuse_Componant  = cosT													* texture2D(uAlbedoMap,uv).xyz;
 	vec3 Specular_Componant = pow(max(0.f,dot(N,H)), texture2D(uShininessMap,uv).x) * texture2D(uSpecularMap,uv).xyz;
 
-	fragColor = vec4(texture2D(uAmbientMap,uv).xyz+(Diffuse_Componant + Specular_Componant)*Light_Componant*cosT,1.);
+	fragColor = vec4((Diffuse_Componant + Specular_Componant)*Light_Componant*cosT,1.);
 }

@@ -18,6 +18,7 @@ namespace M3D
 			//Application::getInstance().getSceneManager().addMeshes("assets/Unity/UnityExporterScene.obj"); 
 			//Application::getInstance().getSceneManager().addMeshes("assets/Teapot.obj");
 			//Application::getInstance().getSceneManager().addMeshes("assets/Bunny.obj");
+			//Application::getInstance().getSceneManager().addMeshes("assets/conference/conference.obj");
 
 			Application::getInstance().getSceneManager().getCamera().setPosition(Vec3f(10., 20., 10.));
 			Application::getInstance().getSceneManager().getCamera().rotate(Vec3f(0.5, -2.2, 0.));

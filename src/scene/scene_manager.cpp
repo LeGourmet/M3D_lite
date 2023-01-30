@@ -69,35 +69,35 @@ namespace Scene
         if (p_mtl->GetTextureCount(aiTextureType_AMBIENT) > 0)
         {
             p_mtl->GetTexture(aiTextureType_AMBIENT, 0, &texturePath);
-            p_meshTri->_ambientMapPath = (p_path + texturePath.C_Str());
+            p_meshTri->_ambientMapPath = p_path + texturePath.C_Str();
             p_meshTri->_hasAmbientMap = true;
         }
 
         if (p_mtl->GetTextureCount(aiTextureType_DIFFUSE) > 0)
         {
             p_mtl->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath);
-            p_meshTri->_diffuseMapPath = (p_path + texturePath.C_Str());
+            p_meshTri->_diffuseMapPath = p_path + texturePath.C_Str();
             p_meshTri->_hasDiffuseMap = true;
         }
 
         if (p_mtl->GetTextureCount(aiTextureType_SPECULAR) > 0)
         {
             p_mtl->GetTexture(aiTextureType_SPECULAR, 0, &texturePath);
-            p_meshTri->_specularMapPath = (p_path + texturePath.C_Str());
+            p_meshTri->_specularMapPath = p_path + texturePath.C_Str();
             p_meshTri->_hasSpecularMap = true;
         }
 
         if (p_mtl->GetTextureCount(aiTextureType_SHININESS) > 0)
         {
             p_mtl->GetTexture(aiTextureType_SHININESS, 0, &texturePath);
-            p_meshTri->_shininessMapPath = (p_path + texturePath.C_Str());
+            p_meshTri->_shininessMapPath = p_path + texturePath.C_Str();
             p_meshTri->_hasShininessMap = true;
         }
 
         if (p_mtl->GetTextureCount(aiTextureType_NORMALS) > 0)
         {
             p_mtl->GetTexture(aiTextureType_NORMALS, 0, &texturePath);
-            p_meshTri->_normalMapPath = (p_path + texturePath.C_Str());
+            p_meshTri->_normalMapPath = p_path + texturePath.C_Str();
             p_meshTri->_hasNormalMap = true;
         }
 
@@ -153,7 +153,7 @@ namespace Scene
             MeshTriangle* triMesh  = _loadMesh(mesh);
             
             const aiMaterial* const mtl = scene->mMaterials[mesh->mMaterialIndex];
-            if (mtl != nullptr) _loadMaterial(p_path,triMesh,mtl);
+            if (mtl != nullptr) _loadMaterial(std::filesystem::absolute(p_path).remove_filename().string(), triMesh, mtl);
 
             Application::getInstance().getRenderer().createMesh(triMesh);
 

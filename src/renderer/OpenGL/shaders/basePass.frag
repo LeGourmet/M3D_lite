@@ -33,8 +33,7 @@ void main(){
 	// transparence ?
 	// care clear color
 
-	//ambientColor = vec4(fragPosition,1.);
-	ambientColor	= vec4(0.1*(uHasAmbientMap ? texture2D(uAmbientMap,uv).xyz : uAmbient),1.);
+	ambientColor	= vec4(0.01*(uHasAmbientMap ? texture2D(uAmbientMap,uv).xyz : uAmbient),1.);
 	diffuseColor	= vec4((uHasDiffuseMap ? texture2D(uDiffuseMap,uv).xyz : uDiffuse),1.);
 	specularColor	= vec4((uHasSpecularMap ? texture2D(uSpecularMap,uv).xyz : uSpecular),1.);
 	shininess		= vec4(uHasShininessMap ? texture2D(uShininessMap,uv).x : uShininess);

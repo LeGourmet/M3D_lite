@@ -23,6 +23,7 @@ namespace M3D
 			void RendererOGL::_collectTexture() {
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboBasePass);
 
+				glDisable(GL_BLEND);
 				glEnable(GL_DEPTH_TEST);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -64,27 +65,35 @@ namespace M3D
 			void RendererOGL::_computeShading() {
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboShadingPass);
 				
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_ONE,GL_ONE);
 				glDisable(GL_DEPTH_TEST);
-				glClear(GL_COLOR_BUFFER_BIT);
 
 				glUseProgram(_shadingPass);
 				
 				glProgramUniform3fv(_shadingPass, _uCamPosLoc, 1, glm::value_ptr(Application::getInstance().getSceneManager().getCamera().getPosition()));
-				for (int i=0; i<10 ;i++) {
-					glProgramUniform4fv(_shadingPass, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(10., 20., 0., 1.)));
-					glProgramUniform4fv(_shadingPass, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(-0.5, -0.5, 0., 0.9)));
-					glProgramUniform4fv(_shadingPass, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(25.,25.,50., 0.95)));
+				for (int i=0; i<3 ;i++) {
+					if (i==0) {
+						glProgramUniform4fv(_shadingPass, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(0., 0., 0., 0.)));
+						glProgramUniform4fv(_shadingPass, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(-0.5, -0.5, -0.5, -1.)));
+						glProgramUniform4fv(_shadingPass, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(1., 1., 1., -1.)));
+					}
+					else if(i==1){
+						glProgramUniform4fv(_shadingPass, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(0., 20., 0., 1.)));
+						glProgramUniform4fv(_shadingPass, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(0., -0.5, -0.5, -1.)));
+						glProgramUniform4fv(_shadingPass, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(0., 0., 200., -1.)));
+					}
+					else {
+						glProgramUniform4fv(_shadingPass, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getCamera().getPosition(), 1.)));
+						glProgramUniform4fv(_shadingPass, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getCamera().getFront(), 0.9)));
+						glProgramUniform4fv(_shadingPass, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(500., 100., 100., 0.95)));
+					}
 
-					/*glProgramUniform4fv(_shadingPass, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(0., 20., 10., 1.)));
-					glProgramUniform4fv(_shadingPass, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(0., -0.5, -0.5, 0.9)));
-					glProgramUniform4fv(_shadingPass, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(500.,100.,100., 0.95)));*/
-
-					glBindTextureUnit(0, _ambientMap);
-					glBindTextureUnit(1, _diffuseMap);
-					glBindTextureUnit(2, _specularMap);
-					glBindTextureUnit(3, _shininessMap);
-					glBindTextureUnit(4, _normalMap);
-					glBindTextureUnit(5, _positionMap);
+					glBindTextureUnit(0, _albedoMap);
+					glBindTextureUnit(1, _specularMap);
+					glBindTextureUnit(2, _shininessMap);
+					glBindTextureUnit(3, _normalMap);
+					glBindTextureUnit(4, _positionMap);
 
 					glBindVertexArray(_vaoEmpty);
 					glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -95,6 +104,7 @@ namespace M3D
 			void RendererOGL::_applyPostProcess() {
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+				glDisable(GL_BLEND);
 				glDisable(GL_DEPTH_TEST);
 				glClear(GL_COLOR_BUFFER_BIT);
 

@@ -12,30 +12,6 @@ namespace M3D
 	namespace Renderer
 	{
 		MeshOGL::MeshOGL(Scene::MeshTriangle* p_mesh) {
-			/*glGenVertexArrays(1, &_vao);
-			glBindVertexArray(_vao);
-
-			glGenBuffers(1, &_vbo);
-			glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-			glBufferData(GL_ARRAY_BUFFER, p_mesh->getVertices().size() * sizeof(Vertex), p_mesh->getVertices().data(), GL_STATIC_DRAW);
-
-			glGenBuffers(1, &_ebo);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, p_mesh->getIndices().size() * sizeof(unsigned int), p_mesh->getIndices().data(), GL_STATIC_DRAW);
-
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, _position));
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, _normal));
-			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, _uv));
-			glEnableVertexAttribArray(2);
-			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, _tangent));
-			glEnableVertexAttribArray(3);
-			glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, _bitangent));
-			glEnableVertexAttribArray(4);
-
-			glBindVertexArray(0);*/
-
 			glCreateVertexArrays(1, &_vao);
 
 			glCreateBuffers(1, &_vbo);

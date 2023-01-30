@@ -7,7 +7,6 @@
 #include "renderer/renderer.hpp"
 
 #include <map>
-#include <iostream>
 
 namespace M3D
 {
@@ -73,8 +72,8 @@ namespace M3D
 
 				glGenFramebuffers(1, &_fboBasePass);
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboBasePass);
-				_generateAndAttachMap(&_ambientMap, 0);
-				_generateAndAttachMap(&_diffuseMap, 1);
+				_generateAndAttachMap(&_resultMap, 0);
+				_generateAndAttachMap(&_albedoMap, 1);
 				_generateAndAttachMap(&_specularMap, 2);
 				_generateAndAttachMap(&_shininessMap, 3);
 				_generateAndAttachMap(&_normalMap, 4);
@@ -89,7 +88,7 @@ namespace M3D
 
 				glGenFramebuffers(1, &_fboShadingPass);
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboShadingPass);
-				_generateAndAttachMap(&_resultMap,0);
+				glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, _resultMap, 0);
 				GLenum DrawBuffers1[1] = { GL_COLOR_ATTACHMENT0 };
 				glDrawBuffers(1, DrawBuffers1);
 
@@ -130,8 +129,7 @@ namespace M3D
 			GLuint _fboBasePass			= GL_INVALID_INDEX;
 			GLuint _rboBasePass			= GL_INVALID_INDEX;
 			GLuint _resultMap			= GL_INVALID_INDEX;
-			GLuint _ambientMap			= GL_INVALID_INDEX;
-			GLuint _diffuseMap			= GL_INVALID_INDEX;
+			GLuint _albedoMap			= GL_INVALID_INDEX;
 			GLuint _specularMap			= GL_INVALID_INDEX;
 			GLuint _shininessMap		= GL_INVALID_INDEX;
 			GLuint _normalMap			= GL_INVALID_INDEX;

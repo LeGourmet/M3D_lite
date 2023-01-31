@@ -1,27 +1,25 @@
 #version 450
 
-layout( location = 0 ) out vec4 ambientColor;
-layout( location = 1 ) out vec4 diffuseColor;
-layout( location = 2 ) out vec4 specularColor;
-layout( location = 3 ) out vec4 shininess;
-layout( location = 4 ) out vec4 normal;
-layout( location = 5 ) out vec4 position;
+layout( location = 0 ) out vec4 position_metalness;
+layout( location = 1 ) out vec4 normal_roughness;
+layout( location = 2 ) out vec4 ambient;
+layout( location = 3 ) out vec4 albedo;
 
 layout( binding = 0 ) uniform sampler2D uAmbientMap;
-layout( binding = 1 ) uniform sampler2D uDiffuseMap;
-layout( binding = 2 ) uniform sampler2D uSpecularMap;
-layout( binding = 3 ) uniform sampler2D uShininessMap;
+layout( binding = 1 ) uniform sampler2D uAlbedoMap;
+layout( binding = 2 ) uniform sampler2D uMetalnessMap;
+layout( binding = 3 ) uniform sampler2D uRoughnessMap;
 layout( binding = 4 ) uniform sampler2D uNormalMap;
 
 uniform vec3 uAmbient;
-uniform vec3 uDiffuse;
-uniform vec3 uSpecular;
-uniform float uShininess;
+uniform vec3 uAlbedo;
+uniform float uMetalness;
+uniform float uRoughness;
 
 uniform bool uHasAmbientMap;
-uniform bool uHasDiffuseMap;
-uniform bool uHasSpecularMap;
-uniform bool uHasShininessMap;
+uniform bool uHasAlbedoMap;
+uniform bool uHasMetalnessMap;
+uniform bool uHasRoughnessMap;
 uniform bool uHasNormalMap;
 
 in vec2 uv;
@@ -33,10 +31,13 @@ void main(){
 	// transparence ?
 	// care clear color
 
-	ambientColor	= vec4(0.01*(uHasAmbientMap ? texture2D(uAmbientMap,uv).xyz : uAmbient),1.);
-	diffuseColor	= vec4((uHasDiffuseMap ? texture2D(uDiffuseMap,uv).xyz : uDiffuse),1.);
-	specularColor	= vec4((uHasSpecularMap ? texture2D(uSpecularMap,uv).xyz : uSpecular),1.);
-	shininess		= vec4(uHasShininessMap ? texture2D(uShininessMap,uv).x : uShininess);
-	normal			= vec4(normalize(uHasNormalMap ? (TBN*(texture2D(uNormalMap,uv).xyz*2.f-1.f)) : fragNormal),1.);
-	position		= vec4(fragPosition,1.);
+	float metalness = (uHasMetalnessMap ? texture2D(uMetalnessMap,uv).x : uMetalness);
+	position_metalness = vec4(fragPosition,metalness);
+
+	float roughness = (uHasRoughnessMap ? texture2D(uRoughnessMap,uv).x : uRoughness);
+	vec3 normal = normalize(uHasNormalMap ? (TBN*(texture2D(uNormalMap,uv).xyz*2.-1.)) : fragNormal);
+	normal_roughness = vec4(normal,roughness);
+	
+	albedo = vec4((uHasAlbedoMap ? texture2D(uAlbedoMap,uv).xyz : uAlbedo),1.);
+	ambient = vec4(0.01*(uHasAmbientMap ? texture2D(uAmbientMap,uv).xyz : uAmbient),1.);
 }

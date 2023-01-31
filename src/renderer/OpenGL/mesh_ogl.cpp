@@ -28,9 +28,9 @@ namespace M3D
 			glVertexArrayElementBuffer(_vao, _ebo);
 
 			if (p_mesh->_hasAmbientMap)   _generateTexture(p_mesh->_ambientMapPath, &_idAmbientMap);
-			if (p_mesh->_hasDiffuseMap)   _generateTexture(p_mesh->_diffuseMapPath, &_idDiffuseMap);
-			if (p_mesh->_hasSpecularMap)  _generateTexture(p_mesh->_specularMapPath, &_idSpecularMap);
-			if (p_mesh->_hasShininessMap) _generateTexture(p_mesh->_shininessMapPath, &_idShininessMap);
+			if (p_mesh->_hasAlbedoMap)	  _generateTexture(p_mesh->_albedoMapPath, &_idAlbedoMap);
+			if (p_mesh->_hasMetalnessMap) _generateTexture(p_mesh->_metalnessMapPath, &_idMetalnessMap);
+			if (p_mesh->_hasRoughnessMap) _generateTexture(p_mesh->_roughnessMapPath, &_idRoughnessMap);
 			if (p_mesh->_hasNormalMap)    _generateTexture(p_mesh->_normalMapPath, &_idNormalMap);
 		}
 
@@ -45,9 +45,9 @@ namespace M3D
 			glDeleteBuffers(1, &_ebo);
 
 			glDeleteTextures(1, &_idAmbientMap);
-			glDeleteTextures(1, &_idDiffuseMap);
-			glDeleteTextures(1, &_idSpecularMap);
-			glDeleteTextures(1, &_idShininessMap);
+			glDeleteTextures(1, &_idAlbedoMap);
+			glDeleteTextures(1, &_idMetalnessMap);
+			glDeleteTextures(1, &_idRoughnessMap);
 			glDeleteTextures(1, &_idNormalMap);
 		}
 

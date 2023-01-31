@@ -76,22 +76,22 @@ namespace Scene
         if (p_mtl->GetTextureCount(aiTextureType_DIFFUSE) > 0)
         {
             p_mtl->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath);
-            p_meshTri->_diffuseMapPath = p_path + texturePath.C_Str();
-            p_meshTri->_hasDiffuseMap = true;
+            p_meshTri->_albedoMapPath = p_path + texturePath.C_Str();
+            p_meshTri->_hasAlbedoMap = true;
         }
 
         if (p_mtl->GetTextureCount(aiTextureType_SPECULAR) > 0)
         {
             p_mtl->GetTexture(aiTextureType_SPECULAR, 0, &texturePath);
-            p_meshTri->_specularMapPath = p_path + texturePath.C_Str();
-            p_meshTri->_hasSpecularMap = true;
+            p_meshTri->_metalnessMapPath = p_path + texturePath.C_Str();
+            p_meshTri->_hasMetalnessMap = true;
         }
 
         if (p_mtl->GetTextureCount(aiTextureType_SHININESS) > 0)
         {
             p_mtl->GetTexture(aiTextureType_SHININESS, 0, &texturePath);
-            p_meshTri->_shininessMapPath = p_path + texturePath.C_Str();
-            p_meshTri->_hasShininessMap = true;
+            p_meshTri->_roughnessMapPath = p_path + texturePath.C_Str();
+            p_meshTri->_hasRoughnessMap = true;
         }
 
         if (p_mtl->GetTextureCount(aiTextureType_NORMALS) > 0)
@@ -101,10 +101,10 @@ namespace Scene
             p_meshTri->_hasNormalMap = true;
         }
 
-        if (p_mtl->Get(AI_MATKEY_COLOR_AMBIENT , aiCol) == AI_SUCCESS) p_meshTri->_ka = Vec3f(aiCol.r, aiCol.g, aiCol.b);
-        if (p_mtl->Get(AI_MATKEY_COLOR_DIFFUSE , aiCol) == AI_SUCCESS) p_meshTri->_kd = Vec3f(aiCol.r, aiCol.g, aiCol.b);
-        if (p_mtl->Get(AI_MATKEY_COLOR_SPECULAR, aiCol) == AI_SUCCESS) p_meshTri->_ks = Vec3f(aiCol.r, aiCol.g, aiCol.b);
-        if (p_mtl->Get(AI_MATKEY_SHININESS     , aiS  ) == AI_SUCCESS) p_meshTri->_s  = aiS;
+        if (p_mtl->Get(AI_MATKEY_COLOR_AMBIENT , aiCol) == AI_SUCCESS) p_meshTri->_ambient = Vec3f(aiCol.r, aiCol.g, aiCol.b);
+        if (p_mtl->Get(AI_MATKEY_COLOR_DIFFUSE , aiCol) == AI_SUCCESS) p_meshTri->_albedo = Vec3f(aiCol.r, aiCol.g, aiCol.b);
+        //if (p_mtl->Get(AI_MATKEY_COLOR_SPECULAR, aiCol) == AI_SUCCESS) p_meshTri->_ks = Vec3f(aiCol.r, aiCol.g, aiCol.b);
+        if (p_mtl->Get(AI_MATKEY_SHININESS     , aiS  ) == AI_SUCCESS) p_meshTri->_roughness = (float)glm::sqrt(2./(2.+p_meshTri->_roughness));
     }
 
     MeshTriangle* SceneManager::_loadMesh(const aiMesh *const p_mesh)

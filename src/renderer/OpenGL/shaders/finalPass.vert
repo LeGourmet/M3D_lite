@@ -8,10 +8,4 @@ void main(){
 
     uv = vec2(x, y);
     gl_Position = vec4(x*2.-1., y*2.-1., 0., 1.);
-
-    /*vec2[6] pos = vec2[6](vec2(-1.,-1.),vec2(1.,-1.),vec2(-1.,1.),vec2(1.,-1.),vec2(-1.,1.),vec2(1.,1.));
-    vec2[6] uvs = vec2[6](vec2(0.,0.),vec2(1.,0.),vec2(0.,1.),vec2(1.,0.),vec2(0.,1.),vec2(1.,1.));
-
-    uv = uvs[gl_VertexID];
-    gl_Position = vec4(pos[gl_VertexID],0.,1.);*/
 }

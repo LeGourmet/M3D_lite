@@ -49,15 +49,15 @@ namespace M3D
 				_uMatrix_MLoc			= glGetUniformLocation(_basePass, "uMatrix_M");
 				_uMatrix_NormalLoc		= glGetUniformLocation(_basePass, "uMatrix_Normal");
 				_uAmbientLoc			= glGetUniformLocation(_basePass, "uAmbient");
-				_uDiffuseLoc			= glGetUniformLocation(_basePass, "uDiffuse");
-				_uSpecularLoc			= glGetUniformLocation(_basePass, "uSpecular");
-				_uShininessLoc			= glGetUniformLocation(_basePass, "uShininess");
+				_uAlbedoLoc				= glGetUniformLocation(_basePass, "uAlbedo");
+				_uMetalnessLoc			= glGetUniformLocation(_basePass, "uMetalness");
+				_uRoughnessLoc			= glGetUniformLocation(_basePass, "uRoughness");
 				_uHasAmbientMapLoc		= glGetUniformLocation(_basePass, "uHasAmbientMap");
-				_uHasDiffuseMapLoc		= glGetUniformLocation(_basePass, "uHasDiffuseMap");
-				_uHasSpecularMapLoc		= glGetUniformLocation(_basePass, "uHasSpecularMap");
-				_uHasShininessMapLoc	= glGetUniformLocation(_basePass, "uHasShininessMap");
+				_uHasAlbedoMapLoc		= glGetUniformLocation(_basePass, "uHasAlbedoMap");
+				_uHasMetalnessMapLoc	= glGetUniformLocation(_basePass, "uHasMetalnessMap");
+				_uHasRoughnessMapLoc	= glGetUniformLocation(_basePass, "uHasRoughnessMap");
 				_uHasNormalMapLoc		= glGetUniformLocation(_basePass, "uHasNormalMap");
-				
+
 				_shadingPass			= _initProgram("src/renderer/OpenGL/shaders/shadingPass.vert", "src/renderer/OpenGL/shaders/shadingPass.frag");
 				_uCamPosLoc				= glGetUniformLocation(_shadingPass, "uCamPos");
 				_uLightPositionLoc		= glGetUniformLocation(_shadingPass, "uLightPosition");
@@ -72,14 +72,12 @@ namespace M3D
 
 				glGenFramebuffers(1, &_fboBasePass);
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboBasePass);
-				_generateAndAttachMap(&_resultMap, 0);
-				_generateAndAttachMap(&_albedoMap, 1);
-				_generateAndAttachMap(&_specularMap, 2);
-				_generateAndAttachMap(&_shininessMap, 3);
-				_generateAndAttachMap(&_normalMap, 4);
-				_generateAndAttachMap(&_positionMap, 5);
-				GLenum DrawBuffers0[6] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5 };
-				glDrawBuffers(6, DrawBuffers0);
+				_generateAndAttachMap(&_positionMetalnessMap, 0);
+				_generateAndAttachMap(&_normalRoughnessMap, 1);
+				_generateAndAttachMap(&_resultMap, 2);
+				_generateAndAttachMap(&_albedoMap, 3);
+				GLenum DrawBuffers0[4] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
+				glDrawBuffers(4, DrawBuffers0);
 
 				glGenRenderbuffers(1, &_rboBasePass);
 				glBindRenderbuffer(GL_RENDERBUFFER, _rboBasePass);
@@ -108,13 +106,13 @@ namespace M3D
 			GLint  _uMatrix_MLoc		= GL_INVALID_INDEX;
 			GLint  _uMatrix_NormalLoc	= GL_INVALID_INDEX;
 			GLint  _uAmbientLoc			= GL_INVALID_INDEX;
-			GLint  _uDiffuseLoc			= GL_INVALID_INDEX;
-			GLint  _uSpecularLoc		= GL_INVALID_INDEX;
-			GLint  _uShininessLoc		= GL_INVALID_INDEX;
+			GLint  _uAlbedoLoc			= GL_INVALID_INDEX;
+			GLint  _uMetalnessLoc		= GL_INVALID_INDEX;
+			GLint  _uRoughnessLoc		= GL_INVALID_INDEX;
 			GLint  _uHasAmbientMapLoc	= GL_INVALID_INDEX;
-			GLint  _uHasDiffuseMapLoc	= GL_INVALID_INDEX;
-			GLint  _uHasSpecularMapLoc	= GL_INVALID_INDEX;
-			GLint  _uHasShininessMapLoc = GL_INVALID_INDEX;
+			GLint  _uHasAlbedoMapLoc	= GL_INVALID_INDEX;
+			GLint  _uHasMetalnessMapLoc	= GL_INVALID_INDEX;
+			GLint  _uHasRoughnessMapLoc = GL_INVALID_INDEX;
 			GLint  _uHasNormalMapLoc	= GL_INVALID_INDEX;
 
 			GLuint _shadingPass			= GL_INVALID_INDEX;
@@ -129,11 +127,9 @@ namespace M3D
 			GLuint _fboBasePass			= GL_INVALID_INDEX;
 			GLuint _rboBasePass			= GL_INVALID_INDEX;
 			GLuint _resultMap			= GL_INVALID_INDEX;
+			GLuint _positionMetalnessMap= GL_INVALID_INDEX;
+			GLuint _normalRoughnessMap	= GL_INVALID_INDEX;
 			GLuint _albedoMap			= GL_INVALID_INDEX;
-			GLuint _specularMap			= GL_INVALID_INDEX;
-			GLuint _shininessMap		= GL_INVALID_INDEX;
-			GLuint _normalMap			= GL_INVALID_INDEX;
-			GLuint _positionMap			= GL_INVALID_INDEX;
 
 			GLuint _fboShadingPass		= GL_INVALID_INDEX;
 			GLuint _vaoEmpty			= GL_INVALID_INDEX;

@@ -22,6 +22,7 @@ namespace M3D
 
 			void RendererOGL::_collectTexture() {
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboBasePass);
+				glViewport(0, 0, 1280, 720);
 
 				glDisable(GL_BLEND);
 				glEnable(GL_DEPTH_TEST);
@@ -38,20 +39,20 @@ namespace M3D
 					MeshOGL* meshOGL = _meshes.at(mesh);
 
 					glProgramUniform1i(_basePass, _uHasAmbientMapLoc, mesh->_hasAmbientMap);
-					glProgramUniform3fv(_basePass, _uAmbientLoc, 1, glm::value_ptr(mesh->_ka));
+					glProgramUniform3fv(_basePass, _uAmbientLoc, 1, glm::value_ptr(mesh->_ambient));
 					if (mesh->_hasAmbientMap) glBindTextureUnit(0, meshOGL->getIdAmbientMap());
 
-					glProgramUniform1i(_basePass, _uHasDiffuseMapLoc, mesh->_hasDiffuseMap);
-					glProgramUniform3fv(_basePass, _uDiffuseLoc, 1, glm::value_ptr(mesh->_kd));
-					if (mesh->_hasDiffuseMap) glBindTextureUnit(1, meshOGL->getIdDiffuseMap());
+					glProgramUniform1i(_basePass, _uHasAlbedoMapLoc, mesh->_hasAlbedoMap);
+					glProgramUniform3fv(_basePass, _uAlbedoLoc, 1, glm::value_ptr(mesh->_albedo));
+					if (mesh->_hasAlbedoMap) glBindTextureUnit(1, meshOGL->getIdAlbedoMap());
 
-					glProgramUniform1i(_basePass, _uHasSpecularMapLoc, mesh->_hasSpecularMap);
-					glProgramUniform3fv(_basePass, _uSpecularLoc, 1, glm::value_ptr(mesh->_ks));
-					if (mesh->_hasSpecularMap)  glBindTextureUnit(2, meshOGL->getIdSpecularMap());
+					glProgramUniform1i(_basePass, _uHasMetalnessMapLoc, mesh->_hasMetalnessMap);
+					glProgramUniform1f(_basePass, _uMetalnessLoc, mesh->_metalness);
+					if (mesh->_hasMetalnessMap)  glBindTextureUnit(2, meshOGL->getIdMetalnessMap());
 
-					glProgramUniform1i(_basePass, _uHasShininessMapLoc, mesh->_hasShininessMap);
-					glProgramUniform1f(_basePass, _uShininessLoc, mesh->_s);
-					if (mesh->_hasShininessMap) glBindTextureUnit(3, meshOGL->getIdShininessMap());
+					glProgramUniform1i(_basePass, _uHasRoughnessMapLoc, mesh->_hasRoughnessMap);
+					glProgramUniform1f(_basePass, _uRoughnessLoc, mesh->_roughness);
+					if (mesh->_hasRoughnessMap) glBindTextureUnit(3, meshOGL->getIdRoughnessMap());
 
 					glProgramUniform1i(_basePass, _uHasNormalMapLoc, mesh->_hasNormalMap);
 					if (mesh->_hasNormalMap) glBindTextureUnit(4, meshOGL->getIdNormalMap());
@@ -64,6 +65,7 @@ namespace M3D
 
 			void RendererOGL::_computeShading() {
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboShadingPass);
+				glViewport(0, 0, 1280, 720);
 				
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_ONE,GL_ONE);
@@ -89,11 +91,9 @@ namespace M3D
 						glProgramUniform4fv(_shadingPass, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(500., 100., 100., 0.95)));
 					}
 
-					glBindTextureUnit(0, _albedoMap);
-					glBindTextureUnit(1, _specularMap);
-					glBindTextureUnit(2, _shininessMap);
-					glBindTextureUnit(3, _normalMap);
-					glBindTextureUnit(4, _positionMap);
+					glBindTextureUnit(0, _positionMetalnessMap);
+					glBindTextureUnit(1, _normalRoughnessMap);
+					glBindTextureUnit(2, _albedoMap);
 
 					glBindVertexArray(_vaoEmpty);
 					glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -103,6 +103,7 @@ namespace M3D
 
 			void RendererOGL::_applyPostProcess() {
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				glViewport(0, 0, 1280, 720);
 
 				glDisable(GL_BLEND);
 				glDisable(GL_DEPTH_TEST);

@@ -20,22 +20,22 @@ namespace Scene
         void addVertex(const Vertex p_vertex);
 
     public:
-        Vec3f _ka = VEC3F_ZERO;
-        Vec3f _kd = VEC3F_ZERO;
-        Vec3f _ks = VEC3F_ZERO;
-        float _s = 0.f;
+        Vec3f _ambient = VEC3F_ZERO;
+        Vec3f _albedo = VEC3F_ZERO;
+        float _metalness = 0.8f;
+        float _roughness = 1.f;
 
         bool _hasUVs = false;
         bool _hasAmbientMap = false;
-        bool _hasDiffuseMap = false;
-        bool _hasSpecularMap = false;
-        bool _hasShininessMap = false;
+        bool _hasAlbedoMap = false;
+        bool _hasMetalnessMap = false;
+        bool _hasRoughnessMap = false;
         bool _hasNormalMap = false;
 
         std::string _ambientMapPath;
-        std::string _diffuseMapPath;
-        std::string _specularMapPath;
-        std::string _shininessMapPath;
+        std::string _albedoMapPath;
+        std::string _metalnessMapPath;
+        std::string _roughnessMapPath;
         std::string _normalMapPath;
 
         Mat4f _transformation = MAT4F_ID;

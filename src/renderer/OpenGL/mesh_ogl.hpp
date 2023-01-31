@@ -18,18 +18,18 @@ namespace M3D
 
 			// ------------------------------------------------------ GETTERS --------------------------------------------------------
 			GLuint getIdAmbientMap() { return _idAmbientMap; }
-			GLuint getIdDiffuseMap() { return _idDiffuseMap; }
-			GLuint getIdSpecularMap() { return _idSpecularMap; }
-			GLuint getIdShininessMap() { return _idShininessMap; }
+			GLuint getIdAlbedoMap() { return _idAlbedoMap; }
+			GLuint getIdMetalnessMap() { return _idMetalnessMap; }
+			GLuint getIdRoughnessMap() { return _idRoughnessMap; }
 			GLuint getIdNormalMap() { return _idNormalMap; }
 			GLuint getVao() { return _vao; }
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 			GLuint _idAmbientMap = 0;
-			GLuint _idDiffuseMap = 0;
-			GLuint _idSpecularMap = 0;
-			GLuint _idShininessMap = 0;
+			GLuint _idAlbedoMap = 0;
+			GLuint _idMetalnessMap = 0;
+			GLuint _idRoughnessMap = 0;
 			GLuint _idNormalMap = 0;
 
 			GLuint _vao = GL_INVALID_INDEX;

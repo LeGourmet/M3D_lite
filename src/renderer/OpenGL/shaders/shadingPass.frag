@@ -2,11 +2,9 @@
 
 layout( location = 0 ) out vec4 fragColor;
 
-layout( binding = 0 ) uniform sampler2D uAlbedoMap;
-layout( binding = 1 ) uniform sampler2D uSpecularMap;
-layout( binding = 2 ) uniform sampler2D uShininessMap;
-layout( binding = 3 ) uniform sampler2D uNormalMap;
-layout( binding = 4 ) uniform sampler2D uPositionMap;
+layout( binding = 0 ) uniform sampler2D uPosition_MetalnessMap;
+layout( binding = 1 ) uniform sampler2D uNormal_RoughnessMap;
+layout( binding = 2 ) uniform sampler2D uAlbedoMap;
 
 uniform vec3 uCamPos;
 uniform vec4 uLightPosition;	 // position  + type
@@ -16,29 +14,60 @@ in vec2 uv;
 
 void main()
 {
-	vec3 fragPos = texture2D(uPositionMap,uv).xyz;
-	vec3 N		 = texture2D(uNormalMap,uv).xyz;
+	vec4 albedo = texture2D(uAlbedoMap,uv);
+	if(albedo.a<0.5) discard;
 
-	vec3 Li,Light_Componant;
+	vec4 position_metalness = texture2D(uPosition_MetalnessMap,uv);
+	vec4 normal_roughness = texture2D(uNormal_RoughnessMap,uv);
+
+	vec3 L,Light_Componant;
 	if(uLightPosition.w < 0.5){
-		Li = normalize(-uLightDirection.xyz);
+		L = normalize(-uLightDirection.xyz);
 		Light_Componant = uLightEmissivity.xyz;
 	}else{
-		Li = uLightPosition.xyz-fragPos;
-		float attenuation = 1./dot(Li,Li); // or 1./(a*d*d + b*d + c)
-		Li = normalize(Li);
-		float intensity = clamp((dot(-Li, normalize(uLightDirection.xyz)) - uLightDirection.w) / (uLightEmissivity.w-uLightDirection.w), 0., 1.);
+		L = uLightPosition.xyz-position_metalness.xyz;
+		float attenuation = 1./dot(L,L); // or 1./(a*d*d + b*d + c)
+		L = normalize(L);
+		float intensity = clamp((dot(-L, normalize(uLightDirection.xyz)) - uLightDirection.w) / (uLightEmissivity.w-uLightDirection.w), 0., 1.);
 		Light_Componant = uLightEmissivity.xyz * intensity * attenuation; 
 	}
 
-	vec3 Lo = normalize(uCamPos-fragPos);
-	vec3 H = normalize(Lo+Li);
-	if(dot(N,Lo)<0.) N *= -1.;
+	vec3 N = normal_roughness.xyz;
+	float cosNL = dot(N,L); // cti
+	if(cosNL <= 0.) discard;
 
-	float cosT = max(0.,dot(N,Li));
+	vec3 V = normalize(uCamPos-position_metalness.xyz);
+	float cosNV = dot(N,V); // cto
+	if(cosNV <= 0.) discard;
 
-	vec3 Diffuse_Componant  = cosT													* texture2D(uAlbedoMap,uv).xyz;
-	vec3 Specular_Componant = pow(max(0.f,dot(N,H)), texture2D(uShininessMap,uv).x) * texture2D(uSpecularMap,uv).xyz;
+	float PI = 3.14;
 
-	fragColor = vec4((Diffuse_Componant + Specular_Componant)*Light_Componant*cosT,1.);
+	float roughness = normal_roughness.a;//sqrt(2./(normal_roughness.a+2.));
+	float r2 = roughness*roughness;
+	vec3 H = normalize(V+L);
+	float cosNH = dot(N,H);
+	float cosHV = dot(H,V);
+
+	// ---------- diffuse BRDF ----------	:	oren Nayar
+	float To = acos(cosNV);
+	float Ti = acos(cosNL);
+	float PHI = dot(normalize(V-N*cosNL),normalize(L-N*cosNV));
+	float A = 1.-0.5*(r2/(r2+0.33));
+	float B	= 0.45*(r2/(r2+0.09));
+	float diffuseBRDF = (A+( B * max(0.,PHI) * sin(max(Ti,To)) * tan(min(Ti,To)) ) ) / PI;	//==> oren Nayar
+
+	// ---------- specular BRDF ----------	:	GGX
+	float Fo = 0.04;				// F0 = lerp(F0dielectric,albedo,metalness);
+	float tmpF = 1.- cosHV;
+	float F = Fo + ( 1. - Fo ) * tmpF*tmpF*tmpF*tmpF*tmpF;
+	
+	float tmpG = 2.*cosNH/cosHV;
+	float G = min(1.,min(tmpG*cosNV,tmpG*cosNL));
+
+	float tmpD = (cosNH*cosNH)*(r2-1.)+1.;
+	float D = r2/(PI*tmpD*tmpD);
+
+	float specularBRDF =  F*G*D/(4.*cosNV*cosNL);
+
+	fragColor = vec4(albedo.xyz * ((1.-position_metalness.a)*diffuseBRDF + position_metalness.a*specularBRDF) * Light_Componant * cosNL, 1.); 
 }

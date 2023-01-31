@@ -21,6 +21,14 @@ void main()
 	fragNormal = (uMatrix_Normal * vec4(aVertexNormal,1.)).xyz;
 	fragPosition = (uMatrix_M * vec4(aVertexPosition,1.)).xyz;
 
+	/* // Gram-Schmidt process
+	vec3 T	 = normalize( (uMatrix_M * vec4(aVertexTangent,0.)).xyz );
+	vec3 N	 = normalize( (uMatrix_M * vec4(aVertexNormal,0.)).xyz );
+	T = normalize(T - dot(T, N) * N);
+	vec3 B	 = cross(N, T); // non normalize ?
+	TBN = mat3(T,B,N);
+	*/
+
 	vec3 T	 = normalize( (uMatrix_M * vec4(aVertexTangent,0.)).xyz );
 	vec3 B	 = normalize( (uMatrix_M * vec4(aVertexBitangent,0.)).xyz );
 	vec3 N	 = normalize( (uMatrix_M * vec4(aVertexNormal,0.)).xyz );

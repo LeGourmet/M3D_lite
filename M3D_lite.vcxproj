@@ -36,7 +36,12 @@
     <ClInclude Include="lib\gl3w\GL\gl3w.h" />
     <ClInclude Include="lib\gl3w\GL\glcorearb.h" />
     <ClInclude Include="src\application.hpp" />
+    <ClInclude Include="src\maths\AABB.hpp" />
     <ClInclude Include="src\renderer\OpenGL\mesh_ogl.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\geometry_pass_ogl.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\final_pass_ogl.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\pass_ogl.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\shading_pass_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\renderer_ogl.hpp" />
     <ClInclude Include="src\renderer\renderer.hpp" />
     <ClInclude Include="src\renderer\Vulkan\renderer_vulkan.hpp" />
@@ -52,8 +57,8 @@
     <ClInclude Include="src\utils\image.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\renderer\OpenGL\shaders\basePass.frag" />
-    <None Include="src\renderer\OpenGL\shaders\basePass.vert" />
+    <None Include="src\renderer\OpenGL\shaders\geometryPass.frag" />
+    <None Include="src\renderer\OpenGL\shaders\geometryPass.vert" />
     <None Include="src\renderer\OpenGL\shaders\shadingPass.frag" />
     <None Include="src\renderer\OpenGL\shaders\shadingPass.vert" />
     <None Include="src\renderer\OpenGL\shaders\finalPass.frag" />

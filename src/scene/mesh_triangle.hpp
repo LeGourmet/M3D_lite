@@ -2,6 +2,7 @@
 #define __MESH_TRIANGLE_HPP__
 
 #include "utils/define.hpp"
+#include "maths/AABB.hpp"
 
 namespace M3D
 {
@@ -37,6 +38,8 @@ namespace Scene
         std::string _metalnessMapPath;
         std::string _roughnessMapPath;
         std::string _normalMapPath;
+
+        Maths::AABB _aabb;
 
         Mat4f _transformation = MAT4F_ID;
 

@@ -1,4 +1,8 @@
 #version 450
+#define PI				3.1415926535897932384626433832795
+#define TWO_PI			6.2831853071795864769252867665590
+#define INV_SQRT_TWO	0.70710678118654752440084436210485
+#define EPS				0.00001
 
 layout( location = 0 ) out vec4 fragColor;
 
@@ -39,35 +43,53 @@ void main()
 	vec3 V = normalize(uCamPos-position_metalness.xyz);
 	float cosNV = dot(N,V); // cto
 	if(cosNV <= 0.) discard;
-
-	float PI = 3.14;
-
-	float roughness = normal_roughness.a;//sqrt(2./(normal_roughness.a+2.));
-	float r2 = roughness*roughness;
+	
 	vec3 H = normalize(V+L);
 	float cosNH = dot(N,H);
 	float cosHV = dot(H,V);
 
 	// ---------- diffuse BRDF ----------	:	oren Nayar
+	normal_roughness.a = 0.2;
+	position_metalness.a  = 0.8;
+
+	float r_OrenNayar = atan(normal_roughness.a)*INV_SQRT_TWO;
+	float r2_OrenNayar = r_OrenNayar*r_OrenNayar;
 	float To = acos(cosNV);
 	float Ti = acos(cosNL);
 	float PHI = dot(normalize(V-N*cosNL),normalize(L-N*cosNV));
-	float A = 1.-0.5*(r2/(r2+0.33));
-	float B	= 0.45*(r2/(r2+0.09));
-	float diffuseBRDF = (A+( B * max(0.,PHI) * sin(max(Ti,To)) * tan(min(Ti,To)) ) ) / PI;	//==> oren Nayar
+	float A = 1.-0.5*(r2_OrenNayar/(r2_OrenNayar+0.33));
+	float B	= 0.45*(r2_OrenNayar/(r2_OrenNayar+0.09));
+	vec3 diffuseBRDF = albedo.xyz * (A+( B * max(0.,PHI) * sin(max(Ti,To)) * tan(min(Ti,To)) ) ) / PI;
 
-	// ---------- specular BRDF ----------	:	GGX
-	float Fo = 0.04;				// F0 = lerp(F0dielectric,albedo,metalness);
-	float tmpF = 1.- cosHV;
-	float F = Fo + ( 1. - Fo ) * tmpF*tmpF*tmpF*tmpF*tmpF;
+	// ---------- specular BRDF ----------	:	GGX+schilk+smith
+	float r2_GGX = normal_roughness.a*normal_roughness.a;
+	r2_GGX *= r2_GGX;
 	
-	float tmpG = 2.*cosNH/cosHV;
-	float G = min(1.,min(tmpG*cosNV,tmpG*cosNL));
+	// *** F : Schlick ***
+	/*float tmpF = 1.- cosHV;
+	vec3 F0 = mix(vec3(0.04),albedo.xyz,position_metalness.a);
+	vec3 F = F0 + ( 1. - F0 ) * tmpF*tmpF*tmpF*tmpF*tmpF;
+	
+	// *** G : smith ***
+    float tmpG = 1.-r2_GGX;
+    float G = 2.*cosNV*cosNL/ (cosNL * sqrt(r2_GGX+tmpG*cosNV*cosNV) + cosNV * sqrt(r2_GGX+tmpG*cosNL*cosNL)); // care 0
+	
+	//SmithGGXCorrelated => caca sur les bord 
+	//float G = 0.5 / (cosNL * sqrt((-cosNV * r2_GGX + cosNV) * cosNV + r2_GGX) + cosNV * sqrt((-cosNL * r2_GGX + cosNL) * cosNL + r2_GGX));
 
-	float tmpD = (cosNH*cosNH)*(r2-1.)+1.;
-	float D = r2/(PI*tmpD*tmpD);
+	// *** D : GGX ***
+	float tmpD = cosNH*cosNH*(r2_GGX-1.)+1.;
+	float D = r2_GGX/(PI*tmpD*tmpD);		// care == 0
 
-	float specularBRDF =  F*G*D/(4.*cosNV*cosNL);
+	vec3 specularBRDF =  F*G*D/(4.*cosNV*cosNL);*/
 
-	fragColor = vec4(albedo.xyz * ((1.-position_metalness.a)*diffuseBRDF + position_metalness.a*specularBRDF) * Light_Componant * cosNL, 1.); 
+	// simplification
+	float tmpF = 1.- cosHV;
+	float tmpG = 1.- r2_GGX;
+	float tmpD = cosNH*cosNH*(r2_GGX-1.)+1.;
+	vec3 F0 = mix(vec3(0.04),albedo.xyz,position_metalness.a);
+	vec3 F = F0 + ( 1. - F0 ) * tmpF*tmpF*tmpF*tmpF*tmpF;
+	vec3 specularBRDF =  F*r2_GGX/(TWO_PI*(cosNL * sqrt(r2_GGX+tmpG*cosNV*cosNV) + cosNV * sqrt(r2_GGX+tmpG*cosNL*cosNL))*tmpD*tmpD+EPS);
+
+	fragColor = vec4(((1.-position_metalness.a)*diffuseBRDF + specularBRDF) * Light_Componant * cosNL, 1.); 
 }

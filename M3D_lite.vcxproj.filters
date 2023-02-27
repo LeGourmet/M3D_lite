@@ -104,6 +104,21 @@
     <ClInclude Include="src\utils\image.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\pass\pass_ogl.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\pass\geometry_pass_ogl.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\pass\shading_pass_ogl.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\pass\final_pass_ogl.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\maths\AABB.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\renderer\OpenGL\shaders\shadingPass.frag" />
@@ -112,8 +127,8 @@
     <None Include="src\renderer\Vulkan\shaders\pass0.vert" />
     <None Include="src\renderer\OpenGL\shaders\finalPass.frag" />
     <None Include="src\renderer\OpenGL\shaders\finalPass.vert" />
-    <None Include="src\renderer\OpenGL\shaders\basePass.vert" />
-    <None Include="src\renderer\OpenGL\shaders\basePass.frag" />
+    <None Include="src\renderer\OpenGL\shaders\geometryPass.vert" />
+    <None Include="src\renderer\OpenGL\shaders\geometryPass.frag" />
     <None Include="src\renderer\OpenGL\shaders\shadowPass.vert" />
     <None Include="src\renderer\OpenGL\shaders\shadowPass.frag" />
   </ItemGroup>

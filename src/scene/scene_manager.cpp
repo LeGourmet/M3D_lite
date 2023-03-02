@@ -55,8 +55,16 @@ namespace Scene
         _meshes.erase(it);
     }
 
+    void SceneManager::removeLight(Light* const p_light) {
+        std::vector<Light*>::iterator it = std::find(_lights.begin(), _lights.end(), p_light);
+        delete _lights[std::distance(_lights.begin(), it)];
+        _lights.erase(it);
+    }
+
     void SceneManager::clearScene() {
         for (int i=0; i<_meshes.size() ;i++) delete _meshes[i];
+        for (int i=0; i<_lights.size() ;i++) delete _lights[i];
+        _lights.clear();
         _meshes.clear();
     }
 

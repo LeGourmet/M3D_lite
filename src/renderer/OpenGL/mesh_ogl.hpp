@@ -3,7 +3,7 @@
 
 #include "GL/gl3w.h"
 
-#include "scene/mesh_triangle.hpp"
+#include "scene/meshes/mesh_triangle.hpp"
 
 namespace M3D
 {

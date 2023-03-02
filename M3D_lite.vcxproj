@@ -26,7 +26,7 @@
     <ClCompile Include="src\renderer\OpenGL\renderer_ogl.cpp" />
     <ClCompile Include="src\renderer\Vulkan\mesh_vulkan.hpp" />
     <ClCompile Include="src\renderer\Vulkan\renderer_vulkan.cpp" />
-    <ClCompile Include="src\scene\mesh_triangle.cpp" />
+    <ClCompile Include="src\scene\meshes\mesh_triangle.cpp" />
     <ClCompile Include="src\scene\scene_manager.cpp" />
     <ClCompile Include="src\input_output\window.cpp" />
     <ClCompile Include="src\user_interface\graphical_user_interface.cpp" />
@@ -35,6 +35,8 @@
   <ItemGroup>
     <ClInclude Include="lib\gl3w\GL\gl3w.h" />
     <ClInclude Include="lib\gl3w\GL\glcorearb.h" />
+    <ClInclude Include="lib\tinyGLTF\json.hpp" />
+    <ClInclude Include="lib\tinyGLTF\tiny_gltf.h" />
     <ClInclude Include="src\application.hpp" />
     <ClInclude Include="src\maths\AABB.hpp" />
     <ClInclude Include="src\renderer\OpenGL\mesh_ogl.hpp" />
@@ -45,11 +47,15 @@
     <ClInclude Include="src\renderer\OpenGL\renderer_ogl.hpp" />
     <ClInclude Include="src\renderer\renderer.hpp" />
     <ClInclude Include="src\renderer\Vulkan\renderer_vulkan.hpp" />
-    <ClInclude Include="src\scene\camera.hpp" />
+    <ClInclude Include="src\scene\camera\camera.hpp" />
     <ClInclude Include="src\controller\gamepad_controller.hpp" />
     <ClInclude Include="src\controller\keyboard_controller.hpp" />
     <ClInclude Include="src\controller\mouse_controller.hpp" />
-    <ClInclude Include="src\scene\mesh_triangle.hpp" />
+    <ClInclude Include="src\scene\lights\directional_light.hpp" />
+    <ClInclude Include="src\scene\lights\light.hpp" />
+    <ClInclude Include="src\scene\lights\point_light.hpp" />
+    <ClInclude Include="src\scene\lights\spot_light.hpp" />
+    <ClInclude Include="src\scene\meshes\mesh_triangle.hpp" />
     <ClInclude Include="src\scene\scene_manager.hpp" />
     <ClInclude Include="src\user_interface\graphical_user_interface.hpp" />
     <ClInclude Include="src\utils\define.hpp" />
@@ -127,7 +133,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\gl3w;$(ProjectDir)\lib\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\gl3w;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -145,7 +151,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\gl3w;$(ProjectDir)\lib\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\gl3w;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -163,7 +169,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\gl3w;$(ProjectDir)\lib\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\gl3w;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -181,7 +187,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\gl3w;$(ProjectDir)\lib\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\gl3w;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

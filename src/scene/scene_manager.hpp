@@ -7,8 +7,9 @@
 
 #include "controller/keyboard_controller.hpp"
 #include "controller/mouse_controller.hpp"
-#include "mesh_triangle.hpp"
-#include "camera.hpp"
+#include "meshes/mesh_triangle.hpp"
+#include "camera/camera.hpp"
+#include "lights/light.hpp"
 
 #include <string>
 #include <vector>
@@ -26,17 +27,17 @@ namespace Scene
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
         std::vector<MeshTriangle *> getMeshes() const { return _meshes; }
+        std::vector<Light*> getLights() const { return _lights; }
         Camera &getCamera() { return _camera; }
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void addMeshes(const std::string& p_path);
-        //void addMesh(const std::string& p_path, const std::string& p_name);
         
         void update(unsigned long long p_deltaTime);
         bool captureEvent(SDL_Event p_event);
 
-        //void removeMesh(const unsigned int p_id);
         void removeMesh(MeshTriangle* const p_mesh);
+        void removeLight(Light* const p_light);
         void clearScene();
         
     private:
@@ -48,7 +49,7 @@ namespace Scene
     private:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
         Camera _camera = Camera();
-        // lights ?
+        std::vector<Light*> _lights = std::vector<Light*>();
         std::vector<MeshTriangle *> _meshes = std::vector<MeshTriangle*>();
     };
 }

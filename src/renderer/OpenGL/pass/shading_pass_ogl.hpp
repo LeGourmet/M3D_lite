@@ -3,6 +3,9 @@
 
 #include "pass_ogl.hpp"
 
+#include "scene/lights/directional_light.hpp"
+#include "scene/lights/spot_light.hpp"
+
 #include "glm/gtc/type_ptr.hpp"
 
 namespace M3D
@@ -42,30 +45,32 @@ namespace M3D
 
 				glProgramUniform3fv(_program, _uCamPosLoc, 1, glm::value_ptr(Application::getInstance().getSceneManager().getCamera().getPosition()));
 
-				// remplacer par imposteur sphere d'influence + une light à la fois
-				for (int i = 0; i<2 ;i++) {
-					if (i == 0) {
-						glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(0., 0., 0., 0.)));
-						glProgramUniform4fv(_program, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(-0.5, -0.5, -0.5, -1.)));
-						glProgramUniform4fv(_program, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(1., 1., 1., -1.)));
-					}
-					else if (i == 1) {
-						glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(0., 20., 0., 1.)));
-						glProgramUniform4fv(_program, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(0., -0.5, -0.5, -1.)));
-						glProgramUniform4fv(_program, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(0., 0., 500., -1.)));
-					}
-					else {
-						glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getCamera().getPosition(), 1.)));
-						glProgramUniform4fv(_program, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getCamera().getFront(), 0.9)));
-						glProgramUniform4fv(_program, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(500., 100., 100., 0.95)));
-					}
-
+				for (Light* l : Application::getInstance().getSceneManager().getLights()) {
 					glBindTextureUnit(0, p_positionMetalnessMap);
 					glBindTextureUnit(1, p_normalRoughnessMap);
 					glBindTextureUnit(2, p_albedoMap);
 
-					glBindVertexArray(p_emptyVao);
+					switch (l->getType()) {
+						case LIGHT_TYPE::POINT : 
+							glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(l->getPosition(), 1.)));							// 1 => point/spot light
+							glProgramUniform4fv(_program, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(VEC3F_X, -1.)));									// -1 => inner angle
+							glProgramUniform4fv(_program, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(l->getEmissivity(), -1.)));						// -1 => outer angle
+							// create and bind vao with quad center on influence sphere
+							break;
+						case LIGHT_TYPE::SPOT :
+							glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(l->getPosition(), 1.)));
+							glProgramUniform4fv(_program, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(((SpotLight*)l)->getDirection(), ((SpotLight*)l)->getInnerConeAngle())));
+							glProgramUniform4fv(_program, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(l->getEmissivity(), ((SpotLight*)l)->getOuterConeAngle())));
+							break;
+						default :
+							glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(l->getPosition(), 0.)));							// 0 => directional light
+							glProgramUniform4fv(_program, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(((DirectionalLight*)l)->getDirection(), -1.)));	// -1 => inner angle
+							glProgramUniform4fv(_program, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(l->getEmissivity(), -1.)));						// -1 => outer angle
+							glBindVertexArray(p_emptyVao);
+					}
+
 					glDrawArrays(GL_TRIANGLES, 0, 6);
+					glBindVertexArray(0);
 				}
 			}
 

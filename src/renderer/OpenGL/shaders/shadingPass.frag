@@ -16,6 +16,41 @@ uniform vec4 uLightDirection;	 // direction + angle Min (entre -1 et 1)
 uniform vec4 uLightEmissivity;   // emission  + angle Max (entre -1 et 1)
 in vec2 uv;
 
+// ------------- fresnel -------------	:	schilk
+float getFresnel(float f0, float cosHV){ 
+	float tmp = 1.-cosHV;
+	return f0 + (1 - f0) * tmp*tmp*tmp*tmp*tmp;
+}
+
+vec3 getFresnel(vec3 f0, float cosHV){ return vec3(getFresnel(f0.x,cosHV),getFresnel(f0.y,cosHV),getFresnel(f0.z,cosHV)); }
+
+// ---------- specular BRDF ----------	:	GGX+smith
+float getSpecular(float a2, float cosNV, float cosNL, float cosNH){
+	a2 *= a2; // re-maping
+
+	// *** G : smith ***
+    float tmpG = 1.-a2;
+    float G = 2.*cosNV*cosNL/ (cosNL * sqrt(a2+tmpG*cosNV*cosNV) + cosNV * sqrt(a2+tmpG*cosNL*cosNL)); // care 0
+
+	// *** D : GGX ***
+	float tmpD = cosNH*cosNH*(a2-1.)+1.;
+	float D = a2/(PI*tmpD*tmpD);		// care == 0
+
+	return G*D/(4.*cosNV*cosNL);
+}
+
+// ---------- diffuse BRDF ----------	:	oren Nayar
+float getDiffuse(float a, float cosNV, float cosNL, vec3 N, vec3 V, vec3 L ){
+	float r_OrenNayar = atan(a)*INV_SQRT_TWO;
+	float r2_OrenNayar = r_OrenNayar*r_OrenNayar;
+	float To = acos(cosNV);
+	float Ti = acos(cosNL);
+	float PHI = dot(normalize(V-N*cosNL),normalize(L-N*cosNV));
+	float A = 1.-0.5*(r2_OrenNayar/(r2_OrenNayar+0.33));
+	float B	= 0.45*(r2_OrenNayar/(r2_OrenNayar+0.09));
+	return (A+( B * max(0.,PHI) * sin(max(Ti,To)) * tan(min(Ti,To)) ) ) / PI;
+}
+
 void main()
 {
 	vec4 albedo = texture2D(uAlbedoMap,uv);
@@ -48,48 +83,14 @@ void main()
 	float cosNH = dot(N,H);
 	float cosHV = dot(H,V);
 
-	// ---------- diffuse BRDF ----------	:	oren Nayar
 	normal_roughness.a = 0.2;
 	position_metalness.a  = 0.8;
 
-	float r_OrenNayar = atan(normal_roughness.a)*INV_SQRT_TWO;
-	float r2_OrenNayar = r_OrenNayar*r_OrenNayar;
-	float To = acos(cosNV);
-	float Ti = acos(cosNL);
-	float PHI = dot(normalize(V-N*cosNL),normalize(L-N*cosNV));
-	float A = 1.-0.5*(r2_OrenNayar/(r2_OrenNayar+0.33));
-	float B	= 0.45*(r2_OrenNayar/(r2_OrenNayar+0.09));
-	vec3 diffuseBRDF = albedo.xyz * (A+( B * max(0.,PHI) * sin(max(Ti,To)) * tan(min(Ti,To)) ) ) / PI;
+	float specular = getSpecular(normal_roughness.a*normal_roughness.a,cosNV,cosNL,cosNH);
+	float diffuse = getDiffuse(normal_roughness.a,cosNV,cosNL,N,V,L);
 
-	// ---------- specular BRDF ----------	:	GGX+schilk+smith
-	float r2_GGX = normal_roughness.a*normal_roughness.a;
-	r2_GGX *= r2_GGX;
-	
-	// *** F : Schlick ***
-	/*float tmpF = 1.- cosHV;
-	vec3 F0 = mix(vec3(0.04),albedo.xyz,position_metalness.a);
-	vec3 F = F0 + ( 1. - F0 ) * tmpF*tmpF*tmpF*tmpF*tmpF;
-	
-	// *** G : smith ***
-    float tmpG = 1.-r2_GGX;
-    float G = 2.*cosNV*cosNL/ (cosNL * sqrt(r2_GGX+tmpG*cosNV*cosNV) + cosNV * sqrt(r2_GGX+tmpG*cosNL*cosNL)); // care 0
-	
-	//SmithGGXCorrelated => caca sur les bord 
-	//float G = 0.5 / (cosNL * sqrt((-cosNV * r2_GGX + cosNV) * cosNV + r2_GGX) + cosNV * sqrt((-cosNL * r2_GGX + cosNL) * cosNL + r2_GGX));
+	vec3 dielectricComponent = albedo.xyz * mix(diffuse,specular,getFresnel(0.04,cosHV)); //we can use ior with ((1-ior)/(1+ior))^2 that emplace 0.04
+	vec3 MetalComponent = getFresnel(albedo.xyz,cosHV) * specular;
 
-	// *** D : GGX ***
-	float tmpD = cosNH*cosNH*(r2_GGX-1.)+1.;
-	float D = r2_GGX/(PI*tmpD*tmpD);		// care == 0
-
-	vec3 specularBRDF =  F*G*D/(4.*cosNV*cosNL);*/
-
-	// simplification
-	float tmpF = 1.- cosHV;
-	float tmpG = 1.- r2_GGX;
-	float tmpD = cosNH*cosNH*(r2_GGX-1.)+1.;
-	vec3 F0 = mix(vec3(0.04),albedo.xyz,position_metalness.a);
-	vec3 F = F0 + ( 1. - F0 ) * tmpF*tmpF*tmpF*tmpF*tmpF;
-	vec3 specularBRDF =  F*r2_GGX/(TWO_PI*(cosNL * sqrt(r2_GGX+tmpG*cosNV*cosNV) + cosNV * sqrt(r2_GGX+tmpG*cosNL*cosNL))*tmpD*tmpD+EPS);
-
-	fragColor = vec4(((1.-position_metalness.a)*diffuseBRDF + specularBRDF) * Light_Componant * cosNL, 1.); 
+	fragColor = vec4(mix(dielectricComponent,MetalComponent,position_metalness.a) * Light_Componant * cosNL, 1.); 
 }

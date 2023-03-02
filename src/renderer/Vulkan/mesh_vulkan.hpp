@@ -1,7 +1,7 @@
 #ifndef __MESH_VULKAN_HPP__
 #define __Mesh_VULKAN_HPP__
 
-#include "scene/mesh_triangle.hpp"
+#include "scene/meshes/mesh_triangle.hpp"
 
 namespace M3D
 {

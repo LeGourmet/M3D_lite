@@ -4,7 +4,7 @@
 #include <SDL.h>
 
 #include "utils/define.hpp"
-#include "scene/mesh_triangle.hpp"
+#include "scene/meshes/mesh_triangle.hpp"
 
 #include <string>
 

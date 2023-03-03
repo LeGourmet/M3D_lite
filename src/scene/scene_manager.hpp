@@ -32,6 +32,7 @@ namespace Scene
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void addMeshes(const std::string& p_path);
+        void addLight(Light* p_light);
         
         void update(unsigned long long p_deltaTime);
         bool captureEvent(SDL_Event p_event);

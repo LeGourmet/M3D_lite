@@ -15,6 +15,8 @@ namespace Scene
 
     void SceneManager::addMeshes(const std::string& p_path) { _loadFile(p_path); }
 
+    void SceneManager::addLight(Light* p_light) { _lights.push_back(p_light); }
+
     void SceneManager::update(unsigned long long p_deltaTime) {
         if (_mouseLeftPressed) {
             _camera.rotate(Vec3f(0.001 * _deltaMousePositionY, -0.001 * _deltaMousePositionX, 0.f));

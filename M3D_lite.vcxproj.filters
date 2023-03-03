@@ -147,7 +147,5 @@
     <None Include="src\renderer\OpenGL\shaders\finalPass.vert" />
     <None Include="src\renderer\OpenGL\shaders\geometryPass.vert" />
     <None Include="src\renderer\OpenGL\shaders\geometryPass.frag" />
-    <None Include="src\renderer\OpenGL\shaders\shadowPass.vert" />
-    <None Include="src\renderer\OpenGL\shaders\shadowPass.frag" />
   </ItemGroup>
 </Project>

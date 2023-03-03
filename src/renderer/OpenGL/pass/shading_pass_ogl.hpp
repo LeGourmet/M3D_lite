@@ -25,15 +25,29 @@ namespace M3D
 				glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, p_ambientMap, 0);
 				GLenum DrawBuffers1[1] = { GL_COLOR_ATTACHMENT0 };
 				glDrawBuffers(1, DrawBuffers1);
+
+				glCreateVertexArrays(1, &_vao);
+				glCreateBuffers(1, &_vbo);
+				glNamedBufferData(_vbo, 6*sizeof(Vec2f), nullptr, GL_DYNAMIC_DRAW);
+				glEnableVertexArrayAttrib(_vao, 0);
+				glVertexArrayAttribFormat(_vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
+				glVertexArrayAttribBinding(_vao, 0, 0);	
+				glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vec2f));
 			}
 			~ShadingPassOGL() {
-				/*todo*/
+				glDisableVertexArrayAttrib(_vao, 0);
+				glDeleteVertexArrays(1, &_vao);
+				glDeleteBuffers(1, &_vbo);
 			}
 
 			void resize(int p_width, int p_height) override {}
 
-			// sphere d'influence
-			void execute(int p_viewport_width, int p_viewport_height, GLuint p_positionMetalnessMap, GLuint p_normalRoughnessMap, GLuint p_albedoMap, GLuint p_emptyVao) {
+			Vec2f projectBillboard(float x, float y, Mat4f MVP) {
+				Vec4f tmp = Vec4f(x, y, 1., 1.)* MVP;
+				return Vec2f(tmp.x, tmp.y);
+			}
+
+			void execute(int p_viewport_width, int p_viewport_height, GLuint p_positionMetalnessMap, GLuint p_normalRoughnessMap, GLuint p_albedoMap) {
 				glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 				glViewport(0, 0, p_viewport_width, p_viewport_height);
 
@@ -50,25 +64,37 @@ namespace M3D
 					glBindTextureUnit(1, p_normalRoughnessMap);
 					glBindTextureUnit(2, p_albedoMap);
 
+					Vec3f pos = l->getPosition();
+					float r = l->getRange();
+					Mat3f VP = Application::getInstance().getSceneManager().getCamera().getProjectionMatrix()* Application::getInstance().getSceneManager().getCamera().getViewMatrix();
+
 					switch (l->getType()) {
 						case LIGHT_TYPE::POINT : 
-							glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(l->getPosition(), 1.)));							// 1 => point/spot light
+							glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(pos, 1.)));										// 1 => point/spot light
 							glProgramUniform4fv(_program, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(VEC3F_X, -1.)));									// -1 => inner angle
 							glProgramUniform4fv(_program, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(l->getEmissivity(), -1.)));						// -1 => outer angle
-							// create and bind vao with quad center on influence sphere
+							/*glNamedBufferSubData(_vbo, 0, 6 * sizeof(Vec2f), new Vec2f[]{
+								projectBillboard(pos.x - r,pos.y - r,VP) , projectBillboard(pos.x + r,pos.y - r,VP) , projectBillboard(pos.x + r,pos.y + r,VP),
+								projectBillboard(pos.x + r,pos.y + r,VP) , projectBillboard(pos.x - r,pos.y + r,VP) , projectBillboard(pos.x - r,pos.y - r,VP) });*/
+							glNamedBufferSubData(_vbo, 0, 6 * sizeof(Vec2f), new Vec2f[]{ Vec2f(-1.,-1.),Vec2f(1.,-1.),Vec2f(1.,1.),Vec2f(1.,1.),Vec2f(-1.,1.),Vec2f(-1.,-1.) });
 							break;
 						case LIGHT_TYPE::SPOT :
-							glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(l->getPosition(), 1.)));
+							glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(pos, 1.)));
 							glProgramUniform4fv(_program, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(((SpotLight*)l)->getDirection(), ((SpotLight*)l)->getInnerConeAngle())));
 							glProgramUniform4fv(_program, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(l->getEmissivity(), ((SpotLight*)l)->getOuterConeAngle())));
+							/*glNamedBufferSubData(_vbo, 0, 6 * sizeof(Vec2f), new Vec2f[]{
+								projectBillboard(pos.x-r,pos.y-r,VP) , projectBillboard(pos.x+r,pos.y-r,VP) , projectBillboard(pos.x+r,pos.y+r,VP),
+								projectBillboard(pos.x+r,pos.y+r,VP) , projectBillboard(pos.x-r,pos.y+r,VP) , projectBillboard(pos.x-r,pos.y-r,VP)});*/
+							glNamedBufferSubData(_vbo, 0, 6*sizeof(Vec2f), new Vec2f[]{Vec2f(-1.,-1.),Vec2f(1.,-1.),Vec2f(1.,1.),Vec2f(1.,1.),Vec2f(-1.,1.),Vec2f(-1.,-1.) });
 							break;
 						default :
-							glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(l->getPosition(), 0.)));							// 0 => directional light
+							glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(pos, 0.)));										// 0 => directional light
 							glProgramUniform4fv(_program, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(((DirectionalLight*)l)->getDirection(), -1.)));	// -1 => inner angle
 							glProgramUniform4fv(_program, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(l->getEmissivity(), -1.)));						// -1 => outer angle
-							glBindVertexArray(p_emptyVao);
+							glNamedBufferSubData(_vbo, 0, 6*sizeof(Vec2f), new Vec2f[]{Vec2f(-1.,-1.),Vec2f(1.,-1.),Vec2f(1.,1.),Vec2f(1.,1.),Vec2f(-1.,1.),Vec2f(-1.,-1.) });
 					}
 
+					glBindVertexArray(_vao);
 					glDrawArrays(GL_TRIANGLES, 0, 6);
 					glBindVertexArray(0);
 				}
@@ -76,6 +102,10 @@ namespace M3D
 
 		private:
 			GLuint _fbo					= GL_INVALID_INDEX;
+
+			GLuint _vao					= GL_INVALID_INDEX;
+			GLuint _vbo					= GL_INVALID_INDEX;
+			GLuint _ebo					= GL_INVALID_INDEX;
 
 			GLuint _uCamPosLoc			= GL_INVALID_INDEX;
 			GLuint _uLightPositionLoc	= GL_INVALID_INDEX;

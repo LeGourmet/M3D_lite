@@ -69,8 +69,6 @@
     <None Include="src\renderer\OpenGL\shaders\shadingPass.vert" />
     <None Include="src\renderer\OpenGL\shaders\finalPass.frag" />
     <None Include="src\renderer\OpenGL\shaders\finalPass.vert" />
-    <None Include="src\renderer\OpenGL\shaders\shadowPass.frag" />
-    <None Include="src\renderer\OpenGL\shaders\shadowPass.vert" />
     <None Include="src\renderer\Vulkan\shaders\pass0.frag" />
     <None Include="src\renderer\Vulkan\shaders\pass0.vert" />
   </ItemGroup>

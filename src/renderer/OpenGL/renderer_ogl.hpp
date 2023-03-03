@@ -55,7 +55,6 @@ namespace M3D
 				resize(_viewport_width, _viewport_height);
 
 				glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.a);
-				glGenVertexArrays(1, &_emptyVAO);
 			}
 			void setVSync(bool p_vSync) override { _vSync = p_vSync; SDL_GL_SetSwapInterval(p_vSync); }
 			void resize(const int p_width, const int p_height)  override;
@@ -69,8 +68,6 @@ namespace M3D
 			GeometryPassOGL* _geometryPass;
 			ShadingPassOGL* _shadingPass;
 			FinalPassOGL* _finalPass;
-
-			GLuint _emptyVAO = GL_INVALID_INDEX;
 
 			int _viewport_width = 0;
 			int _viewport_height = 0;

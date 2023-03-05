@@ -1,8 +1,8 @@
 #ifndef __WINDOW_HPP__
 #define __WINDOW_HPP__
 
-#include <SDL.h>
-#include <iostream>
+#include <SDL_events.h>
+#include <SDL_video.h>
 
 namespace M3D
 {

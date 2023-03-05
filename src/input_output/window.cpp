@@ -4,6 +4,10 @@
 #include "scene/scene_manager.hpp"
 #include "user_interface/graphical_user_interface.hpp"
 
+#include <SDL.h>
+
+#include <iostream>
+
 namespace M3D
 {
     namespace InputOutput
@@ -65,7 +69,6 @@ namespace M3D
                     break;
 
                 default:
-                    //std::cout << event.type << std::endl;
                     if (_captureEvent(event)) break;
                     if (Application::getInstance().getGraphicalUserInterface().captureEvent(event)) break;
                     Application::getInstance().getSceneManager().captureEvent(event); break;

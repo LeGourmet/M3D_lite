@@ -1,12 +1,10 @@
 #ifndef __RENDERER_HPP__
 #define __RENDERER_HPP__
 
-#include <SDL.h>
+#include <SDL_video.h>
 
 #include "utils/define.hpp"
 #include "scene/meshes/mesh_triangle.hpp"
-
-#include <string>
 
 namespace M3D
 {

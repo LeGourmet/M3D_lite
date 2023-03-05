@@ -3,7 +3,6 @@
 #include "input_output/window.hpp"
 #include "user_interface/graphical_user_interface.hpp"
 #include "scene/scene_manager.hpp"
-#include "renderer/renderer.hpp"
 #include "renderer/OpenGL/renderer_ogl.hpp"
 
 namespace M3D
@@ -29,7 +28,7 @@ namespace M3D
 
 		_window->create(_renderer->getWindowFlag());
 		_renderer->init(_window->get());
-		_sceneManager->getCamera().setScreenSize(_width, _height);
+		_sceneManager->resize(_width,_height);
 		_gui->init();
 
 		_window->chronoUpdate();
@@ -48,7 +47,7 @@ namespace M3D
 	void Application::resize(int p_width, int p_height) {
 		_width = p_width;
 		_height = p_height;
-		_sceneManager->getCamera().setScreenSize(p_width,p_height);
+		_sceneManager->resize(p_width,p_height);
 		_renderer->resize(p_width,p_height);
 	}
 
@@ -57,8 +56,8 @@ namespace M3D
 		unsigned long long deltaTime = _window->getDeltaTime();
 
 		_window->captureEvents();
-		_sceneManager->update(deltaTime);
 		_gui->update(deltaTime);
+		_sceneManager->update(deltaTime);
 		_renderer->drawFrame(_window->get());
 
 		//_window->brideFPS();

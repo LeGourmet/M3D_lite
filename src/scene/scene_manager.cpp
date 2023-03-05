@@ -1,10 +1,11 @@
 #include "scene_manager.hpp"
 
-#include "assimp/Importer.hpp"
-#include "assimp/postprocess.h"
+#include "tinyGLTF/tiny_gltf.h"
 
 #include "application.hpp"
 #include "renderer/renderer.hpp"
+
+#include <iostream>
 
 namespace M3D
 {
@@ -13,9 +14,26 @@ namespace Scene
     SceneManager::SceneManager() { }       
     SceneManager::~SceneManager() { clearScene(); }
 
-    void SceneManager::addMeshes(const std::string& p_path) { _loadFile(p_path); }
+    void SceneManager::loadNewScene(const std::string& p_path) { clearScene(); _loadFile(p_path); }
 
-    void SceneManager::addLight(Light* p_light) { _lights.push_back(p_light); }
+    void SceneManager::addCamera(std::string p_name, Camera* p_camera) { _cameras.insert(std::pair<std::string, Camera*>(p_name, p_camera)); }
+
+    void SceneManager::addLight(std::string p_name, Light* p_light) { _lights.insert(std::pair<std::string, Light*>(p_name, p_light)); }
+
+    void SceneManager::addMesh(std::string p_name, Mesh* p_mesh) { _meshes.insert(std::pair<std::string, Mesh*>(p_name, p_mesh)); }
+
+    void SceneManager::addMaterial(Material* p_material) {
+        _materials.push_back(p_material);
+    }
+
+    void SceneManager::addTexture(Image* p_image) {
+        _textures.push_back(p_image);
+        // create texture on GPU 
+    }
+
+    void SceneManager::resize(const int p_width, const int p_height) {
+        for (std::pair<std::string, Camera*> val : _cameras) val.second->setScreenSize(p_width,p_height);
+    }
 
     void SceneManager::update(unsigned long long p_deltaTime) {
         if (_mouseLeftPressed) {
@@ -51,124 +69,108 @@ namespace Scene
         return true; 
     }
 
-    void SceneManager::removeMesh(MeshTriangle* const p_mesh) {
-        std::vector<MeshTriangle*>::iterator it = std::find(_meshes.begin(), _meshes.end(), p_mesh);
-        delete _meshes[std::distance(_meshes.begin(), it)];
-        _meshes.erase(it);
+    void SceneManager::removeCamera(std::string p_name) {
+        /*Mesh* mesh = _meshes.at(p_name);
+        _meshes.erase(_meshes.find(p_name));*/
+        Camera* camera = _cameras.extract(p_name).mapped();
+        delete camera;
     }
 
-    void SceneManager::removeLight(Light* const p_light) {
-        std::vector<Light*>::iterator it = std::find(_lights.begin(), _lights.end(), p_light);
-        delete _lights[std::distance(_lights.begin(), it)];
-        _lights.erase(it);
+    void SceneManager::removeLight(std::string p_name) {
+        Light* light = _lights.extract(p_name).mapped();
+        delete light;
+    }
+
+    void SceneManager::removeMesh(std::string p_name) {
+        Mesh* mesh = _meshes.extract(p_name).mapped();
+        delete mesh;
     }
 
     void SceneManager::clearScene() {
-        for (int i=0; i<_meshes.size() ;i++) delete _meshes[i];
-        for (int i=0; i<_lights.size() ;i++) delete _lights[i];
-        _lights.clear();
-        _meshes.clear();
+        for (std::pair<std::string,Camera*> val : _cameras) removeLight(val.first);
+        for (std::pair<std::string,Light*> val : _lights) removeLight(val.first);
+        for (std::pair<std::string,Mesh*> val : _meshes) removeLight(val.first);
+        for (int i=0; i< _materials.size() ;i++) delete _materials[i];
+        for (int i=0; i< _textures.size() ;i++) delete _textures[i];
+        _materials.clear();
+        _textures.clear();
     }
 
-    void SceneManager::_loadMaterial( const std::string& p_path, MeshTriangle* p_meshTri, const aiMaterial* p_mtl)
+    void SceneManager::_loadFile(const std::filesystem::path &p_path)
     {
-        aiString texturePath;
-        aiColor3D aiCol; 
-        float aiS;
+        tinygltf::TinyGLTF loader;
+        tinygltf::Model model;
 
-        if (p_mtl->GetTextureCount(aiTextureType_AMBIENT) > 0)
-        {
-            p_mtl->GetTexture(aiTextureType_AMBIENT, 0, &texturePath);
-            p_meshTri->_ambientMapPath = p_path + texturePath.C_Str();
-            p_meshTri->_hasAmbientMap = true;
+        if (p_path.extension() == ".gltf") {
+            if (!loader.LoadASCIIFromFile(&model, nullptr, nullptr, p_path.string())) throw std::runtime_error("Fail to load file: " + p_path.string());
+        } else {
+            if (!loader.LoadBinaryFromFile(&model, nullptr, nullptr, p_path.string())) throw std::runtime_error("Fail to load file: " + p_path.string());
+        }
+        
+        // TinyGLTF::SetPreserveimageChannels(true) => less memory cost of texture 
+        int idStartTexture = _textures.size();
+        _textures.reserve(idStartTexture+model.textures.size());
+        for (tinygltf::Texture t : model.textures) {
+            tinygltf::Image i = model.images[t.source];
+            addTexture(new Image(i.width,i.height,i.component,i.bits,i.pixel_type,i.image.data()));
         }
 
-        if (p_mtl->GetTextureCount(aiTextureType_DIFFUSE) > 0)
-        {
-            p_mtl->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath);
-            p_meshTri->_albedoMapPath = p_path + texturePath.C_Str();
-            p_meshTri->_hasAlbedoMap = true;
-        }
-
-        if (p_mtl->GetTextureCount(aiTextureType_SPECULAR) > 0)
-        {
-            p_mtl->GetTexture(aiTextureType_SPECULAR, 0, &texturePath);
-            p_meshTri->_metalnessMapPath = p_path + texturePath.C_Str();
-            p_meshTri->_hasMetalnessMap = true;
-        }
-
-        if (p_mtl->GetTextureCount(aiTextureType_SHININESS) > 0)
-        {
-            p_mtl->GetTexture(aiTextureType_SHININESS, 0, &texturePath);
-            p_meshTri->_roughnessMapPath = p_path + texturePath.C_Str();
-            p_meshTri->_hasRoughnessMap = true;
-        }
-
-        if (p_mtl->GetTextureCount(aiTextureType_NORMALS) > 0)
-        {
-            p_mtl->GetTexture(aiTextureType_NORMALS, 0, &texturePath);
-            p_meshTri->_normalMapPath = p_path + texturePath.C_Str();
-            p_meshTri->_hasNormalMap = true;
-        }
-
-        if (p_mtl->Get(AI_MATKEY_COLOR_AMBIENT , aiCol) == AI_SUCCESS) p_meshTri->_ambient = Vec3f(aiCol.r, aiCol.g, aiCol.b);
-        if (p_mtl->Get(AI_MATKEY_COLOR_DIFFUSE , aiCol) == AI_SUCCESS) p_meshTri->_albedo = Vec3f(aiCol.r, aiCol.g, aiCol.b);
-        //if (p_mtl->Get(AI_MATKEY_COLOR_SPECULAR, aiCol) == AI_SUCCESS) p_meshTri->_ks = Vec3f(aiCol.r, aiCol.g, aiCol.b);
-        if (p_mtl->Get(AI_MATKEY_SHININESS     , aiS  ) == AI_SUCCESS) p_meshTri->_roughness = (float)glm::sqrt(2./(2.+p_meshTri->_roughness));
-    }
-
-    MeshTriangle* SceneManager::_loadMesh(const aiMesh *const p_mesh)
-    {
-        MeshTriangle *triMesh = new MeshTriangle();
-        triMesh->_hasUVs = p_mesh->HasTextureCoords(0);
-
-        triMesh->getVertices().reserve(p_mesh->mNumVertices);
-        for (unsigned int v = 0; v < p_mesh->mNumVertices; ++v)
-        {
-            Vertex vertex;
-            vertex._position = Vec3f(p_mesh->mVertices[v].x, p_mesh->mVertices[v].y, p_mesh->mVertices[v].z);
-            vertex._normal = Vec3f(p_mesh->mNormals[v].x, p_mesh->mNormals[v].y, p_mesh->mNormals[v].z);
-            if (triMesh->_hasUVs)
-            {
-                vertex._uv = Vec2f(p_mesh->mTextureCoords[0][v].x, p_mesh->mTextureCoords[0][v].y);
-                vertex._tangent = Vec3f(p_mesh->mTangents[v].x, p_mesh->mTangents[v].y, p_mesh->mTangents[v].z);
-                vertex._bitangent = Vec3f(p_mesh->mBitangents[v].x, p_mesh->mBitangents[v].y, p_mesh->mBitangents[v].z);
-            }
-            triMesh->addVertex(vertex);
-        }
-
-        triMesh->getIndices().reserve(p_mesh->mNumFaces*3);
-        for (unsigned int f = 0; f < p_mesh->mNumFaces; ++f)
-        {
-            const aiFace &face = p_mesh->mFaces[f];
-            triMesh->addTriangle(face.mIndices[0], face.mIndices[1], face.mIndices[2]);
-        }
-
-        return triMesh;
-    }
-
-    void SceneManager::_loadFile(const std::string &p_path)
-    {
-        Assimp::Importer importer;
-
-        const aiScene *const scene = importer.ReadFile(p_path, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_GenUVCoords | aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices);
-        // aiProcessPreset_TargetRealtime_Fast add =>  aiProcess_SortByPType + maria add | aiProcess_FlipUVs
-        if (scene == nullptr) throw std::runtime_error("Fail to load file: " + p_path);
-
-        for (unsigned int m = 0; m < scene->mNumMeshes; ++m) 
-        {
-            const aiMesh *const mesh = scene->mMeshes[m];
-            if (mesh == nullptr) throw std::runtime_error("Fail to load file: " + p_path + ": " + importer.GetErrorString());
-
-            MeshTriangle* triMesh  = _loadMesh(mesh);
+        for (tinygltf::Material m : model.materials){
+            // ======== PbrMetallicRoughness ========
+            // std::vector<double> baseColorFactor;  // len = 4. default [1,1,1,1]
+            // double metallicFactor;   // default 1
+            // double roughnessFactor;  // default 1
+            // basecolor texture
+            // metalnessRougthness texture
             
-            const aiMaterial* const mtl = scene->mMaterials[mesh->mMaterialIndex];
-            if (mtl != nullptr) _loadMaterial(std::filesystem::absolute(p_path).remove_filename().string(), triMesh, mtl);
-
-            Application::getInstance().getRenderer().createMesh(triMesh);
-
-            _meshes.push_back(triMesh);
+            // ======== material ========
+            // std::string name;
+            // std::vector<double> emissiveFactor;  // length 3. default [0, 0, 0]
+            // std::string alphaMode;               // default "OPAQUE"
+            // double alphaCutoff;                  // default 0.5
+            //bool doubleSided;                    // default false;
+            // normal texure
+            // occlusion texture
+            // emissive texture
         }
+
+        //for (tinygltf::Mesh m : model.meshes)
+
+        std::cout << "value image: " << model.images[0].image.size() << std::endl << std::endl;
+
+        std::cout << "loaded glTF file has:\n"
+            << model.accessors.size() << " accessors\n"
+            //<< model.animations.size() << " animations\n"         // PAS UTILE TOUT DE SUITE
+            << model.buffers.size() << " buffers\n"
+            << model.bufferViews.size() << " bufferViews\n"
+            << model.materials.size() << " materials\n"
+            << model.meshes.size() << " meshes\n"
+            << model.nodes.size() << " nodes\n"
+            << model.textures.size() << " textures\n"               // DONE
+            << model.images.size() << " images\n"                   // DONE
+            //<< model.skins.size() << " skins\n"                   // PAS UTILE TOUT DE SUITE
+            //<< model.samplers.size() << " samplers\n"             // ON VA UTILISER TOUJOURS LE MÊME OSEF
+            << model.cameras.size() << " cameras\n"                 // DONE
+            << model.scenes.size() << " scenes\n" 
+            << model.lights.size() << " lights\n";                  // DONE
+
+
+
+        for (tinygltf::Light l : model.lights)
+            addLight(l.name, new Light(l.type, Vec3f(l.color[0], l.color[1], l.color[2]), (float)l.intensity, (float)l.spot.innerConeAngle, (float)l.spot.outerConeAngle));
+
+        for (tinygltf::Camera c : model.cameras){
+            if (c.type == "perspective") {
+                _camera.setFar((float)c.perspective.zfar);
+                _camera.setNear((float)c.perspective.znear);
+                _camera.setFov((float)c.perspective.yfov);
+            } else {
+
+            }
+            addCamera(c.name,)
+        }
+
+        // parcourir les nodes, creer graph de scene et collectioner / redistribuer les matrices M
     }
 }
 }

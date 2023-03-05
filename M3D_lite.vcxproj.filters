@@ -27,9 +27,6 @@
     <ClCompile Include="src\input_output\window.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="src\scene\meshes\mesh_triangle.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
     <ClCompile Include="src\renderer\OpenGL\renderer_ogl.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
@@ -45,10 +42,10 @@
     <ClCompile Include="src\renderer\Vulkan\mesh_vulkan.hpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="src\utils\image.cpp">
+    <ClCompile Include="src\renderer\OpenGL\mesh_ogl.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\OpenGL\mesh_ogl.cpp">
+    <ClCompile Include="lib\tinyGLTF\tiny_gltf.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>
@@ -65,7 +62,7 @@
     <ClInclude Include="src\scene\scene_manager.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\meshes\mesh_triangle.hpp">
+    <ClInclude Include="src\scene\meshes\mesh.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\user_interface\graphical_user_interface.hpp">
@@ -101,9 +98,6 @@
     <ClInclude Include="src\renderer\Vulkan\renderer_vulkan.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\image.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="src\renderer\OpenGL\pass\pass_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
@@ -116,25 +110,31 @@
     <ClInclude Include="src\renderer\OpenGL\pass\final_pass_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\maths\AABB.hpp">
+    <ClInclude Include="src\utils\AABB.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="lib\tinyGLTF\tiny_gltf.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="lib\tinyGLTF\json.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="src\scene\lights\light.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\lights\point_light.hpp">
+    <ClInclude Include="lib\stb\stb_image_write.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\lights\spot_light.hpp">
+    <ClInclude Include="lib\stb\stb_image.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\lights\directional_light.hpp">
+    <ClInclude Include="lib\json\json.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\image.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\meshes\material.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\meshes\vertex.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
   </ItemGroup>

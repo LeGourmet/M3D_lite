@@ -3,33 +3,59 @@
 
 #include "utils/define.hpp"
 
+#include <string>
+#include <cmath>
+
 namespace M3D
 {
-	enum LIGHT_TYPE {POINT,SPOT,DIRECTIONAL};
+	enum LIGHT_TYPE { POINT, SPOT, DIRECTINAL };
 
+namespace Scene
+{
 	class Light
 	{
 	public:
-		Light(const Vec3f& p_position, const Vec3f& p_color, const float p_intensity, const float p_range, const LIGHT_TYPE p_type)
-			: _position(p_position), _color(p_color), _intensity(p_intensity), _range(p_range), _type(p_type) {}
-		virtual ~Light() = default;
+		// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
+		Light(const std::string p_type, const Vec3f& p_color, const float p_intensity, const float p_innerConeAngle, const float p_outerConeAngle ) : _color(p_color), _intensity(p_intensity) {
+			if (p_type == "spot") {
+				_type = LIGHT_TYPE::SPOT;
+				_innerConeAngle = p_innerConeAngle;
+				_outerConeAngle = p_outerConeAngle;
+			} else { _type = ((p_type == "point") ? LIGHT_TYPE::POINT : LIGHT_TYPE::DIRECTINAL); }
+			
+			_range = (float)std::sqrt(256.*std::max(_color.x*_intensity,std::max(_color.y*_intensity,_color.z*_intensity)));
+		}
+		~Light(){}
 
-		inline const Vec3f& getPosition() const { return _position; }
-		inline const Vec3f& getColor() const { return _color; }
-		inline const float getIntensity() const { return _intensity; }
-		inline const Vec3f& getEmissivity() const { return _color*_intensity; }
-		inline const float getRange() const { return _range; }
+		// ----------------------------------------------------- GETTERS -------------------------------------------------------
 		inline const LIGHT_TYPE getType() const { return _type; }
 
+		inline const Vec3f& getPosition() const { return _position; }
+		inline const Vec3f& getDirection() const { return _direction; }
+
+		inline const Vec3f& getColor() const { return _color; }
+		inline const float getIntensity() const { return _intensity; }
+		inline const Vec3f getEmissivity() const { return _color*_intensity; }
+		inline const float getRange() const { return _range; }
+
+		inline const float getInnerConeAngle() const { return _innerConeAngle; }
+		inline const float getOuterConeAngle() const { return _outerConeAngle; }
+
 	protected:
-		Vec3f _position = VEC3F_ZERO;
+		// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+		LIGHT_TYPE _type;
+
+		Vec3f _position = VEC3F_ZERO;    // to delete and set ModelMatrix
+		Vec3f _direction = VEC3F_Z;		 // to delete and set ModelMatrix
+
 		Vec3f _color = VEC3F_ONE;
 		float _intensity = 0.;
 		float _range = 0.;
-		LIGHT_TYPE _type;
 
+		float _innerConeAngle = 1.;
+		float _outerConeAngle = -1.;
 	};
-
+}
 }
 
 #endif

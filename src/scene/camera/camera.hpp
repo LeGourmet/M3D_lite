@@ -98,7 +98,7 @@ namespace Scene
         float _aspectRatio = 1.f;
         float _near = 0.01f;
         float _far = 1e4f;
-        float _fov = 60.f;
+        float _fov = 0.5f;
 
         Vec3f _position = VEC3F_ZERO;
         Quatf _rotation = Quatf(1.0, { 0.0, 0.0, 0.0 });//QUAT_ID;
@@ -112,7 +112,7 @@ namespace Scene
 
         // ----------------------------------------------------- FONCTIONS -------------------------------------------------------
         void _updateViewMatrix() { _viewMatrix = glm::lookAt(_position, _position + _front, _up); }
-        void _updateProjectionMatrix() { _projectionMatrix = glm::perspective( glm::radians(_fov), _aspectRatio, _near, _far); }
+        void _updateProjectionMatrix() { _projectionMatrix = glm::perspective( _fov, _aspectRatio, _near, _far); }
         void _updateRotation() {
             Mat3f rotation = glm::mat3_cast(_rotation);
             

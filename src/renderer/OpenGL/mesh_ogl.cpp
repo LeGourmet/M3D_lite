@@ -1,7 +1,7 @@
 #include "mesh_ogl.hpp"
 
 #include "utils/define.hpp"
-#include "utils/image.hpp"
+//#include "utils/image.hpp"
 
 #include <string>
 #include <cmath>
@@ -59,7 +59,7 @@ namespace M3D
 
 		void MeshOGL::_generateTexture(std::string p_texPath, GLuint* p_textureId) {
 			int width, height, nbChannels;
-			unsigned char* pixels = Image::load(p_texPath, &width, &height, &nbChannels);
+			/*unsigned char* pixels = Image::load(p_texPath, &width, &height, &nbChannels);
 
 			if (pixels != nullptr) {
 				glCreateTextures(GL_TEXTURE_2D, 1, p_textureId);
@@ -83,7 +83,7 @@ namespace M3D
 				glGenerateTextureMipmap(*p_textureId);
 			}
 
-			Image::free(pixels);
+			Image::free(pixels);*/
 		}
 
 	}

@@ -20,25 +20,28 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\gl3w\GL\gl3w.c" />
+    <ClCompile Include="lib\tinyGLTF\tiny_gltf.cpp" />
     <ClCompile Include="src\application.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\renderer\OpenGL\mesh_ogl.cpp" />
     <ClCompile Include="src\renderer\OpenGL\renderer_ogl.cpp" />
     <ClCompile Include="src\renderer\Vulkan\mesh_vulkan.hpp" />
     <ClCompile Include="src\renderer\Vulkan\renderer_vulkan.cpp" />
-    <ClCompile Include="src\scene\meshes\mesh_triangle.cpp" />
     <ClCompile Include="src\scene\scene_manager.cpp" />
     <ClCompile Include="src\input_output\window.cpp" />
     <ClCompile Include="src\user_interface\graphical_user_interface.cpp" />
-    <ClCompile Include="src\utils\image.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lib\gl3w\GL\gl3w.h" />
     <ClInclude Include="lib\gl3w\GL\glcorearb.h" />
-    <ClInclude Include="lib\tinyGLTF\json.hpp" />
+    <ClInclude Include="lib\json\json.hpp" />
+    <ClInclude Include="lib\stb\stb_image.h" />
+    <ClInclude Include="lib\stb\stb_image_write.h" />
     <ClInclude Include="lib\tinyGLTF\tiny_gltf.h" />
     <ClInclude Include="src\application.hpp" />
-    <ClInclude Include="src\maths\AABB.hpp" />
+    <ClInclude Include="src\scene\meshes\material.hpp" />
+    <ClInclude Include="src\scene\meshes\vertex.hpp" />
+    <ClInclude Include="src\utils\AABB.hpp" />
     <ClInclude Include="src\renderer\OpenGL\mesh_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\pass\geometry_pass_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\pass\final_pass_ogl.hpp" />
@@ -51,11 +54,8 @@
     <ClInclude Include="src\controller\gamepad_controller.hpp" />
     <ClInclude Include="src\controller\keyboard_controller.hpp" />
     <ClInclude Include="src\controller\mouse_controller.hpp" />
-    <ClInclude Include="src\scene\lights\directional_light.hpp" />
     <ClInclude Include="src\scene\lights\light.hpp" />
-    <ClInclude Include="src\scene\lights\point_light.hpp" />
-    <ClInclude Include="src\scene\lights\spot_light.hpp" />
-    <ClInclude Include="src\scene\meshes\mesh_triangle.hpp" />
+    <ClInclude Include="src\scene\meshes\mesh.hpp" />
     <ClInclude Include="src\scene\scene_manager.hpp" />
     <ClInclude Include="src\user_interface\graphical_user_interface.hpp" />
     <ClInclude Include="src\utils\define.hpp" />
@@ -131,13 +131,13 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\gl3w;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\json;$(ProjectDir)\lib\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\lib\SDL2\lib\x64;$(ProjectDir)\lib\assimp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>assimp-vc142-mt.lib;SDL2main.lib;SDL2.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\lib\SDL2\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2main.lib;SDL2.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -149,15 +149,15 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\gl3w;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\json;$(ProjectDir)\lib\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\lib\SDL2\lib\x64;$(ProjectDir)\lib\assimp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>assimp-vc142-mt.lib;SDL2main.lib;SDL2.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\lib\SDL2\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2main.lib;SDL2.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -167,13 +167,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\gl3w;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\json;$(ProjectDir)\lib\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\lib\SDL2\lib\x64;$(ProjectDir)\lib\assimp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>assimp-vc142-mt.lib;SDL2main.lib;SDL2.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\lib\SDL2\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2main.lib;SDL2.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -185,15 +185,15 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\gl3w;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\json;$(ProjectDir)\lib\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\lib\SDL2\lib\x64;$(ProjectDir)\lib\assimp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>assimp-vc142-mt.lib;SDL2main.lib;SDL2.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\lib\SDL2\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2main.lib;SDL2.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -3,9 +3,6 @@
 
 #include "pass_ogl.hpp"
 
-#include "scene/lights/directional_light.hpp"
-#include "scene/lights/spot_light.hpp"
-
 #include "glm/gtc/type_ptr.hpp"
 
 namespace M3D
@@ -59,7 +56,7 @@ namespace M3D
 
 				glProgramUniform3fv(_program, _uCamPosLoc, 1, glm::value_ptr(Application::getInstance().getSceneManager().getCamera().getPosition()));
 
-				for (Light* l : Application::getInstance().getSceneManager().getLights()) {
+				/*for (Light* l : Application::getInstance().getSceneManager().getLights()) {
 					glBindTextureUnit(0, p_positionMetalnessMap);
 					glBindTextureUnit(1, p_normalRoughnessMap);
 					glBindTextureUnit(2, p_albedoMap);
@@ -68,36 +65,27 @@ namespace M3D
 					float r = l->getRange();
 					Mat3f VP = Application::getInstance().getSceneManager().getCamera().getProjectionMatrix()* Application::getInstance().getSceneManager().getCamera().getViewMatrix();
 
-					switch (l->getType()) {
+					glProgramUniform4fv(_program, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(l->getDirection(), l->getInnerConeAngle())));
+					glProgramUniform4fv(_program, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(l->getEmissivity(), l->getOuterConeAngle())));
+
+					switch(l->getType()) {
 						case LIGHT_TYPE::POINT : 
-							glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(pos, 1.)));										// 1 => point/spot light
-							glProgramUniform4fv(_program, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(VEC3F_X, -1.)));									// -1 => inner angle
-							glProgramUniform4fv(_program, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(l->getEmissivity(), -1.)));						// -1 => outer angle
+						case LIGHT_TYPE::SPOT :
+							glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(pos, 1.)));*/
 							/*glNamedBufferSubData(_vbo, 0, 6 * sizeof(Vec2f), new Vec2f[]{
 								projectBillboard(pos.x - r,pos.y - r,VP) , projectBillboard(pos.x + r,pos.y - r,VP) , projectBillboard(pos.x + r,pos.y + r,VP),
 								projectBillboard(pos.x + r,pos.y + r,VP) , projectBillboard(pos.x - r,pos.y + r,VP) , projectBillboard(pos.x - r,pos.y - r,VP) });*/
-							glNamedBufferSubData(_vbo, 0, 6 * sizeof(Vec2f), new Vec2f[]{ Vec2f(-1.,-1.),Vec2f(1.,-1.),Vec2f(1.,1.),Vec2f(1.,1.),Vec2f(-1.,1.),Vec2f(-1.,-1.) });
-							break;
-						case LIGHT_TYPE::SPOT :
-							glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(pos, 1.)));
-							glProgramUniform4fv(_program, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(((SpotLight*)l)->getDirection(), ((SpotLight*)l)->getInnerConeAngle())));
-							glProgramUniform4fv(_program, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(l->getEmissivity(), ((SpotLight*)l)->getOuterConeAngle())));
-							/*glNamedBufferSubData(_vbo, 0, 6 * sizeof(Vec2f), new Vec2f[]{
-								projectBillboard(pos.x-r,pos.y-r,VP) , projectBillboard(pos.x+r,pos.y-r,VP) , projectBillboard(pos.x+r,pos.y+r,VP),
-								projectBillboard(pos.x+r,pos.y+r,VP) , projectBillboard(pos.x-r,pos.y+r,VP) , projectBillboard(pos.x-r,pos.y-r,VP)});*/
-							glNamedBufferSubData(_vbo, 0, 6*sizeof(Vec2f), new Vec2f[]{Vec2f(-1.,-1.),Vec2f(1.,-1.),Vec2f(1.,1.),Vec2f(1.,1.),Vec2f(-1.,1.),Vec2f(-1.,-1.) });
+							/*glNamedBufferSubData(_vbo, 0, 6 * sizeof(Vec2f), new Vec2f[]{Vec2f(-1.,-1.),Vec2f(1.,-1.),Vec2f(1.,1.),Vec2f(1.,1.),Vec2f(-1.,1.),Vec2f(-1.,-1.)});
 							break;
 						default :
-							glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(pos, 0.)));										// 0 => directional light
-							glProgramUniform4fv(_program, _uLightDirectionLoc, 1, glm::value_ptr(Vec4f(((DirectionalLight*)l)->getDirection(), -1.)));	// -1 => inner angle
-							glProgramUniform4fv(_program, _uLightEmissivityLoc, 1, glm::value_ptr(Vec4f(l->getEmissivity(), -1.)));						// -1 => outer angle
+							glProgramUniform4fv(_program, _uLightPositionLoc, 1, glm::value_ptr(Vec4f(pos, 0.)));
 							glNamedBufferSubData(_vbo, 0, 6*sizeof(Vec2f), new Vec2f[]{Vec2f(-1.,-1.),Vec2f(1.,-1.),Vec2f(1.,1.),Vec2f(1.,1.),Vec2f(-1.,1.),Vec2f(-1.,-1.) });
 					}
 
 					glBindVertexArray(_vao);
 					glDrawArrays(GL_TRIANGLES, 0, 6);
 					glBindVertexArray(0);
-				}
+				}*/
 			}
 
 		private:

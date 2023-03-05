@@ -1,4 +1,5 @@
 #include "application.hpp"
+
 #include <iostream>
 
 using namespace M3D;

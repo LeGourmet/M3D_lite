@@ -1,7 +1,7 @@
 #ifndef __GRAPHICAL_USER_INTERFACE_HPP__
 #define __GRAPHICAL_USER_INTERFACE_HPP__
 
-#include <SDL.h>
+#include <SDL_events.h>
 
 namespace M3D
 {
@@ -21,7 +21,6 @@ namespace UserInterface
 
     private:
         // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
-        //ENUM state;
     };
 }
 }

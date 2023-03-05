@@ -3,8 +3,7 @@
 
 #include "glm/glm.hpp"
 #include "glm/gtc/constants.hpp"
-#include <string>
-#include <filesystem>
+
 #include <limits>
 
 namespace M3D
@@ -34,11 +33,11 @@ namespace M3D
 	constexpr float INV_PIf = glm::one_over_pi<float>();
 	constexpr float INV_2PIf = glm::one_over_two_pi<float>();
 
+	constexpr Vec3f VEC3F_ONE = Vec3f(1.f, 1.f, 1.f);
 	constexpr Vec3f VEC3F_ZERO = Vec3f(0.f, 0.f, 0.f);
 	constexpr Vec3f VEC3F_X = Vec3f(1.f, 0.f, 0.f);
 	constexpr Vec3f VEC3F_Y = Vec3f(0.f, 1.f, 0.f);
 	constexpr Vec3f VEC3F_Z = Vec3f(0.f, 0.f, 1.f);
-	constexpr Vec3f VEC3F_ONE = Vec3f(1.f, 1.f, 1.f);
 	constexpr Vec3f VEC3F_MIN = Vec3f(FLOAT_MIN);
 	constexpr Vec3f VEC3F_MAX = Vec3f(FLOAT_MAX);
 
@@ -46,14 +45,6 @@ namespace M3D
 	constexpr Mat4f MAT4F_ID = Mat4f(1.f);
 
 	//constexpr Quatf QUAT_ID = Quatf(1.0, { 0.0, 0.0, 0.0 });
-
-	struct Vertex {
-		Vec3f _position;
-		Vec3f _normal;
-		Vec2f _uv;
-		Vec3f _tangent;
-		Vec3f _bitangent;
-	};
 }
 
 #endif

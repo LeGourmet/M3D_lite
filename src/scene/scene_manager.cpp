@@ -22,9 +22,7 @@ namespace Scene
 
     void SceneManager::addMesh(std::string p_name, Mesh* p_mesh) { _meshes.insert(std::pair<std::string, Mesh*>(p_name, p_mesh)); }
 
-    void SceneManager::addMaterial(Material* p_material) {
-        _materials.push_back(p_material);
-    }
+    void SceneManager::addMaterial(Material* p_material) { _materials.push_back(p_material); }
 
     void SceneManager::addTexture(Image* p_image) {
         _textures.push_back(p_image);
@@ -37,7 +35,7 @@ namespace Scene
 
     void SceneManager::update(unsigned long long p_deltaTime) {
         if (_mouseLeftPressed) {
-            _camera.rotate(Vec3f(0.001 * _deltaMousePositionY, -0.001 * _deltaMousePositionX, 0.f));
+            _cameras.at(_currentCamera)->rotate(Vec3f(0.001 * _deltaMousePositionY, -0.001 * _deltaMousePositionX, 0.f));
             _deltaMousePositionX = 0;
             _deltaMousePositionY = 0;
         }
@@ -51,7 +49,7 @@ namespace Scene
         if (_isKeyPressed(SDL_SCANCODE_F)) translation.y--;
         translation *= p_deltaTime *0.01;
 
-        _camera.move(translation);
+        _cameras.at(_currentCamera)->move(translation);
 
         /*Vec3f rotation = VEC3F_ZERO;
         if (_isKeyPressed(SDL_SCANCODE_W) || _isKeyPressed(SDL_SCANCODE_UP)) rotation.x++;
@@ -90,8 +88,8 @@ namespace Scene
         for (std::pair<std::string,Camera*> val : _cameras) removeLight(val.first);
         for (std::pair<std::string,Light*> val : _lights) removeLight(val.first);
         for (std::pair<std::string,Mesh*> val : _meshes) removeLight(val.first);
-        for (int i=0; i< _materials.size() ;i++) delete _materials[i];
-        for (int i=0; i< _textures.size() ;i++) delete _textures[i];
+        for (int i=0; i<_materials.size() ;i++) delete _materials[i];
+        for (int i=0; i<_textures.size() ;i++) delete _textures[i];
         _materials.clear();
         _textures.clear();
     }
@@ -108,67 +106,60 @@ namespace Scene
         }
         
         // TinyGLTF::SetPreserveimageChannels(true) => less memory cost of texture 
-        int idStartTexture = _textures.size();
-        _textures.reserve(idStartTexture+model.textures.size());
-        for (tinygltf::Texture t : model.textures) {
-            tinygltf::Image i = model.images[t.source];
-            addTexture(new Image(i.width,i.height,i.component,i.bits,i.pixel_type,i.image.data()));
+        int idStartTextures = _textures.size();
+        _textures.reserve(idStartTextures+model.textures.size());
+        for (tinygltf::Texture t : model.textures)
+            addTexture(new Image(
+                model.images[t.source].width, 
+                model.images[t.source].height,
+                model.images[t.source].component,
+                model.images[t.source].bits,
+                model.images[t.source].pixel_type,
+                model.images[t.source].image.data()
+            ));
+
+        int idStartMaterials = _materials.size();
+        _materials.reserve(idStartMaterials + model.materials.size());
+        for (tinygltf::Material m : model.materials)
+            addMaterial(new Material(
+                Vec4f(m.pbrMetallicRoughness.baseColorFactor[0], m.pbrMetallicRoughness.baseColorFactor[1], m.pbrMetallicRoughness.baseColorFactor[2], m.pbrMetallicRoughness.baseColorFactor[3]),
+                Vec3f(m.emissiveFactor[0], m.emissiveFactor[1], m.emissiveFactor[2]),
+                m.pbrMetallicRoughness.metallicFactor,
+                m.pbrMetallicRoughness.roughnessFactor,
+                m.alphaMode == "OPAQUE",
+                (m.pbrMetallicRoughness.baseColorTexture.index == -1.) ? nullptr : _textures[idStartTextures+m.pbrMetallicRoughness.baseColorTexture.index],
+                (m.pbrMetallicRoughness.metallicRoughnessTexture.index == -1.) ? nullptr : _textures[idStartTextures + m.pbrMetallicRoughness.metallicRoughnessTexture.index],
+                (m.normalTexture.index == -1.) ? nullptr : _textures[idStartTextures + m.normalTexture.index],
+                (m.occlusionTexture.index == -1.) ? nullptr : _textures[idStartTextures + m.occlusionTexture.index],
+                (m.emissiveTexture.index == -1.) ? nullptr : _textures[idStartTextures + m.emissiveTexture.index]
+            ));
+
+        for (tinygltf::Mesh m : model.meshes) {
+            Mesh* newMesh = new Mesh();
+            for (tinygltf::Primitive p : m.primitives) {
+                Primitive* newPrimitive = new Primitive(_materials[idStartMaterials+p.material]);
+
+                p.attributes.at("POSITION");
+                p.attributes.at("NORMAL");
+                p.attributes.at("TEXCOORD_0");
+                p.indices;
+
+                newMesh->addPrimitive(newPrimitive);
+            }
+            addMesh(m.name,newMesh);
         }
-
-        for (tinygltf::Material m : model.materials){
-            // ======== PbrMetallicRoughness ========
-            // std::vector<double> baseColorFactor;  // len = 4. default [1,1,1,1]
-            // double metallicFactor;   // default 1
-            // double roughnessFactor;  // default 1
-            // basecolor texture
-            // metalnessRougthness texture
-            
-            // ======== material ========
-            // std::string name;
-            // std::vector<double> emissiveFactor;  // length 3. default [0, 0, 0]
-            // std::string alphaMode;               // default "OPAQUE"
-            // double alphaCutoff;                  // default 0.5
-            //bool doubleSided;                    // default false;
-            // normal texure
-            // occlusion texture
-            // emissive texture
-        }
-
-        //for (tinygltf::Mesh m : model.meshes)
-
-        std::cout << "value image: " << model.images[0].image.size() << std::endl << std::endl;
-
-        std::cout << "loaded glTF file has:\n"
-            << model.accessors.size() << " accessors\n"
-            //<< model.animations.size() << " animations\n"         // PAS UTILE TOUT DE SUITE
-            << model.buffers.size() << " buffers\n"
-            << model.bufferViews.size() << " bufferViews\n"
-            << model.materials.size() << " materials\n"
-            << model.meshes.size() << " meshes\n"
-            << model.nodes.size() << " nodes\n"
-            << model.textures.size() << " textures\n"               // DONE
-            << model.images.size() << " images\n"                   // DONE
-            //<< model.skins.size() << " skins\n"                   // PAS UTILE TOUT DE SUITE
-            //<< model.samplers.size() << " samplers\n"             // ON VA UTILISER TOUJOURS LE MÊME OSEF
-            << model.cameras.size() << " cameras\n"                 // DONE
-            << model.scenes.size() << " scenes\n" 
-            << model.lights.size() << " lights\n";                  // DONE
-
-
 
         for (tinygltf::Light l : model.lights)
             addLight(l.name, new Light(l.type, Vec3f(l.color[0], l.color[1], l.color[2]), (float)l.intensity, (float)l.spot.innerConeAngle, (float)l.spot.outerConeAngle));
 
-        for (tinygltf::Camera c : model.cameras){
-            if (c.type == "perspective") {
-                _camera.setFar((float)c.perspective.zfar);
-                _camera.setNear((float)c.perspective.znear);
-                _camera.setFov((float)c.perspective.yfov);
-            } else {
+        for (tinygltf::Camera c : model.cameras)
+            if (c.type == "perspective")
+                addCamera(c.name, new Camera((float)c.perspective.znear, (float)c.perspective.zfar, (float)c.perspective.yfov));
 
-            }
-            addCamera(c.name,)
-        }
+        if (_cameras.empty()) {
+            addCamera("", new Camera(1., 1000., 0.5));
+            _currentCamera = "";
+        }else{ _currentCamera = _cameras.begin()->first; }
 
         // parcourir les nodes, creer graph de scene et collectioner / redistribuer les matrices M
     }

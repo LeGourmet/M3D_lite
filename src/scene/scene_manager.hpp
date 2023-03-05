@@ -5,10 +5,11 @@
 
 #include "controller/keyboard_controller.hpp"
 #include "controller/mouse_controller.hpp"
-#include "meshes/mesh.hpp"
-#include "meshes/material.hpp"
+
 #include "camera/camera.hpp"
 #include "lights/light.hpp"
+#include "meshes/mesh.hpp"
+#include "meshes/material.hpp"
 #include "utils/image.hpp"
 
 #include <string>
@@ -55,6 +56,9 @@ namespace Scene
 
     private:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+        // graph de scene organise les models matrix => entity représentes camera, lights ou mesh 
+        std::string _currentCamera = "";
+        
         std::map<std::string,Camera*> _cameras;
         std::map<std::string,Light*> _lights;
         std::map<std::string,Mesh*> _meshes;

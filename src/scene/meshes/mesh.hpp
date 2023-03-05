@@ -1,7 +1,7 @@
 #ifndef __MESH_HPP__
 #define __MESH_HPP__
 
-#include "vertex.hpp" 
+#include "primitive.hpp" 
 
 #include <vector>
 
@@ -14,27 +14,16 @@ namespace Scene
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
         Mesh() {}
-        ~Mesh() {}
+        ~Mesh() { for(int i=0; i<_primitives.size() ;i++) delete _primitives[i]; }
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
-        //inline const Mat4f& getTransformation() { return _transformation; }
+        inline std::vector<Primitive*> &getPrimitives() { return _primitives; }
 
-        inline std::vector<Vertex> &getVertices() { return _vertices; }
-        inline std::vector<unsigned int> &getIndices() { return _indices; }
-
-        // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-        inline void addVertex(const Vertex p_vertex) { _vertices.push_back(p_vertex); }
-
-        inline void addTriangle(const unsigned int p_v0, const unsigned int p_v1, const unsigned int p_v2) {
-            _indices.push_back(p_v0); _indices.push_back(p_v1), _indices.push_back(p_v2);
-        }
+        inline void addPrimitive(Primitive* p_primitive) { _primitives.push_back(p_primitive); }
 
     private:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-        //Mat4f _transformation = MAT4F_ID;
-        
-        std::vector<Vertex> _vertices = std::vector<Vertex>();
-        std::vector<unsigned int> _indices = std::vector<unsigned int>();
+        std::vector<Primitive*> _primitives;
     };
 }
 }

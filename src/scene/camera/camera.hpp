@@ -4,7 +4,6 @@
 #include "utils/define.hpp"
 
 #include "glm/gtc/quaternion.hpp"
-#include "glm/detail/type_quat.hpp"
 
 namespace M3D
 {
@@ -14,7 +13,13 @@ namespace Scene
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------
-        Camera() { _updateRotation(); }
+        Camera(float p_znear, float p_zfar, float p_fov) { 
+            setNear(p_znear);
+            setFar(p_zfar);
+            setFov(p_fov);
+            _updateRotation(); 
+        }
+        
         ~Camera() {}
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------

@@ -40,6 +40,7 @@
     <ClInclude Include="lib\tinyGLTF\tiny_gltf.h" />
     <ClInclude Include="src\application.hpp" />
     <ClInclude Include="src\scene\meshes\material.hpp" />
+    <ClInclude Include="src\scene\meshes\primitive.hpp" />
     <ClInclude Include="src\scene\meshes\vertex.hpp" />
     <ClInclude Include="src\utils\AABB.hpp" />
     <ClInclude Include="src\renderer\OpenGL\mesh_ogl.hpp" />

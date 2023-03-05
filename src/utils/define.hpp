@@ -3,6 +3,7 @@
 
 #include "glm/glm.hpp"
 #include "glm/gtc/constants.hpp"
+#include "glm/detail/type_quat.hpp"
 
 #include <limits>
 
@@ -41,10 +42,13 @@ namespace M3D
 	constexpr Vec3f VEC3F_MIN = Vec3f(FLOAT_MIN);
 	constexpr Vec3f VEC3F_MAX = Vec3f(FLOAT_MAX);
 
+	constexpr Vec4f VEC4F_ONE = Vec4f(1.f, 1.f, 1.f, 1.f);
+	constexpr Vec4f VEC4F_ZERO = Vec4f(0.f, 0.f, 0.f, 0.f);
+
 	constexpr Mat3f MAT3F_ID = Mat3f(1.f);
 	constexpr Mat4f MAT4F_ID = Mat4f(1.f);
 
-	//constexpr Quatf QUAT_ID = Quatf(1.0, { 0.0, 0.0, 0.0 });
+	constexpr Quatf QUAT_ID = Quatf(1.0, { 0.0, 0.0, 0.0 });
 }
 
 #endif

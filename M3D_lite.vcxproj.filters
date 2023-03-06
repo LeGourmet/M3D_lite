@@ -140,6 +140,9 @@
     <ClInclude Include="src\scene\meshes\primitive.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="src\scene\scene_graph\scene_graph_node.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\renderer\OpenGL\shaders\shadingPass.frag" />

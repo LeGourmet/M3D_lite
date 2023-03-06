@@ -9,12 +9,12 @@ namespace M3D
 			_width(p_width), _height(p_height), _nbChannels(p_nbChannels), _bitDepth(p_bitDepth), _format(p_format), _data(p_data) {}
 		~Image(){}
 
-		inline const int getHeight() const { return _width; }
-		inline const int getWidth() const { return _height; }
-		inline const int getNbChannels() const { return _nbChannels; }
-		inline const int getBitDepth() const { return _bitDepth; }
-		inline const int getFormat() const { return _format; }
-		inline const unsigned char* getData() const { return _data; }
+		const int getHeight() const { return _width; }
+		const int getWidth() const { return _height; }
+		const int getNbChannels() const { return _nbChannels; }
+		const int getBitDepth() const { return _bitDepth; }
+		const int getFormat() const { return _format; }
+		const unsigned char* getData() const { return _data; }
 		
 	private:
 		int _width;

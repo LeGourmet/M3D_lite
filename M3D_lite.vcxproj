@@ -42,6 +42,7 @@
     <ClInclude Include="src\scene\meshes\material.hpp" />
     <ClInclude Include="src\scene\meshes\primitive.hpp" />
     <ClInclude Include="src\scene\meshes\vertex.hpp" />
+    <ClInclude Include="src\scene\scene_graph\scene_graph_node.hpp" />
     <ClInclude Include="src\utils\AABB.hpp" />
     <ClInclude Include="src\renderer\OpenGL\mesh_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\pass\geometry_pass_ogl.hpp" />

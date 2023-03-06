@@ -17,12 +17,15 @@ namespace Scene
         ~Mesh() { for(int i=0; i<_primitives.size() ;i++) delete _primitives[i]; }
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
-        inline std::vector<Primitive*> &getPrimitives() { return _primitives; }
+        std::vector<Primitive*> &getPrimitives() { return _primitives; }
 
-        inline void addPrimitive(Primitive* p_primitive) { _primitives.push_back(p_primitive); }
+        // --
+        void addPrimitive(Primitive* p_primitive) { _primitives.push_back(p_primitive); }
+        void addInstance(SceneGraphNode* p_node) { _instances.push_back(p_node); }
 
     private:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+        std::vector<SceneGraphNode*> _instances;
         std::vector<Primitive*> _primitives;
     };
 }

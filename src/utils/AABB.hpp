@@ -14,41 +14,41 @@ namespace M3D
 		AABB(const Vec3f& p_min, const Vec3f& p_max) : _min(p_min), _max(p_max) {}
 		~AABB() = default;
 
-		inline const Vec3f& getMin() const { return _min; }
-		inline const Vec3f& getMax() const { return _max; }
+		const Vec3f& getMin() const { return _min; }
+		const Vec3f& getMax() const { return _max; }
 
 		// Returns true if the AABB is degenerated.
-		inline bool isValid() const { return ((_min.x <= _max.x) && (_min.y <= _max.y) && (_min.z <= _max.z)); }
+		bool isValid() const { return ((_min.x <= _max.x) && (_min.y <= _max.y) && (_min.z <= _max.z)); }
 
 		// Extends the AABB with a point
-		inline void extend(const Vec3f& p_v)
+		void extend(const Vec3f& p_v)
 		{
 			_min = glm::min(_min, p_v);
 			_max = glm::max(_max, p_v);
 		}
 
 		// Extends the AABB with another AABB
-		inline void extend(const AABB& p_aabb)
+		void extend(const AABB& p_aabb)
 		{
 			_min = glm::min(_min, p_aabb.getMin());
 			_max = glm::max(_max, p_aabb.getMax());
 		}
 
 		// Returns the AABB diagonal vector.
-		inline Vec3f diagonal() const { return _max - _min; }
+		Vec3f diagonal() const { return _max - _min; }
 
 		// Returns the AABB surface. 
-		inline float surface()
+		float surface()
 		{
 			const Vec3f d = diagonal();
 			return 2.f * (d.x * d.y + d.x * d.z + d.y * d.z);
 		}
 
 		// Returns the AABB centroid.
-		inline Vec3f centroid() const { return (_min + _max) * 0.5f; }
+		Vec3f centroid() const { return (_min + _max) * 0.5f; }
 
 		// Returns the largest axis, 0 -> x, 1 -> y, 2 -> z
-		inline size_t largestAxis() const
+		size_t largestAxis() const
 		{
 			const Vec3f d = diagonal();
 			if (d.x > d.y && d.x > d.z)
@@ -59,7 +59,7 @@ namespace M3D
 				return 2;
 		}
 
-		/*inline bool isOnFrustrum() {
+		/*bool isOnFrustrum() {
 			//Get global scale thanks to our transform
 			const glm::vec3 globalCenter{ transform.getModelMatrix() * glm::vec4(center, 1.f) };
 

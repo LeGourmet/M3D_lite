@@ -19,17 +19,17 @@ namespace Scene
         ~Material(){}
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
-        inline const Vec4f& getBaseColor() const { return _baseColor; }
-        inline const Vec3f& getEmissivity() const { return _emissivity; }
-        inline const float getMetalness() const { return _metalness; }
-        inline const float getRoughness() const { return _roughness; }
-        inline const bool isOpaque() const { return _isOpaque; }
+        const Vec4f& getBaseColor() const { return _baseColor; }
+        const Vec3f& getEmissivity() const { return _emissivity; }
+        const float getMetalness() const { return _metalness; }
+        const float getRoughness() const { return _roughness; }
+        const bool isOpaque() const { return _isOpaque; }
 
-        inline const Image* getBaseColorMap() const { return _baseColorMap; }
-        inline const Image* getMetalnessRougthnessMap() const { return _metalnessRougthnessMap; }
-        inline const Image* getNormalMap() const { return _normalMap; }
-        inline const Image* getOcclusionMap() const { return _occlusionMap; }
-        inline const Image* getEmissivityMap() const { return _emissivityMap; }
+        const Image* getBaseColorMap() const { return _baseColorMap; }
+        const Image* getMetalnessRougthnessMap() const { return _metalnessRougthnessMap; }
+        const Image* getNormalMap() const { return _normalMap; }
+        const Image* getOcclusionMap() const { return _occlusionMap; }
+        const Image* getEmissivityMap() const { return _emissivityMap; }
 
     private:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------

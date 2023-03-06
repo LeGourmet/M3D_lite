@@ -18,14 +18,14 @@ namespace Scene
         ~Primitive() {}
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
-        inline Material& getMaterial() const { return *_material; }
-        inline std::vector<Vertex>& getVertices() { return _vertices; }
-        inline std::vector<unsigned int>& getIndices() { return _indices; }
+        Material& getMaterial() const { return *_material; }
+        std::vector<Vertex>& getVertices() { return _vertices; }
+        std::vector<unsigned int>& getIndices() { return _indices; }
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-        inline void addVertex(Vertex p_vertex) { _vertices.push_back(p_vertex); }
+        void addVertex(Vertex p_vertex) { _vertices.push_back(p_vertex); }
 
-        /*inline void setIndices(std::vector<unsigned char> data) {
+        /*void setIndices(std::vector<unsigned char> data) {
             _indices.reserve();
             memccpy(_indices.data(),data.data(), ,data.size());
         }*/

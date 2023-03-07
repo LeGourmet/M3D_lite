@@ -70,7 +70,7 @@ namespace Renderer
 			}
 
 			// pointer ==> vraiment mieux
-			void execute(int p_viewport_width, int p_viewport_height, std::vector<Scene::MeshTriangle*> p_meshes, std::map<Scene::MeshTriangle*, MeshOGL*> p_meshes_ogl) {
+			void execute(int p_viewport_width, int p_viewport_height, std::vector<Scene::Mesh*> p_meshes, std::map<Scene::Mesh*, MeshOGL*> p_meshes_ogl) {
 				glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 				glViewport(0, 0, p_viewport_width, p_viewport_height);
 
@@ -82,8 +82,8 @@ namespace Renderer
 
 				const Mat4f VP = Application::getInstance().getSceneManager().getCamera().getProjectionMatrix() * Application::getInstance().getSceneManager().getCamera().getViewMatrix();
 
-				for (Scene::MeshTriangle* mesh : p_meshes) {
-					glProgramUniformMatrix4fv(_program, _uMatrix_MVPLoc, 1, false, glm::value_ptr(VP * mesh->_transformation));
+				for (Scene::Mesh* mesh : p_meshes) {
+					/*glProgramUniformMatrix4fv(_program, _uMatrix_MVPLoc, 1, false, glm::value_ptr(VP * mesh->_transformation));
 					glProgramUniformMatrix4fv(_program, _uMatrix_MLoc, 1, false, glm::value_ptr(mesh->_transformation));
 					glProgramUniformMatrix4fv(_program, _uMatrix_NormalLoc, 1, false, glm::value_ptr(glm::transpose(mesh->_transformation)));
 					MeshOGL* meshOGL = p_meshes_ogl.at(mesh);
@@ -109,7 +109,7 @@ namespace Renderer
 
 					glBindVertexArray(meshOGL->getVao());
 					glDrawElements(GL_TRIANGLES, (GLsizei)mesh->getIndices().size(), GL_UNSIGNED_INT, 0);
-					glBindVertexArray(0);
+					glBindVertexArray(0);*/
 				}
 			}
 

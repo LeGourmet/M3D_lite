@@ -4,7 +4,8 @@
 #include <SDL_video.h>
 
 #include "utils/define.hpp"
-#include "scene/meshes/mesh_triangle.hpp"
+#include "scene/objects/meshes/mesh.hpp"
+#include "utils/image.hpp"
 
 namespace M3D
 {
@@ -27,8 +28,10 @@ namespace M3D
             virtual void setVSync(bool p_vSync) = 0;
             virtual void drawFrame(SDL_Window* p_window) = 0;
 
-            virtual void createMesh(Scene::MeshTriangle* p_mesh) = 0;
-            virtual void deleteMesh(Scene::MeshTriangle* p_mesh) = 0;
+            virtual void createMesh(Scene::Mesh* p_mesh) = 0;
+            virtual void createTexture(Image* p_texture) = 0;
+            virtual void deleteMesh(Scene::Mesh* p_mesh) = 0;
+            virtual void deleteTexture(Image* p_texture) = 0;
 
         protected:
             bool _vSync = true;

@@ -7,9 +7,27 @@ namespace M3D
 {
 namespace Scene
 {
-    struct SceneGraphNode{
-        SceneGraphNode* _parent;
-        Mat4f _transformation;
+    class SceneGraphNode
+    {
+    public:
+        // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
+        SceneGraphNode(){}
+        ~SceneGraphNode(){}
+
+        // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+        Mat4f computeTransformation() const {
+            Mat4f result = MAT4F_ID;
+            SceneGraphNode* current = _parent;
+
+            while (current != nullptr) result = current->_transformation * result;
+
+            return result;
+        }
+
+    public:
+        // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+        SceneGraphNode* _parent = nullptr;
+        Mat4f _transformation = MAT4F_ID;
     };
 }
 }

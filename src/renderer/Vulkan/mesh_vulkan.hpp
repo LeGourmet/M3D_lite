@@ -1,7 +1,7 @@
 #ifndef __MESH_VULKAN_HPP__
 #define __Mesh_VULKAN_HPP__
 
-#include "scene/meshes/mesh_triangle.hpp"
+#include "scene/objects/meshes/mesh.hpp"
 
 namespace M3D
 {
@@ -11,7 +11,7 @@ namespace M3D
 		{
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-			MeshVulkan(Scene::MeshTriangle* p_mesh) { }
+			MeshVulkan(Scene::Mesh* p_mesh) { }
 
 			~MeshVulkan() { }
 

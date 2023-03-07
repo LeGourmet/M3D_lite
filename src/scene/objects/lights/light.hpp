@@ -2,6 +2,7 @@
 #define __LIGHT_HPP__
 
 #include "utils/define.hpp"
+#include "../object.hpp"
 
 #include <string>
 #include <cmath>
@@ -12,7 +13,7 @@ namespace M3D
 
 namespace Scene
 {
-	class Light
+	class Light : public Object
 	{
 	public:
 		// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
@@ -30,9 +31,6 @@ namespace Scene
 		// ----------------------------------------------------- GETTERS -------------------------------------------------------
 		const LIGHT_TYPE getType() const { return _type; }
 
-		const Vec3f& getPosition() const { return _position; }
-		const Vec3f& getDirection() const { return _direction; }
-
 		const Vec3f& getColor() const { return _color; }
 		const float getIntensity() const { return _intensity; }
 		const Vec3f getEmissivity() const { return _color*_intensity; }
@@ -44,9 +42,6 @@ namespace Scene
 	protected:
 		// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 		LIGHT_TYPE _type;
-
-		Vec3f _position = VEC3F_ZERO;    // to delete and set ModelMatrix
-		Vec3f _direction = VEC3F_Z;		 // to delete and set ModelMatrix
 
 		Vec3f _color = VEC3F_ONE;
 		float _intensity = 0.;

@@ -2,14 +2,14 @@
 #define __CAMERA_HPP__
 
 #include "utils/define.hpp"
-
+#include "../object.hpp"
 #include "glm/gtc/quaternion.hpp"
 
 namespace M3D
 {
 namespace Scene
 {
-    class Camera
+    class Camera : public Object
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------

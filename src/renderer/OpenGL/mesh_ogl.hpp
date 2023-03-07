@@ -3,7 +3,7 @@
 
 #include "GL/gl3w.h"
 
-#include "scene/meshes/mesh_triangle.hpp"
+#include "scene/objects/meshes/mesh.hpp"
 
 namespace M3D
 {
@@ -13,7 +13,7 @@ namespace M3D
 		{
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-			MeshOGL(Scene::MeshTriangle* p_mesh);
+			MeshOGL(Scene::Mesh* p_mesh);
 			~MeshOGL();
 
 			// ------------------------------------------------------ GETTERS --------------------------------------------------------

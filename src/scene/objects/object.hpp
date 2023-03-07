@@ -1,32 +1,29 @@
-#ifndef __MESH_HPP__
-#define __MESH_HPP__
+#ifndef __OBJECT_HPP__
+#define __OBJECT_HPP__
 
-#include "primitive.hpp" 
-
-#include <vector>
+#include "utils/define.hpp"
+#include "scene/scene_graph/scene_graph_node.hpp"
 
 namespace M3D
 {
 namespace Scene
 {
-    class Mesh
+    class Object
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-        Mesh() {}
-        ~Mesh() { for(int i=0; i<_primitives.size() ;i++) delete _primitives[i]; }
+        Object() {}
+        ~Object() {}
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
-        std::vector<Primitive*> &getPrimitives() { return _primitives; }
+        std::vector<SceneGraphNode*>& getSceneGraphNode() { return _instances; }
 
-        // --
-        void addPrimitive(Primitive* p_primitive) { _primitives.push_back(p_primitive); }
+        // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void addInstance(SceneGraphNode* p_node) { _instances.push_back(p_node); }
 
     private:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
         std::vector<SceneGraphNode*> _instances;
-        std::vector<Primitive*> _primitives;
     };
 }
 }

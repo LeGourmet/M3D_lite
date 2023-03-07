@@ -27,11 +27,11 @@ namespace M3D
             void resize(const int p_width, const int p_height)  override { /*todo*/ }
             void drawFrame(SDL_Window* p_window) override {}
 
-            void createMesh(Scene::MeshTriangle* p_mesh) override { _meshes.insert(std::pair<Scene::MeshTriangle*, MeshVulkan>(p_mesh, MeshVulkan(p_mesh))); }
-            void deleteMesh(Scene::MeshTriangle* p_mesh) override { _meshes.erase(_meshes.find(p_mesh)); }
+            void createMesh(Scene::Mesh* p_mesh) override { _meshes.insert(std::pair<Scene::Mesh*, MeshVulkan>(p_mesh, MeshVulkan(p_mesh))); }
+            void deleteMesh(Scene::Mesh* p_mesh) override { _meshes.erase(_meshes.find(p_mesh)); }
 
         private:
-            std::map<Scene::MeshTriangle*, MeshVulkan> _meshes;
+            std::map<Scene::Mesh*, MeshVulkan> _meshes;
         };
     }
 }

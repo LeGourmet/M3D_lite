@@ -24,7 +24,7 @@ namespace M3D
 				delete _geometryPass;
 				delete _shadingPass;
 				delete _finalPass;
-				for (std::pair<Scene::MeshTriangle*, MeshOGL*> pair : _meshes) delete pair.second;
+				for (std::pair<Scene::Mesh*, MeshOGL*> pair : _meshes) delete pair.second;
 			}
 
 			// ----------------------------------------------------- GETTERS -------------------------------------------------------
@@ -60,8 +60,8 @@ namespace M3D
 			void resize(const int p_width, const int p_height)  override;
 			void drawFrame(SDL_Window* p_window) override;
 			
-			void createMesh(Scene::MeshTriangle* p_mesh) override { _meshes.insert(std::pair<Scene::MeshTriangle*, MeshOGL*>(p_mesh, new MeshOGL(p_mesh))); }
-			void deleteMesh(Scene::MeshTriangle* p_mesh) override { delete _meshes.at(p_mesh); _meshes.erase(_meshes.find(p_mesh)); }
+			void createMesh(Scene::Mesh* p_mesh) override { _meshes.insert(std::pair<Scene::Mesh*, MeshOGL*>(p_mesh, new MeshOGL(p_mesh))); }
+			void deleteMesh(Scene::Mesh* p_mesh) override { delete _meshes.at(p_mesh); _meshes.erase(_meshes.find(p_mesh)); }
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
@@ -71,7 +71,7 @@ namespace M3D
 
 			int _viewport_width = 0;
 			int _viewport_height = 0;
-			std::map<Scene::MeshTriangle*,MeshOGL*> _meshes;
+			std::map<Scene::Mesh*,MeshOGL*> _meshes;
 		};
 	}
 }

@@ -9,10 +9,10 @@
 
 #include "scene_graph/scene_graph_node.hpp"
 
-#include "camera/camera.hpp"
-#include "lights/light.hpp"
-#include "meshes/mesh.hpp"
-#include "meshes/material.hpp"
+#include "objects/cameras/camera.hpp"
+#include "objects/lights/light.hpp"
+#include "objects/meshes/mesh.hpp"
+#include "objects/meshes/material.hpp"
 #include "utils/image.hpp"
 
 #include <string>
@@ -54,7 +54,7 @@ namespace Scene
     private:
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void _loadFile(const std::filesystem::path &p_path);
-        void _createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, tinygltf::Model p_model);
+        void _createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, int* p_offsets, tinygltf::Model p_model);
 
     private:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------        
@@ -65,7 +65,7 @@ namespace Scene
         std::vector<Image*> _textures;
 
         std::vector<SceneGraphNode*> _sceneGraph;
-        unsigned int _currentCamera = 0;
+        unsigned int _currentCamera = 0;            // care instance camera
     };
 }
 }

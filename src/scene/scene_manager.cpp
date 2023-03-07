@@ -20,7 +20,7 @@ namespace Scene
 
     void SceneManager::addLight(Light* p_light) { _lights.push_back(p_light); }
 
-    void SceneManager::addMesh(Mesh* p_mesh) { _meshes.push_back(p_mesh); }
+    void SceneManager::addMesh(Mesh* p_mesh) { _meshes.push_back(p_mesh); /*create mesh on GPU*/ }
 
     void SceneManager::addMaterial(Material* p_material) { _materials.push_back(p_material); }
 
@@ -82,14 +82,18 @@ namespace Scene
         _sceneGraph.clear();
     }
 
-    void SceneManager::_createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, tinygltf::Model p_model) {
+    void SceneManager::_createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, int* p_offsets, tinygltf::Model p_model) {
         SceneGraphNode* current = new SceneGraphNode();
         current->_parent = p_parent;
         current->_transformation = glm::make_mat4(p_model.nodes[p_idCurrent].matrix.data());
         addNode(current);
 
+        if      (p_model.nodes[p_idCurrent].mesh != -1)  { _meshes [p_offsets[0] + p_model.nodes[p_idCurrent].mesh  ]->addInstance(current); }
+        else if (p_model.nodes[p_idCurrent].camera != -1){ _cameras[p_offsets[1] + p_model.nodes[p_idCurrent].camera]->addInstance(current); }
+        else                                             { _lights [p_offsets[2] + p_model.nodes[p_idCurrent].extensions.at("KHR_lights_punctual").Get("light").GetNumberAsInt()]->addInstance(current); }
+
         for (int id : p_model.nodes[p_idCurrent].children)
-            _createSceneGraph(id,current,p_model);
+            _createSceneGraph(id,current,p_offsets,p_model);
     }
 
     void SceneManager::_loadFile(const std::filesystem::path &p_path)
@@ -167,9 +171,10 @@ namespace Scene
        
         int idStartSceneGraph = _sceneGraph.size();
         _sceneGraph.reserve(idStartMaterials + model.nodes.size());
+        int offsets[] = {idStartMeshes,idStartCameras,idStartLights};
         for (tinygltf::Scene s : model.scenes)
             for (int id : s.nodes)
-                _createSceneGraph(id, nullptr, model); // add offset camera / light / camera + abstract type entity for cam/light/mesh to replace position/direction/modelmatrix and fonction to compute model matrix
+                _createSceneGraph(id, nullptr, offsets, model);
 
     }
 }

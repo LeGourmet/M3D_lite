@@ -50,7 +50,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\scene\camera\camera.hpp">
+    <ClInclude Include="src\scene\objects\cameras\camera.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\controller\keyboard_controller.hpp">
@@ -62,7 +62,7 @@
     <ClInclude Include="src\scene\scene_manager.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\meshes\mesh.hpp">
+    <ClInclude Include="src\scene\objects\meshes\mesh.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\user_interface\graphical_user_interface.hpp">
@@ -116,7 +116,7 @@
     <ClInclude Include="lib\tinyGLTF\tiny_gltf.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\lights\light.hpp">
+    <ClInclude Include="src\scene\objects\lights\light.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="lib\stb\stb_image_write.h">
@@ -131,16 +131,19 @@
     <ClInclude Include="src\utils\image.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\meshes\material.hpp">
+    <ClInclude Include="src\scene\objects\meshes\material.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\meshes\vertex.hpp">
+    <ClInclude Include="src\scene\objects\meshes\vertex.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\meshes\primitive.hpp">
+    <ClInclude Include="src\scene\objects\meshes\primitive.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\scene\scene_graph\scene_graph_node.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\objects\object.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
   </ItemGroup>

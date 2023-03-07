@@ -1,7 +1,7 @@
 #include "mesh_ogl.hpp"
 
 #include "utils/define.hpp"
-//#include "utils/image.hpp"
+#include "scene/objects/meshes/vertex.hpp"
 
 #include <string>
 #include <cmath>
@@ -11,7 +11,7 @@ namespace M3D
 {
 	namespace Renderer
 	{
-		MeshOGL::MeshOGL(Scene::MeshTriangle* p_mesh) {
+		MeshOGL::MeshOGL(Scene::Mesh* p_mesh) {
 			glCreateVertexArrays(1, &_vao);
 
 			glCreateBuffers(1, &_vbo);

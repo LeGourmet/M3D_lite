@@ -4,6 +4,7 @@
 #include "GL/gl3w.h"
 
 #include "mesh_ogl.hpp"
+#include "texture_ogl.hpp"
 #include "pass/geometry_pass_ogl.hpp"
 #include "pass/shading_pass_ogl.hpp"
 #include "pass/final_pass_ogl.hpp"
@@ -25,6 +26,7 @@ namespace M3D
 				delete _shadingPass;
 				delete _finalPass;
 				for (std::pair<Scene::Mesh*, MeshOGL*> pair : _meshes) delete pair.second;
+				for (std::pair<Image*, TextureOGL*> pair : _textures) delete pair.second;
 			}
 
 			// ----------------------------------------------------- GETTERS -------------------------------------------------------
@@ -32,9 +34,9 @@ namespace M3D
 
 			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 			void init(SDL_Window* p_window) override {
-				SDL_GL_SetAttribute( SDL_GL_CONTEXT_FLAGS, 0 );
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0 );
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-				SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+				SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 				SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -61,7 +63,9 @@ namespace M3D
 			void drawFrame(SDL_Window* p_window) override;
 			
 			void createMesh(Scene::Mesh* p_mesh) override { _meshes.insert(std::pair<Scene::Mesh*, MeshOGL*>(p_mesh, new MeshOGL(p_mesh))); }
+			void createTexture(Image* p_texture) override { _textures.insert(std::pair<Image*, TextureOGL*>(p_texture, new TextureOGL(p_texture))); }
 			void deleteMesh(Scene::Mesh* p_mesh) override { delete _meshes.at(p_mesh); _meshes.erase(_meshes.find(p_mesh)); }
+			void deleteTexture(Image* p_texture) override { delete _textures.at(p_texture); _textures.erase(_textures.find(p_texture)); }
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
@@ -72,6 +76,7 @@ namespace M3D
 			int _viewport_width = 0;
 			int _viewport_height = 0;
 			std::map<Scene::Mesh*,MeshOGL*> _meshes;
+			std::map<Image*, TextureOGL*> _textures;
 		};
 	}
 }

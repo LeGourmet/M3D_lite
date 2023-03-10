@@ -16,7 +16,7 @@ namespace M3D
             ~Window();
 
             // ----------------------------------------------------- GETTERS -------------------------------------------------------
-            SDL_Window* get() const { return _window; }
+            inline SDL_Window& get() const { return *_window; }
 
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
             void create(SDL_WindowFlags p_rendererTypeFlag);

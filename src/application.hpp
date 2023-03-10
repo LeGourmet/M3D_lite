@@ -27,15 +27,15 @@ namespace M3D
 		Application& operator=(const Application&) = delete;
 
 		// ----------------------------------------------------- GETTERS -------------------------------------------------------
-		std::string getTitle() { return Application::_title; }
-		unsigned int getWidth() const { return Application::_width; }
-		unsigned int getHeight() const { return Application::_height; }
-		bool isRunning() const { return Application::_running; }
+		inline std::string getTitle() const { return _title; }
+		inline unsigned int getWidth() const { return _width; }
+		inline unsigned int getHeight() const { return _height; }
+		inline bool isRunning() const { return _running; }
 		
-		InputOutput::Window& getWindow() const { return *_window; }
-		UserInterface::GraphicalUserInterface& getGraphicalUserInterface() const { return *_gui; }
-		Scene::SceneManager& getSceneManager() const { return *_sceneManager; }
-		Renderer::Renderer& getRenderer() const { return *_renderer; }
+		inline InputOutput::Window& getWindow() const { return *_window; }
+		inline UserInterface::GraphicalUserInterface& getGraphicalUserInterface() const { return *_gui; }
+		inline Scene::SceneManager& getSceneManager() const { return *_sceneManager; }
+		inline Renderer::Renderer& getRenderer() const { return *_renderer; }
 
 		// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 		void start();

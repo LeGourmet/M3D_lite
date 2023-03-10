@@ -23,15 +23,15 @@ namespace Scene
         ~Camera() {}
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
-        const Quatf &getRotation() const { return _rotation; }
-        const Vec3f &getPosition() const { return _position; }
+        inline const Quatf &getRotation() const { return _rotation; }
+        inline const Vec3f &getPosition() const { return _position; }
 
-        const Mat4f &getViewMatrix() const { return _viewMatrix; }
-        const Mat4f &getProjectionMatrix() const { return _projectionMatrix; }
+        inline const Mat4f &getViewMatrix() const { return _viewMatrix; }
+        inline const Mat4f &getProjectionMatrix() const { return _projectionMatrix; }
 
-        const Vec3f getFront() { return _front; }
-        const Vec3f getLeft() { return _left; }
-        const Vec3f getUp() { return _up; }
+        inline const Vec3f getFront() { return _front; }
+        inline const Vec3f getLeft() { return _left; }
+        inline const Vec3f getUp() { return _up; }
 
         // ----------------------------------------------------- SETTERS -------------------------------------------------------
         void setScreenSize(const unsigned int p_width, const unsigned int p_height) {
@@ -55,6 +55,7 @@ namespace Scene
             _near = glm::max(1e-2f, p_near);
             _updateProjectionMatrix();
         }
+
         void setFar(const float p_far) {
             _far = glm::max(1e-2f, p_far);
             _updateProjectionMatrix();

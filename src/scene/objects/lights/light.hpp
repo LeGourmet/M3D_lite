@@ -29,15 +29,15 @@ namespace Scene
 		~Light(){}
 
 		// ----------------------------------------------------- GETTERS -------------------------------------------------------
-		const LIGHT_TYPE getType() const { return _type; }
+		inline LIGHT_TYPE getType() const { return _type; }
 
-		const Vec3f& getColor() const { return _color; }
-		const float getIntensity() const { return _intensity; }
-		const Vec3f getEmissivity() const { return _color*_intensity; }
-		const float getRange() const { return _range; }
+		inline const Vec3f& getColor() const { return _color; }
+		inline float getIntensity() const { return _intensity; }
+		inline const Vec3f getEmissivity() const { return _color*_intensity; }
+		inline float getRange() const { return _range; }
 
-		const float getInnerConeAngle() const { return _innerConeAngle; }
-		const float getOuterConeAngle() const { return _outerConeAngle; }
+		inline float getInnerConeAngle() const { return _innerConeAngle; }
+		inline float getOuterConeAngle() const { return _outerConeAngle; }
 
 	protected:
 		// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------

@@ -27,7 +27,7 @@ namespace M3D
 		_gui			 = new UserInterface::GraphicalUserInterface();
 
 		_window->create(_renderer->getWindowFlag());
-		_renderer->init(_window->get());
+		_renderer->init(&_window->get());
 		_sceneManager->resize(_width,_height);
 		_gui->init();
 
@@ -58,7 +58,7 @@ namespace M3D
 		_window->captureEvents();
 		_gui->update(deltaTime);
 		_sceneManager->update(deltaTime);
-		_renderer->drawFrame(_window->get());
+		_renderer->drawFrame(&_window->get());
 
 		//_window->brideFPS();
 		// ===> if (1000/fps > frameStop - frameStart) SDL_Delay(1000/fps - (frameStop - frameStart));

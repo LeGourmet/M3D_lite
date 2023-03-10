@@ -20,7 +20,8 @@ namespace M3D
 
             // ----------------------------------------------------- GETTERS -------------------------------------------------------
             virtual SDL_WindowFlags getWindowFlag() = 0;
-            bool getVSync() { return _vSync; }
+            inline bool getVSync() { return _vSync; }
+            inline float getGamma() { return _gamma; }
 
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
             virtual void init(SDL_Window* p_window) = 0;

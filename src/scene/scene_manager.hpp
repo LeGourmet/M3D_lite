@@ -31,9 +31,9 @@ namespace Scene
         ~SceneManager();
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
-        std::vector<Mesh*> getMeshes() const { return _meshes; }
-        std::vector<Light*> getLights() const { return _lights; }
-        Camera &getCamera() { return *_cameras[_currentCamera]; }
+        inline std::vector<Mesh*> getMeshes() const { return _meshes; }
+        inline std::vector<Light*> getLights() const { return _lights; }
+        inline Camera &getCamera() { return *_cameras[_currentCamera]; }
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void loadNewScene(const std::string& p_path);
@@ -52,11 +52,6 @@ namespace Scene
         void clearScene();
         
     private:
-        // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-        void _loadFile(const std::filesystem::path &p_path);
-        void _createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, int* p_offsets, tinygltf::Model p_model);
-
-    private:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------        
         std::vector<Camera*> _cameras;
         std::vector<Light*> _lights;
@@ -66,6 +61,10 @@ namespace Scene
 
         std::vector<SceneGraphNode*> _sceneGraph;
         unsigned int _currentCamera = 0;            // care instance camera
+        
+        // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+        void _loadFile(const std::filesystem::path &p_path);
+        void _createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, int* p_offsets, tinygltf::Model p_model);
     };
 }
 }

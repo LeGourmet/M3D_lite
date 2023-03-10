@@ -7,6 +7,8 @@
 
 #include <cmath>
 
+#include <iostream>
+
 namespace M3D
 {
 namespace Scene
@@ -101,11 +103,13 @@ namespace Scene
         tinygltf::TinyGLTF loader;
         tinygltf::Model model;
 
+        std::cout << "start parcing" << std::endl;
         if (p_path.extension() == ".gltf") {
             if (!loader.LoadASCIIFromFile(&model, nullptr, nullptr, p_path.string())) throw std::runtime_error("Fail to load file: " + p_path.string());
         } else {
             if (!loader.LoadBinaryFromFile(&model, nullptr, nullptr, p_path.string())) throw std::runtime_error("Fail to load file: " + p_path.string());
         }
+        std::cout << "loaded!" << std::endl;
         
         // TinyGLTF::SetPreserveimageChannels(true) => less memory cost of texture 
         int idStartTextures = _textures.size();
@@ -119,7 +123,8 @@ namespace Scene
                 model.images[t.source].pixel_type,
                 model.images[t.source].image.data()
             ));
-
+        std::cout << "textures : " << _textures.size() << " " << model.textures.size() << " " << _textures.capacity() << std::endl;
+        
         int idStartMaterials = _materials.size();
         _materials.reserve(idStartMaterials + model.materials.size());
         for (tinygltf::Material m : model.materials)
@@ -135,47 +140,58 @@ namespace Scene
                 (m.occlusionTexture.index == -1.) ? nullptr : _textures[idStartTextures + m.occlusionTexture.index],
                 (m.emissiveTexture.index == -1.) ? nullptr : _textures[idStartTextures + m.emissiveTexture.index]
             ));
+        std::cout << "materials : " << _materials.size() << " " << model.materials.size() << " " << _materials.capacity() << std::endl;
 
         int idStartMeshes = _meshes.size();
-        _meshes.reserve(idStartMeshes + model.materials.size());
+        _meshes.reserve(idStartMeshes + model.meshes.size());
         for (tinygltf::Mesh m : model.meshes) {
             Mesh* newMesh = new Mesh();
             m.primitives.reserve(m.primitives.size());
             for (tinygltf::Primitive p : m.primitives) {
-                Primitive* newPrimitive = new Primitive(_materials[idStartMeshes+p.material]);
+                Primitive* newPrimitive = new Primitive(_materials[idStartMaterials+p.material]);
 
-                // TODO complete
-                p.attributes.at("POSITION");
-                p.attributes.at("NORMAL");
-                p.attributes.at("TEXCOORD_0");
-                p.indices;
+                //tinygltf::BufferView bv_position = model.bufferViews[p.attributes.at("POSITION")];
+                //data = model.buffers[bv.buffer]; //memcopy
+
+                //tinygltf::BufferView bv_normal = model.bufferViews[p.attributes.at("NORMAL")];
+                //data = model.buffers[bv.buffer]; //memcopy
+                
+                //tinygltf::BufferView bv_texcoord = model.bufferViews[p.attributes.at("TEXCOORD_0")];
+                //data = model.buffers[bv.buffer]; //memcopy
+
+                //tinygltf::BufferView bv_indices = model.bufferViews[p.indices];
+                //data = model.buffers[bv.buffer]; //memcopy
 
                 newMesh->addPrimitive(newPrimitive);
             }
             addMesh(newMesh);
         }
+        std::cout << "meshes : " << _meshes.size() << " " << model.meshes.size() << " " << _meshes.capacity() << std::endl;
 
         int idStartLights = _lights.size();
         _lights.reserve(idStartLights + model.lights.size());
         for (tinygltf::Light l : model.lights)
             addLight(new Light(l.type, glm::make_vec4(l.color.data()), (float)l.intensity, (float)l.spot.innerConeAngle, (float)l.spot.outerConeAngle));
+        std::cout << "lights : " << _lights.size() << " " << model.lights.size() << " " << _lights.capacity() << std::endl;
 
         int idStartCameras = _cameras.size();
         _cameras.reserve(std::max(1,idStartCameras + (int)model.cameras.size()));
         for (tinygltf::Camera c : model.cameras)
             if (c.type == "perspective")
                 addCamera(new Camera((float)c.perspective.znear, (float)c.perspective.zfar, (float)c.perspective.yfov));
+        std::cout << "cameras : " << _cameras.size() << " " << model.cameras.size() << " " << _cameras.capacity() << std::endl;
 
         if (_cameras.empty()) addCamera(new Camera(1., 1000., 0.5));
         _currentCamera = 0;
+        std::cout << "cameras : " << _cameras.size() << " " << model.cameras.size() << " " << _cameras.capacity() << std::endl;
        
         int idStartSceneGraph = _sceneGraph.size();
-        _sceneGraph.reserve(idStartMaterials + model.nodes.size());
+        _sceneGraph.reserve(idStartSceneGraph + model.nodes.size());
         int offsets[] = {idStartMeshes,idStartCameras,idStartLights};
         for (tinygltf::Scene s : model.scenes)
             for (int id : s.nodes)
                 _createSceneGraph(id, nullptr, offsets, model);
-
+        std::cout << "GS : " << _sceneGraph.size() << " " << model.nodes.size() << " " << _sceneGraph.capacity() << std::endl;
     }
 }
 }

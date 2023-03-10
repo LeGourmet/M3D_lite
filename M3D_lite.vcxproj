@@ -23,7 +23,6 @@
     <ClCompile Include="lib\tinyGLTF\tiny_gltf.cpp" />
     <ClCompile Include="src\application.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\renderer\OpenGL\mesh_ogl.cpp" />
     <ClCompile Include="src\renderer\OpenGL\renderer_ogl.cpp" />
     <ClCompile Include="src\renderer\Vulkan\mesh_vulkan.hpp" />
     <ClCompile Include="src\renderer\Vulkan\renderer_vulkan.cpp" />
@@ -39,12 +38,12 @@
     <ClInclude Include="lib\stb\stb_image_write.h" />
     <ClInclude Include="lib\tinyGLTF\tiny_gltf.h" />
     <ClInclude Include="src\application.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\texture_ogl.hpp" />
     <ClInclude Include="src\scene\objects\meshes\material.hpp" />
     <ClInclude Include="src\scene\objects\meshes\primitive.hpp" />
     <ClInclude Include="src\scene\objects\meshes\vertex.hpp" />
     <ClInclude Include="src\scene\objects\object.hpp" />
     <ClInclude Include="src\scene\scene_graph\scene_graph_node.hpp" />
-    <ClInclude Include="src\utils\AABB.hpp" />
     <ClInclude Include="src\renderer\OpenGL\mesh_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\pass\geometry_pass_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\pass\final_pass_ogl.hpp" />

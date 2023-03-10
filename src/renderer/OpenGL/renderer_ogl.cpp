@@ -9,8 +9,8 @@ namespace M3D
 	{
 			void RendererOGL::drawFrame(SDL_Window* p_window){
 				//_geometryPass->execute(_viewport_width,_viewport_height,Application::getInstance().getSceneManager().getMeshes(),_meshes);
-				_shadingPass->execute(_viewport_width,_viewport_height,_geometryPass->getPositionMetalnessMap(),_geometryPass->getNormalRoughnessMap(),_geometryPass->getAlbedoMap());
-				_finalPass->execute(_viewport_width,_viewport_height,_gamma,_geometryPass->getAmbientMap());
+				//_shadingPass->execute(_viewport_width,_viewport_height,_geometryPass->getPositionMetalnessMap(),_geometryPass->getNormalRoughnessMap(),_geometryPass->getAlbedoMap());
+				//_finalPass->execute(_viewport_width,_viewport_height,_gamma,_geometryPass->getAmbientMap());
 
 				SDL_GL_SwapWindow(p_window);
 			}

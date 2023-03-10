@@ -16,7 +16,7 @@ namespace Scene
         ~Object() {}
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
-        std::vector<SceneGraphNode*>& getSceneGraphNode() { return _instances; }
+        inline std::vector<SceneGraphNode*>& getSceneGraphNode() { return _instances; }
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void addInstance(SceneGraphNode* p_node) { _instances.push_back(p_node); }

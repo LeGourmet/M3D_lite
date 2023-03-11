@@ -1,12 +1,14 @@
 #ifndef __IMAGE_HPP__
 #define __IMAGE_HPP__
 
+#include <vector>
+
 namespace M3D
 {
 	class Image {
 	public:
 		// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-		Image(int p_width, int p_height, int p_nbChannels, int p_bitDepth, int p_format, unsigned char* p_data) :
+		Image(int p_width, int p_height, int p_nbChannels, int p_bitDepth, int p_format, std::vector<unsigned char> p_data) :
 			_width(p_width), _height(p_height), _nbChannels(p_nbChannels), _bitDepth(p_bitDepth), _format(p_format), _data(p_data) {}
 		~Image(){}
 
@@ -16,7 +18,7 @@ namespace M3D
 		inline int getNbChannels() const { return _nbChannels; }
 		inline int getBitDepth() const { return _bitDepth; }
 		inline int getFormat() const { return _format; }
-		inline unsigned char& getData() const { return *_data; }
+		inline const unsigned char* getData() const { return _data.data(); }
 		
 	private:
 		// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
@@ -25,7 +27,7 @@ namespace M3D
 		int _nbChannels;
 		int _bitDepth;
 		int _format;
-		unsigned char* _data;
+		std::vector<unsigned char> _data;
 	};
 }
 

@@ -34,7 +34,7 @@ namespace M3D
 				glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 				glTextureParameteri(_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-				glTextureSubImage2D(_id, 0, 0, 0, p_texture->getWidth(), p_texture->getHeight(), format, GL_UNSIGNED_BYTE, &p_texture->getData());
+				glTextureSubImage2D(_id, 0, 0, 0, p_texture->getWidth(), p_texture->getHeight(), format, GL_UNSIGNED_BYTE, p_texture->getData());
 				glGenerateTextureMipmap(_id);
 			}
 

@@ -15,6 +15,10 @@ namespace Scene
         ~SceneGraphNode(){}
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+        void updateLocalTransformation() {
+            // _transfromation = ??
+        }
+        
         Mat4f computeTransformation() const {
             Mat4f result = MAT4F_ID;
             SceneGraphNode* current = _parent;
@@ -27,6 +31,9 @@ namespace Scene
     public:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
         SceneGraphNode* _parent = nullptr;
+        Vec4f _rotation = VEC4F_ZERO;
+        Vec3f _scale = VEC3F_ONE;
+        Vec3f _translation = VEC3F_ZERO;
         Mat4f _transformation = MAT4F_ID;
     };
 }

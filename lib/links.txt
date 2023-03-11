@@ -1,0 +1,14 @@
+GL 		4.6 			:
+VULKAN		??			:
+MOLTENVK	??			:
+DIRECTX		??			:
+
+IMGUI 		??			:
+
+GLM 		0.9.9	12/03/2023	: https://github.com/g-truc/glm
+STB_image	2.28	12/03/2023	: https://github.com/nothings/stb
+STB_image_write 1.16	12/03/2023	: https://github.com/nothings/stb
+SDL3		3.2.0	12/03/2023	: https://github.com/libsdl-org/SDL
+
+SIMD_JSON 	0.5	12/03/2023	: https://github.com/simdjson/simdjson
+FAST_GLTF 	??	12/03/2023	: https://github.com/spnda/fastgltf

@@ -17,7 +17,7 @@ namespace Controller
         // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
         void receiveEvent(const SDL_Event &p_event){
             switch (p_event.type){
-                case SDL_MOUSEBUTTONDOWN:
+                case SDL_EVENT_MOUSE_BUTTON_DOWN:
                     switch (p_event.button.button){
                         case SDL_BUTTON_LEFT:
                             _mouseLeftPressed = true;
@@ -32,7 +32,7 @@ namespace Controller
                     }
                     break;
 
-                case SDL_MOUSEBUTTONUP:
+                case SDL_EVENT_MOUSE_BUTTON_UP:
                     switch (p_event.button.button){
                         case SDL_BUTTON_LEFT:
                             _mouseLeftPressed = false;
@@ -47,12 +47,12 @@ namespace Controller
                     }
                     break;
 
-                case SDL_MOUSEMOTION:
+                case SDL_EVENT_MOUSE_MOTION:
                     _deltaMousePositionX = p_event.motion.xrel;
                     _deltaMousePositionY = p_event.motion.yrel;
                     break;
 
-                case SDL_MOUSEWHEEL:
+                case SDL_EVENT_MOUSE_WHEEL:
                     _deltaMouseWheel = p_event.wheel.y;
                     break;
 
@@ -74,9 +74,9 @@ namespace Controller
         bool _mouseLeftPressed;
         bool _mouseRightPressed;
         bool _mouseMiddlePressed;
-        int  _deltaMousePositionX;
-        int  _deltaMousePositionY;
-        int _deltaMouseWheel;
+        float _deltaMousePositionX;
+        float _deltaMousePositionY;
+        float _deltaMouseWheel;
     };
 }
 }

@@ -28,7 +28,7 @@
 #ifndef SDL_endian_h_
 #define SDL_endian_h_
 
-#include <SDL3/SDL_stdinc.h>
+#include <SDL_stdinc.h>
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
 /* As of Clang 11, '_m_prefetchw' is conflicting with the winnt.h's version,
@@ -110,7 +110,7 @@ _m_prefetch(void *__P)
 #endif /* !SDL_FLOATWORDORDER */
 
 
-#include <SDL3/SDL_begin_code.h>
+#include <SDL_begin_code.h>
 /* Set up for C function definitions, even when using C++ */
 #ifdef __cplusplus
 extern "C" {
@@ -393,6 +393,6 @@ SDL_SwapFloat(float x)
 #ifdef __cplusplus
 }
 #endif
-#include <SDL3/SDL_close_code.h>
+#include <SDL_close_code.h>
 
 #endif /* SDL_endian_h_ */

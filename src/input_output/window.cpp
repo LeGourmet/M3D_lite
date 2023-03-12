@@ -4,7 +4,9 @@
 #include "scene/scene_manager.hpp"
 #include "user_interface/graphical_user_interface.hpp"
 
-#include <SDL.h>
+#include <SDL_init.h>
+#include <SDL_error.h>
+#include <SDL_timer.h>
 
 #include <iostream>
 
@@ -13,9 +15,8 @@ namespace M3D
     namespace InputOutput
     {
         Window::Window() {
-            if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) // add flag SDL_INIT_JOYSTICK | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER
+            if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0)
                 throw std::runtime_error("Exception caught: " + std::string(SDL_GetError()));
-            // for game controller or joistick use SDL_GameControllerEventState(SDL_ENABLE) for poolevent enable
         }
         Window::~Window() { _dispose(); }
 
@@ -23,11 +24,9 @@ namespace M3D
             try {
                 _window = SDL_CreateWindow(
                     Application::getInstance().getTitle().c_str(),
-                    SDL_WINDOWPOS_CENTERED,
-                    SDL_WINDOWPOS_CENTERED,
                     Application::getInstance().getWidth(),
                     Application::getInstance().getHeight(),
-                    SDL_WINDOW_SHOWN | p_rendererTypeFlag | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+                    p_rendererTypeFlag | SDL_WINDOW_RESIZABLE);
                 if (_window == nullptr)
                     throw std::runtime_error("Exception caught: " + std::string(SDL_GetError()));
             }
@@ -41,43 +40,34 @@ namespace M3D
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
                 switch (event.type) {
-                case SDL_WINDOWEVENT:
-                    switch (event.window.event) {
-                    case SDL_WINDOWEVENT_MINIMIZED:
+                    case SDL_EVENT_WINDOW_MINIMIZED:
                         Application::getInstance().pause();
-                        do { SDL_WaitEvent(&event); } while (!(event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESTORED));
+                        do { SDL_WaitEvent(&event); } while (!(event.type == SDL_EVENT_WINDOW_RESTORED));
                         Application::getInstance().resume();
                         break;
-                    case SDL_WINDOWEVENT_SIZE_CHANGED:
+                    case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
                         Application::getInstance().resize(event.window.data1, event.window.data2);
                         break;
-                    case SDL_WINDOWEVENT_CLOSE:
+                    case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                         Application::getInstance().stop();
                         break;
-                    case SDL_WINDOWEVENT_FOCUS_LOST:
+                    case SDL_EVENT_WINDOW_FOCUS_LOST:
                         Application::getInstance().pause();
-                        do { SDL_WaitEvent(&event); } while (!(event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED));
+                        do { SDL_WaitEvent(&event); } while (!(event.type == SDL_EVENT_WINDOW_FOCUS_GAINED));
                         Application::getInstance().resume();
                         break;   
-                    default:
+                    case SDL_EVENT_QUIT:
+                        Application::getInstance().stop();
                         break;
-                    }
-                    break;
-
-                case SDL_QUIT:
-                    Application::getInstance().stop();
-                    break;
-
-                default:
-                    if (_captureEvent(event)) break;
-                    if (Application::getInstance().getGraphicalUserInterface().captureEvent(event)) break;
-                    Application::getInstance().getSceneManager().captureEvent(event); break;
+                    default:
+                        if (_captureEvent(event)) break;
+                        if (Application::getInstance().getGraphicalUserInterface().captureEvent(event)) break;
+                        Application::getInstance().getSceneManager().captureEvent(event); break;
                 }
             }
         }
 
         void Window::chronoUpdate() {
-            //_time = SDL_GetTicks64();
             _time = SDL_GetTicks();
         }
 
@@ -88,8 +78,8 @@ namespace M3D
         }
 
         bool Window::_captureEvent(SDL_Event p_event) {
-            bool keyUp = (p_event.type == SDL_KEYUP);
-            bool keyDown = (p_event.type == SDL_KEYDOWN);
+            bool keyUp = (p_event.type == SDL_EVENT_KEY_UP);
+            bool keyDown = (p_event.type == SDL_EVENT_KEY_DOWN);
 
             if ((keyUp || keyDown) && (p_event.key.keysym.scancode >= SDL_SCANCODE_F1 && p_event.key.keysym.scancode <= SDL_SCANCODE_PRINTSCREEN)) {
                 if (keyDown)
@@ -110,9 +100,9 @@ namespace M3D
         void Window::_switchFullScreen2Maximized() {
             Application::getInstance().pause();
             if (SDL_GetWindowFlags(_window) & SDL_WINDOW_FULLSCREEN) { 
-                SDL_SetWindowFullscreen(_window, 0); 
+                SDL_SetWindowFullscreen(_window, SDL_FALSE); 
                 SDL_MaximizeWindow(_window); 
-            }else {SDL_SetWindowFullscreen(_window, SDL_WINDOW_FULLSCREEN_DESKTOP);} // SDL_WINDOW_FULLSCREEN => real fullscreen but very slow !
+            }else {SDL_SetWindowFullscreen(_window, SDL_TRUE);}
             Application::getInstance().resume();
         }
 

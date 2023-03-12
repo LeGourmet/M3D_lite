@@ -2,7 +2,7 @@
 #define __MESH_HPP__
 
 #include "primitive.hpp" 
-#include "../object.hpp"
+#include "scene/objects/object.hpp"
 
 #include <vector>
 

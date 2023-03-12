@@ -28,7 +28,7 @@
 #ifndef SDL_intrin_h_
 #define SDL_intrin_h_
 
-#include <SDL3/SDL_stdinc.h>
+#include <SDL_stdinc.h>
 
 /* Need to do this here because intrin.h has C++ code in it */
 /* Visual Studio 2005 has a bug where intrin.h conflicts with winnt.h */

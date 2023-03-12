@@ -48,12 +48,12 @@
 #ifndef SDL_render_h_
 #define SDL_render_h_
 
-#include <SDL3/SDL_stdinc.h>
-#include <SDL3/SDL_events.h>
-#include <SDL3/SDL_rect.h>
-#include <SDL3/SDL_video.h>
+#include <SDL_stdinc.h>
+#include <SDL_events.h>
+#include <SDL_rect.h>
+#include <SDL_video.h>
 
-#include <SDL3/SDL_begin_code.h>
+#include <SDL_begin_code.h>
 /* Set up for C function definitions, even when using C++ */
 #ifdef __cplusplus
 extern "C" {
@@ -1622,6 +1622,6 @@ extern DECLSPEC int SDLCALL SDL_GetRenderVSync(SDL_Renderer *renderer, int *vsyn
 #ifdef __cplusplus
 }
 #endif
-#include <SDL3/SDL_close_code.h>
+#include <SDL_close_code.h>
 
 #endif /* SDL_render_h_ */

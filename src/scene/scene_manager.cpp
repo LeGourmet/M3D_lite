@@ -38,8 +38,8 @@ namespace Scene
         if (_cameras.size() != 0) {
             if (_mouseLeftPressed) {
                 _cameras[_currentCamera]->rotate(Vec3f(0.001 * _deltaMousePositionY, -0.001 * _deltaMousePositionX, 0.f));
-                _deltaMousePositionX = 0;
-                _deltaMousePositionY = 0;
+                _deltaMousePositionX = 0.;
+                _deltaMousePositionY = 0.;
             }
 
             Vec3f translation = VEC3F_ZERO;

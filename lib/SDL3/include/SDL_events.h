@@ -28,18 +28,18 @@
 #ifndef SDL_events_h_
 #define SDL_events_h_
 
-#include <SDL3/SDL_audio.h>
-#include <SDL3/SDL_error.h>
-#include <SDL3/SDL_gamepad.h>
-#include <SDL3/SDL_joystick.h>
-#include <SDL3/SDL_keyboard.h>
-#include <SDL3/SDL_mouse.h>
-#include <SDL3/SDL_quit.h>
-#include <SDL3/SDL_stdinc.h>
-#include <SDL3/SDL_touch.h>
-#include <SDL3/SDL_video.h>
+#include <SDL_audio.h>
+#include <SDL_error.h>
+#include <SDL_gamepad.h>
+#include <SDL_joystick.h>
+#include <SDL_keyboard.h>
+#include <SDL_mouse.h>
+#include <SDL_quit.h>
+#include <SDL_stdinc.h>
+#include <SDL_touch.h>
+#include <SDL_video.h>
 
-#include <SDL3/SDL_begin_code.h>
+#include <SDL_begin_code.h>
 /* Set up for C function definitions, even when using C++ */
 #ifdef __cplusplus
 extern "C" {
@@ -1121,6 +1121,6 @@ extern DECLSPEC Uint32 SDLCALL SDL_RegisterEvents(int numevents);
 #ifdef __cplusplus
 }
 #endif
-#include <SDL3/SDL_close_code.h>
+#include <SDL_close_code.h>
 
 #endif /* SDL_events_h_ */

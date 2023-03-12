@@ -28,12 +28,12 @@
 #ifndef SDL_video_h_
 #define SDL_video_h_
 
-#include <SDL3/SDL_stdinc.h>
-#include <SDL3/SDL_pixels.h>
-#include <SDL3/SDL_rect.h>
-#include <SDL3/SDL_surface.h>
+#include <SDL_stdinc.h>
+#include <SDL_pixels.h>
+#include <SDL_rect.h>
+#include <SDL_surface.h>
 
-#include <SDL3/SDL_begin_code.h>
+#include <SDL_begin_code.h>
 /* Set up for C function definitions, even when using C++ */
 #ifdef __cplusplus
 extern "C" {
@@ -2025,6 +2025,6 @@ extern DECLSPEC int SDLCALL SDL_GL_DeleteContext(SDL_GLContext context);
 #ifdef __cplusplus
 }
 #endif
-#include <SDL3/SDL_close_code.h>
+#include <SDL_close_code.h>
 
 #endif /* SDL_video_h_ */

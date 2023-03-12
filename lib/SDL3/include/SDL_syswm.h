@@ -28,10 +28,10 @@
 #ifndef SDL_syswm_h_
 #define SDL_syswm_h_
 
-#include <SDL3/SDL_stdinc.h>
-#include <SDL3/SDL_error.h>
-#include <SDL3/SDL_platform_defines.h>
-#include <SDL3/SDL_video.h>
+#include <SDL_stdinc.h>
+#include <SDL_error.h>
+#include <SDL_platform_defines.h>
+#include <SDL_video.h>
 
 /**
  *  \brief SDL_syswm.h
@@ -146,7 +146,7 @@ typedef Uint32 GLuint;
 #endif /* SDL_ENABLE_SYSWM_UIKIT */
 
 #if defined(SDL_ENABLE_SYSWM_VIVANTE) && !defined(SDL_DISABLE_SYSWM_VIVANTE_TYPES)
-#include <SDL3/SDL_egl.h>
+#include <SDL_egl.h>
 #endif /* SDL_ENABLE_SYSWM_VIVANTE */
 
 #if defined(SDL_ENABLE_SYSWM_WAYLAND) && !defined(SDL_DISABLE_SYSWM_WAYLAND_TYPES)
@@ -181,7 +181,7 @@ struct xdg_toplevel;
 #endif /* !SDL_DISABLE_SYSWM_TYPES */
 
 
-#include <SDL3/SDL_begin_code.h>
+#include <SDL_begin_code.h>
 /* Set up for C function definitions, even when using C++ */
 #ifdef __cplusplus
 extern "C" {
@@ -382,6 +382,6 @@ extern DECLSPEC int SDLCALL SDL_GetWindowWMInfo(SDL_Window *window, SDL_SysWMinf
 #ifdef __cplusplus
 }
 #endif
-#include <SDL3/SDL_close_code.h>
+#include <SDL_close_code.h>
 
 #endif /* SDL_syswm_h_ */

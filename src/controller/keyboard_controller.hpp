@@ -18,11 +18,11 @@ namespace Controller
         // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
         void receiveEvent(const SDL_Event &p_event) {
             switch (p_event.type) {
-                case SDL_KEYDOWN:
+                case SDL_EVENT_KEY_DOWN:
                     _pressedButtons.insert(p_event.key.keysym.scancode);
                     break;
 
-                case SDL_KEYUP:
+                case SDL_EVENT_KEY_UP:
                     _pressedButtons.erase(p_event.key.keysym.scancode);
                     break;
 

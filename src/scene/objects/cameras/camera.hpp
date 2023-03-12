@@ -2,7 +2,7 @@
 #define __CAMERA_HPP__
 
 #include "utils/define.hpp"
-#include "../object.hpp"
+#include "scene/objects/object.hpp"
 #include "glm/gtc/quaternion.hpp"
 
 namespace M3D

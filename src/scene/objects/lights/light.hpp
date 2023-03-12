@@ -2,7 +2,7 @@
 #define __LIGHT_HPP__
 
 #include "utils/define.hpp"
-#include "../object.hpp"
+#include "scene/objects/object.hpp"
 
 #include <string>
 #include <cmath>

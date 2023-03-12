@@ -1,6 +1,8 @@
 #include "scene_manager.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
+#include <fastgltf_parser.hpp>
+#include <fastgltf_types.hpp>
 
 #include "application.hpp"
 #include "renderer/renderer.hpp"
@@ -17,6 +19,8 @@ namespace Scene
     SceneManager::~SceneManager() { clearScene(); }
 
     void SceneManager::loadNewScene(const std::string& p_path) { clearScene(); _loadFile(p_path); }
+
+    void SceneManager::addAsset(const std::string& p_path) { _loadFile(p_path); }
 
     void SceneManager::addCamera(Camera* p_camera) { _cameras.push_back(p_camera); }
 
@@ -86,7 +90,7 @@ namespace Scene
         _sceneGraph.clear();
     }
 
-    void SceneManager::_createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, int* p_offsets, tinygltf::Model p_model) {
+    /*void SceneManager::_createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, int* p_offsets, tinygltf::Model p_model) {
         SceneGraphNode* current = new SceneGraphNode();
         current->_parent = p_parent;
         if(p_model.nodes[p_idCurrent].scale.size() == 3)       current->_scale = Vec3f(glm::make_vec3(p_model.nodes[p_idCurrent].scale.data()));
@@ -101,23 +105,27 @@ namespace Scene
 
         for (int id : p_model.nodes[p_idCurrent].children)
             _createSceneGraph(id,current,p_offsets,p_model);
-    }
+    }*/
 
     void SceneManager::_loadFile(const std::filesystem::path &p_path)
     {
         std::cout << "Start loading " << p_path << std::endl;
-        tinygltf::TinyGLTF loader;
-        tinygltf::Model model;
+        fastgltf::Parser parser; // can be re-use
 
-        loader.SetPreserveImageChannels(true);
+        fastgltf::GltfDataBuffer data; // can be re-use
+        data.loadFromFile(p_path);
 
-        if (p_path.extension() == ".gltf") {
-            if (!loader.LoadASCIIFromFile(&model, nullptr, nullptr, p_path.string())) throw std::runtime_error("Fail to load file: " + p_path.string());
-        } else {
-            if (!loader.LoadBinaryFromFile(&model, nullptr, nullptr, p_path.string())) throw std::runtime_error("Fail to load file: " + p_path.string());
-        }
+        std::unique_ptr<fastgltf::glTF> gltf =
+            (p_path.extension() == ".gltf") ?
+            parser.loadGLTF(&data, p_path.parent_path(), fastgltf::Options::None) :
+            parser.loadBinaryGLTF(&data, p_path.parent_path(), fastgltf::Options::None);
+
+        if (parser.getError() != fastgltf::Error::None) throw std::runtime_error("Fail to load file: " + p_path.string());
+        if (gltf->parse() != fastgltf::Error::None) throw std::runtime_error("Fail to parse file: " + p_path.string());
         
-        int idStartTextures = (int)_textures.size();
+
+        std::unique_ptr<fastgltf::Asset> asset = gltf->getParsedAsset();
+       /* int idStartTextures = (int)_textures.size();
         _textures.reserve(idStartTextures+model.textures.size());
         for (tinygltf::Texture t : model.textures)
             addTexture(new Image(
@@ -189,7 +197,7 @@ namespace Scene
         int offsets[] = {idStartMeshes,idStartCameras,idStartLights};
         for (tinygltf::Scene s : model.scenes)
             for (int id : s.nodes)
-                _createSceneGraph(id, nullptr, offsets, model);
+                _createSceneGraph(id, nullptr, offsets, model);*/
 
         std::cout << "Finished to load " << p_path << std::endl;
     }

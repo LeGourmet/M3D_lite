@@ -2,7 +2,6 @@
 #define __SCENE_MANAGER_HPP__
 
 #include <SDL_events.h>
-#include "tinyGLTF/tiny_gltf.h"
 
 #include "controller/keyboard_controller.hpp"
 #include "controller/mouse_controller.hpp"
@@ -37,6 +36,7 @@ namespace Scene
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void loadNewScene(const std::string& p_path);
+        void addAsset(const std::string& p_path);
 
         void addCamera(Camera* p_camera);
         void addLight(Light* p_light);
@@ -64,7 +64,7 @@ namespace Scene
         
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void _loadFile(const std::filesystem::path &p_path);
-        void _createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, int* p_offsets, tinygltf::Model p_model);
+        //void _createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, int* p_offsets, tinygltf::Model p_model);
     };
 }
 }

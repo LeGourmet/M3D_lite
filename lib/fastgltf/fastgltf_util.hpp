@@ -214,38 +214,29 @@ namespace fastgltf {
     static constexpr auto force_consteval = V;
 
     /**
-     * Counts the leading zeros from starting the most significant bit. By default uses uint64_t, but
-     * returns a uint8_t as there can only ever be 2^6 zeros.
+     * Counts the leading zeros from starting the most significant bit. Returns a uint8_t as there
+     * can only ever be 2^6 zeros with 64-bit types.
      */
-    [[gnu::const]] inline uint8_t clz(uint64_t value) {
+     template <typename T>
+#if FASTGLTF_HAS_CONCEPTS
+    requires std::integral<T>
+#endif
+    [[gnu::const]] inline uint8_t clz(T value) {
+        static_assert(std::is_integral_v<T>);
 #if FASTGLTF_HAS_BIT
         return std::countl_zero(value);
-#else
-#ifdef _MSC_VER
-        if (unsigned long zeroes = 0; _BitScanReverse64(&zeroes, value)) {
-            return 63 - static_cast<uint8_t>(zeroes);
-        } else {
-            return 64;
-        }
-#elif defined(__clang__) || defined(__GNUC__)
-        if constexpr (std::is_same_v<uint64_t, unsigned long>) {
-            return __builtin_clzl(value);
-        } else if constexpr (std::is_same_v<uint64_t, unsigned long long>) {
-            return __builtin_clzll(value);
-        }
 #else
         // Very naive but working implementation of counting zero bits. Any sane compiler will
         // optimise this away, like instead use the bsr x86 instruction.
         if (value == 0) return 64;
         uint8_t count = 0;
-        for (int i = 63ULL; i > 0; --i) {
+        for (int i = std::numeric_limits<T>::digits; i > 0; --i) {
             if ((value >> i) == 1) {
                 return count;
             }
             ++count;
         }
         return count;
-#endif
 #endif
     }
 
@@ -261,6 +252,27 @@ namespace fastgltf {
      */
     inline bool startsWith(std::string_view str, std::string_view search) {
         return str.rfind(search, 0) == 0;
+    }
+
+    // For simple ops like &, |, +, - taking a left and right operand.
+#define FASTGLTF_ARITHMETIC_OP_TEMPLATE_MACRO(T1, T2, op) \
+    constexpr T1 operator op(const T1& a, const T2& b) noexcept { \
+        static_assert(std::is_enum_v<T1> && std::is_enum_v<T2>); \
+        return static_cast<T1>(to_underlying(a) op to_underlying(b)); \
+    }
+
+    // For any ops like |=, &=, +=, -=
+#define FASTGLTF_ASSIGNMENT_OP_TEMPLATE_MACRO(T1, T2, op) \
+    constexpr T1& operator op##=(T1& a, const T2& b) noexcept { \
+        static_assert(std::is_enum_v<T1> && std::is_enum_v<T2>); \
+        return a = static_cast<T1>(to_underlying(a) op to_underlying(b)), a; \
+    }
+
+    // For unary +, unary -, and bitwise NOT
+#define FASTGLTF_UNARY_OP_TEMPLATE_MACRO(T, op) \
+    constexpr T operator ~(const T& a) noexcept { \
+        static_assert(std::is_enum_v<T>); \
+        return static_cast<T>(~to_underlying(a)); \
     }
 }
 

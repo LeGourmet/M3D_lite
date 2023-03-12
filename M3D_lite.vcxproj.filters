@@ -42,9 +42,6 @@
     <ClCompile Include="src\renderer\Vulkan\mesh_vulkan.hpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="lib\tinyGLTF\tiny_gltf.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\scene\objects\cameras\camera.hpp">
@@ -107,9 +104,6 @@
     <ClInclude Include="src\renderer\OpenGL\pass\final_pass_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="lib\tinyGLTF\tiny_gltf.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="src\scene\objects\lights\light.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
@@ -117,9 +111,6 @@
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="lib\stb\stb_image.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="lib\json\json.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\image.hpp">

@@ -20,7 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\gl3w\GL\gl3w.c" />
-    <ClCompile Include="lib\tinyGLTF\tiny_gltf.cpp" />
     <ClCompile Include="src\application.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\renderer\OpenGL\renderer_ogl.cpp" />
@@ -33,10 +32,8 @@
   <ItemGroup>
     <ClInclude Include="lib\gl3w\GL\gl3w.h" />
     <ClInclude Include="lib\gl3w\GL\glcorearb.h" />
-    <ClInclude Include="lib\json\json.hpp" />
     <ClInclude Include="lib\stb\stb_image.h" />
     <ClInclude Include="lib\stb\stb_image_write.h" />
-    <ClInclude Include="lib\tinyGLTF\tiny_gltf.h" />
     <ClInclude Include="src\application.hpp" />
     <ClInclude Include="src\renderer\OpenGL\texture_ogl.hpp" />
     <ClInclude Include="src\scene\objects\meshes\material.hpp" />
@@ -169,7 +166,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL3\include;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\json;$(ProjectDir)\lib\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\fastgltf;$(ProjectDir)\lib\simdjson;$(ProjectDir)\lib\SDL3\include;$(ProjectDir)\lib\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MaxSpeed</Optimization>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -194,7 +191,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL3\include;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\json;$(ProjectDir)\lib\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\fastgltf;$(ProjectDir)\lib\simdjson;$(ProjectDir)\lib\SDL3\include;$(ProjectDir)\lib\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>

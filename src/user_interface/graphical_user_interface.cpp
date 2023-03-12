@@ -12,7 +12,11 @@ namespace UserInterface
 
 	void GraphicalUserInterface::init(){
 		//Application::getInstance().getSceneManager().loadNewScene("assets/sponza/Sponza.gltf");
-		Application::getInstance().getSceneManager().loadNewScene("assets/musee/musee.glb");
+		//Application::getInstance().getSceneManager().loadNewScene("assets/musee/musee.glb");
+		Application::getInstance().getSceneManager().loadNewScene("assets/new_sponza/main/NewSponza_Main_glTF_002.gltf");
+		//Application::getInstance().getSceneManager().addAsset("assets/new_sponza/curtains/NewSponza_Curtains_glTF.gltf");
+		//Application::getInstance().getSceneManager().addAsset("assets/new_sponza/ivy/NewSponza_IvyGrowth_glTF.gltf");
+		//Application::getInstance().getSceneManager().addAsset("assets/new_sponza/trees/NewSponza_CypressTree_glTF.gltf");
 	}
 
 	bool GraphicalUserInterface::captureEvent(SDL_Event event) {

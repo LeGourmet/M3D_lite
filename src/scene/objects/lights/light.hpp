@@ -17,15 +17,16 @@ namespace Scene
 	{
 	public:
 		// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-		Light(const std::string p_type, const Vec3f& p_color, const float p_intensity, const float p_innerConeAngle, const float p_outerConeAngle ) : _color(p_color), _intensity(p_intensity) {
-			if (p_type == "spot") {
-				_type = LIGHT_TYPE::SPOT;
-				_innerConeAngle = p_innerConeAngle;
-				_outerConeAngle = p_outerConeAngle;
-			} else { _type = ((p_type == "point") ? LIGHT_TYPE::POINT : LIGHT_TYPE::DIRECTINAL); }
-			
+		Light(LIGHT_TYPE p_type, const Vec3f& p_color, const float p_intensity, const float p_innerConeAngle, const float p_outerConeAngle ) 
+			: _type(p_type), _color(p_color), _intensity(p_intensity), _innerConeAngle(p_innerConeAngle), _outerConeAngle(p_outerConeAngle) {
 			_range = (float)std::sqrt(256.*std::max(_color.x*_intensity,std::max(_color.y*_intensity,_color.z*_intensity)));
 		}
+
+		Light(LIGHT_TYPE p_type, const Vec3f& p_color, const float p_intensity) 
+			: _type(p_type), _color(p_color), _intensity(p_intensity) {
+			_range = (float)std::sqrt(256. * std::max(_color.x * _intensity, std::max(_color.y * _intensity, _color.z * _intensity)));
+		}
+
 		~Light(){}
 
 		// ----------------------------------------------------- GETTERS -------------------------------------------------------

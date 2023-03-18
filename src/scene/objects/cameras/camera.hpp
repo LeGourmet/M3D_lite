@@ -104,10 +104,10 @@ namespace Scene
         float _aspectRatio = 1.f;
         float _near = 0.01f;
         float _far = 1e4f;
-        float _fov = 0.5f;
+        float _fov = 0.5f; // fovy
 
         Vec3f _position = VEC3F_ZERO;
-        Quatf _rotation = Quatf(1.0, { 0.0, 0.0, 0.0 });//QUAT_ID;
+        Quatf _rotation = QUAT_ID;
 
         Vec3f _front = VEC3F_Z;
         Vec3f _left = VEC3F_X;

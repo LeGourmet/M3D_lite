@@ -8,6 +8,8 @@
 #include "renderer/renderer.hpp"
 
 #include <cmath>
+#include <variant>
+#include <optional>
 
 #include <iostream>
 
@@ -110,50 +112,61 @@ namespace Scene
     void SceneManager::_loadFile(const std::filesystem::path &p_path)
     {
         std::cout << "Start loading " << p_path << std::endl;
-        fastgltf::Parser parser; // can be re-use
+        fastgltf::Parser parser (fastgltf::Extensions::KHR_lights_punctual); // can be re-use
 
         fastgltf::GltfDataBuffer data; // can be re-use
         data.loadFromFile(p_path);
 
         std::unique_ptr<fastgltf::glTF> gltf =
             (p_path.extension() == ".gltf") ?
-            parser.loadGLTF(&data, p_path.parent_path(), fastgltf::Options::None) :
-            parser.loadBinaryGLTF(&data, p_path.parent_path(), fastgltf::Options::None);
+            parser.loadGLTF(&data, p_path.parent_path(), fastgltf::Options::AllowDouble | fastgltf::Options::DecomposeNodeMatrices ) :
+            parser.loadBinaryGLTF(&data, p_path.parent_path(), fastgltf::Options::AllowDouble | fastgltf::Options::DecomposeNodeMatrices );
 
         if (parser.getError() != fastgltf::Error::None) throw std::runtime_error("Fail to load file: " + p_path.string());
         if (gltf->parse() != fastgltf::Error::None) throw std::runtime_error("Fail to parse file: " + p_path.string());
-        
 
         std::unique_ptr<fastgltf::Asset> asset = gltf->getParsedAsset();
-       /* int idStartTextures = (int)_textures.size();
-        _textures.reserve(idStartTextures+model.textures.size());
-        for (tinygltf::Texture t : model.textures)
-            addTexture(new Image(
-                model.images[t.source].width,
-                model.images[t.source].height,
-                model.images[t.source].component,
-                model.images[t.source].bits,
-                model.images[t.source].pixel_type,
-                model.images[t.source].image
-            ));
+        std::cout << "acessors : " << asset->accessors.size() << std::endl;
+        std::cout << "animation : " << asset->animations.size() << std::endl;
+        std::cout << "buffers : " << asset->buffers.size() << std::endl;
+        std::cout << "bufferViews : " << asset->bufferViews.size() << std::endl;
+        std::cout << "cameras : " << asset->cameras.size() << std::endl;
+        std::cout << "images : " << asset->images.size() << std::endl;
+        std::cout << "lights : " << asset->lights.size() << std::endl;
+        std::cout << "materials : " << asset->materials.size() << std::endl;
+        std::cout << "meshes : " << asset->meshes.size() << std::endl;
+        std::cout << "nodes : " << asset->nodes.size() << std::endl;
+        std::cout << "samplers : " << asset->samplers.size() << std::endl;
+        std::cout << "scenes : " << asset->scenes.size() << std::endl;
+        std::cout << "skins : " << asset->skins.size() << std::endl;
+        std::cout << "textures : " << asset->textures.size() << std::endl;
+
+        /*int idStartTextures = (int)_textures.size();
+        _textures.reserve(idStartTextures + asset->images.size());
+        for (fastgltf::Image i : asset->images) {
+            // sampler ozef
+            // datasource 4 cas !
+            // wtf textures ??
+            addTexture(new Image(    ));
+        }
         
         int idStartMaterials = (int)_materials.size();
-        _materials.reserve(idStartMaterials + model.materials.size());
-        for (tinygltf::Material m : model.materials)
+        _materials.reserve(idStartMaterials + asset->materials.size());
+        for (fastgltf::Material m : asset->materials)
             addMaterial(new Material(
-                glm::make_vec4(m.pbrMetallicRoughness.baseColorFactor.data()),
+                m.pbrData.has_value() ? glm::make_vec4(m.pbrData.value().baseColorFactor.data()) : VEC4F_ONE,
                 glm::make_vec3(m.emissiveFactor.data()),
-                (float)m.pbrMetallicRoughness.metallicFactor,
-                (float)m.pbrMetallicRoughness.roughnessFactor,
-                m.alphaMode == "OPAQUE",
-                (m.pbrMetallicRoughness.baseColorTexture.index == -1.) ? nullptr : _textures[idStartTextures+m.pbrMetallicRoughness.baseColorTexture.index],
-                (m.pbrMetallicRoughness.metallicRoughnessTexture.index == -1.) ? nullptr : _textures[idStartTextures + m.pbrMetallicRoughness.metallicRoughnessTexture.index],
-                (m.normalTexture.index == -1.) ? nullptr : _textures[idStartTextures + m.normalTexture.index],
-                (m.occlusionTexture.index == -1.) ? nullptr : _textures[idStartTextures + m.occlusionTexture.index],
-                (m.emissiveTexture.index == -1.) ? nullptr : _textures[idStartTextures + m.emissiveTexture.index]
-            ));
+                m.pbrData.has_value() ? m.pbrData.value().metallicFactor : 0.f,
+                m.pbrData.has_value() ? m.pbrData.value().roughnessFactor : 1.f,
+                m.alphaMode == fastgltf::AlphaMode::Opaque,
+                m.pbrData.has_value() ? (m.pbrData.value().baseColorTexture.has_value() ? _textures[idStartTextures + m.pbrData.value().baseColorTexture.value().textureIndex] : nullptr) : nullptr,
+                m.pbrData.has_value() ? (m.pbrData.value().metallicRoughnessTexture.has_value() ?_textures[idStartTextures + m.pbrData.value().metallicRoughnessTexture.value().textureIndex] : nullptr) : nullptr,
+                m.normalTexture.has_value() ? _textures[idStartTextures + m.normalTexture.value().textureIndex] : nullptr,
+                m.occlusionTexture.has_value() ? _textures[idStartTextures + m.occlusionTexture.value().textureIndex] : nullptr,
+                m.emissiveTexture.has_value() ? _textures[idStartTextures + m.emissiveTexture.value().textureIndex] : nullptr
+            ));*/
 
-        int idStartMeshes = (int)_meshes.size();
+        /*int idStartMeshes = (int)_meshes.size();
         _meshes.reserve(idStartMeshes + model.meshes.size());
         for (tinygltf::Mesh m : model.meshes) {
             Mesh* newMesh = new Mesh();
@@ -176,23 +189,38 @@ namespace Scene
                 newMesh->addPrimitive(newPrimitive);
             }
             addMesh(newMesh);
-        }
+        }*/
 
         int idStartLights = (int)_lights.size();
-        _lights.reserve(idStartLights + model.lights.size());
-        for (tinygltf::Light l : model.lights)
-            addLight(new Light(l.type, glm::make_vec4(l.color.data()), (float)l.intensity, (float)l.spot.innerConeAngle, (float)l.spot.outerConeAngle));
+        _lights.reserve(idStartLights + (int)asset->lights.size());
+        for (fastgltf::Light l : asset->lights) {
+            if (l.type == fastgltf::LightType::Spot ) {
+                addLight(new Light(
+                    LIGHT_TYPE::SPOT,
+                    glm::make_vec3(l.color.data()),
+                    l.intensity,
+                    l.innerConeAngle.has_value() ? l.innerConeAngle.value() : 1.f,
+                    l.outerConeAngle.has_value() ? l.outerConeAngle.value() : -1.f ));
+            }else {
+                addLight(new Light(
+                    (l.type == fastgltf::LightType::Point) ? LIGHT_TYPE::POINT : LIGHT_TYPE::DIRECTINAL,
+                    glm::make_vec3(l.color.data()),
+                    l.intensity));
+            }
+        }
+        std::cout << _lights.size() << std::endl;
 
         int idStartCameras = (int)_cameras.size();
-        _cameras.reserve(std::max(1,idStartCameras + (int)model.cameras.size()));
-        for (tinygltf::Camera c : model.cameras)
-            if (c.type == "perspective")
-                addCamera(new Camera((float)c.perspective.znear, (float)c.perspective.zfar, (float)c.perspective.yfov));
-
+        _cameras.reserve(std::max(1,idStartCameras + (int)asset->cameras.size()));
+        for (fastgltf::Camera c : asset->cameras)
+            if (std::holds_alternative<fastgltf::Camera::Perspective>(c.camera)) {
+                fastgltf::Camera::Perspective cam_p = std::get<0>(c.camera);
+                addCamera(new Camera(cam_p.znear, cam_p.zfar.has_value() ? cam_p.zfar.value() : FLOAT_MAX, cam_p.yfov));
+            }
         if (_cameras.empty()) addCamera(new Camera(1., 1000., 0.5));
         _currentCamera = 0;
        
-        int idStartSceneGraph = (int)_sceneGraph.size();
+        /*int idStartSceneGraph = (int)_sceneGraph.size();
         _sceneGraph.reserve(idStartSceneGraph + model.nodes.size());
         int offsets[] = {idStartMeshes,idStartCameras,idStartLights};
         for (tinygltf::Scene s : model.scenes)

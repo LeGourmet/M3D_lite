@@ -33,12 +33,13 @@
 
 #if defined(_WIN32)
 #ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN 1 // Exclude advanced Windows headers
-#endif // WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
 #include <windows.h>
 
 static HMODULE libgl;
-static PROC (__stdcall *wgl_get_proc_address)(LPCSTR);
+typedef PROC(__stdcall* GL3WglGetProcAddr)(LPCSTR);
+static GL3WglGetProcAddr wgl_get_proc_address;
 
 static int open_libgl(void)
 {
@@ -46,7 +47,7 @@ static int open_libgl(void)
 	if (!libgl)
 		return GL3W_ERROR_LIBRARY_OPEN;
 
-	*(void **)(&wgl_get_proc_address) = GetProcAddress(libgl, "wglGetProcAddress");
+	wgl_get_proc_address = (GL3WglGetProcAddr)GetProcAddress(libgl, "wglGetProcAddress");
 	return GL3W_OK;
 }
 
@@ -93,31 +94,110 @@ static GL3WglProc get_proc(const char *proc)
 #else
 #include <dlfcn.h>
 
-static void *libgl;
-static GL3WglProc (*glx_get_proc_address)(const GLubyte *);
-
-static int open_libgl(void)
-{
-	libgl = dlopen("libGL.so.1", RTLD_LAZY | RTLD_LOCAL);
-	if (!libgl)
-		return GL3W_ERROR_LIBRARY_OPEN;
-
-	*(void **)(&glx_get_proc_address) = dlsym(libgl, "glXGetProcAddressARB");
-	return GL3W_OK;
-}
+static void *libgl;  /* OpenGL library */
+static void *libglx;  /* GLX library */
+static void *libegl;  /* EGL library */
+static GL3WGetProcAddressProc gl_get_proc_address;
 
 static void close_libgl(void)
 {
-	dlclose(libgl);
+	if (libgl) {
+		dlclose(libgl);
+		libgl = NULL;
+	}
+	if (libegl) {
+		dlclose(libegl);
+		libegl = NULL;
+	}
+	if (libglx) {
+		dlclose(libglx);
+		libglx = NULL;
+	}
+}
+
+static int is_library_loaded(const char *name, void **lib)
+{
+	*lib = dlopen(name, RTLD_LAZY | RTLD_LOCAL | RTLD_NOLOAD);
+	return *lib != NULL;
+}
+
+static int open_libs(void)
+{
+	/* On Linux we have two APIs to get process addresses: EGL and GLX.
+	 * EGL is supported under both X11 and Wayland, whereas GLX is X11-specific.
+	 * First check what's already loaded, the windowing library might have
+	 * already loaded either EGL or GLX and we want to use the same one.
+	 */
+
+	if (is_library_loaded("libEGL.so.1", &libegl) ||
+			is_library_loaded("libGLX.so.0", &libglx)) {
+		libgl = dlopen("libOpenGL.so.0", RTLD_LAZY | RTLD_LOCAL);
+		if (libgl)
+			return GL3W_OK;
+		else
+			close_libgl();
+	}
+
+	if (is_library_loaded("libGL.so.1", &libgl))
+		return GL3W_OK;
+
+	/* Neither is already loaded, so we have to load one. Try EGL first
+	 * because it is supported under both X11 and Wayland.
+	 */
+
+	/* Load OpenGL + EGL */
+	libgl = dlopen("libOpenGL.so.0", RTLD_LAZY | RTLD_LOCAL);
+	libegl = dlopen("libEGL.so.1", RTLD_LAZY | RTLD_LOCAL);
+	if (libgl && libegl)
+		return GL3W_OK;
+
+	/* Fall back to legacy libGL, which includes GLX */
+	close_libgl();
+	libgl = dlopen("libGL.so.1", RTLD_LAZY | RTLD_LOCAL);
+	if (libgl)
+		return GL3W_OK;
+
+	return GL3W_ERROR_LIBRARY_OPEN;
+}
+
+static int open_libgl(void)
+{
+	int res = open_libs();
+	if (res)
+		return res;
+
+	if (libegl)
+		*(void **)(&gl_get_proc_address) = dlsym(libegl, "eglGetProcAddress");
+	else if (libglx)
+		*(void **)(&gl_get_proc_address) = dlsym(libglx, "glXGetProcAddressARB");
+	else
+		*(void **)(&gl_get_proc_address) = dlsym(libgl, "glXGetProcAddressARB");
+
+	if (!gl_get_proc_address) {
+		close_libgl();
+		return GL3W_ERROR_LIBRARY_OPEN;
+	}
+
+	return GL3W_OK;
 }
 
 static GL3WglProc get_proc(const char *proc)
 {
-	GL3WglProc res;
+	GL3WglProc res = NULL;
 
-	res = glx_get_proc_address((const GLubyte *)proc);
-	if (!res)
+	/* Before EGL version 1.5, eglGetProcAddress doesn't support querying core
+	 * functions and may return a dummy function if we try, so try to load the
+	 * function from the GL library directly first.
+	 */
+	if (libegl)
 		*(void **)(&res) = dlsym(libgl, proc);
+
+	if (!res)
+		res = gl_get_proc_address(proc);
+
+	if (!libegl && !res)
+		*(void **)(&res) = dlsym(libgl, proc);
+
 	return res;
 }
 #endif
@@ -835,7 +915,7 @@ static const char *proc_names[] = {
 	"glWaitSync",
 };
 
-union GL3WProcs gl3wProcs;
+GL3W_API union GL3WProcs gl3wProcs;
 
 static void load_procs(GL3WGetProcAddressProc proc)
 {

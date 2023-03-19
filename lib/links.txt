@@ -1,4 +1,4 @@
-X	GL 			4.6 			:
+	GL (gl3w)		4.6 	19/03/2023	: https://github.com/skaslev/gl3w
 X	VULKAN		??			:
 X	MOLTENVK		??			:
 

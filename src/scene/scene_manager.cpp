@@ -123,7 +123,7 @@ namespace Scene
             parser.loadBinaryGLTF(&data, p_path.parent_path(), fastgltf::Options::AllowDouble | fastgltf::Options::DecomposeNodeMatrices );
 
         if (parser.getError() != fastgltf::Error::None) throw std::runtime_error("Fail to load file: " + p_path.string());
-        if (gltf->parse() != fastgltf::Error::None) throw std::runtime_error("Fail to parse file: " + p_path.string());
+        if (gltf->parse() != fastgltf::Error::None) throw std::runtime_error("Fail to parse file: " + p_path.string());    // on peut cibler le parse (-skins/-animations)
 
         std::unique_ptr<fastgltf::Asset> asset = gltf->getParsedAsset();
         std::cout << "acessors : " << asset->accessors.size() << std::endl;
@@ -141,13 +141,18 @@ namespace Scene
         std::cout << "skins : " << asset->skins.size() << std::endl;
         std::cout << "textures : " << asset->textures.size() << std::endl;
 
-        /*int idStartTextures = (int)_textures.size();
+        int idStartTextures = (int)_textures.size();
         _textures.reserve(idStartTextures + asset->images.size());
-        for (fastgltf::Image i : asset->images) {
-            // sampler ozef
-            // datasource 4 cas !
-            // wtf textures ??
-            addTexture(new Image(    ));
+        for (fastgltf::Texture t : asset->textures) { // care differents samplers
+            if(!t.imageIndex.has_value()) throw std::runtime_error("Image index invalid!"); // change for better
+           
+            fastgltf::DataSource dataSource = asset->images[t.imageIndex.value()].data;
+            if(std::holds_alternative<std::monostate>(dataSource)) throw std::runtime_error("Image data source invalid!"); // change for better
+            if(std::holds_alternative<fastgltf::sources::BufferView>(dataSource)) { /*parse data*/ }
+            if(std::holds_alternative<fastgltf::sources::FilePath>(dataSource)) { /*use stb to parse*/ }
+            if(std::holds_alternative<fastgltf::sources::Vector>(dataSource)) { /*memcpy ou use pointer + mime type for datas*/ }
+            if(std::holds_alternative<fastgltf::sources::CustomBuffer>(dataSource)) { /* ??? planter ??? */ }
+            //addTexture(new Image(    ));
         }
         
         int idStartMaterials = (int)_materials.size();
@@ -164,15 +169,16 @@ namespace Scene
                 m.normalTexture.has_value() ? _textures[idStartTextures + m.normalTexture.value().textureIndex] : nullptr,
                 m.occlusionTexture.has_value() ? _textures[idStartTextures + m.occlusionTexture.value().textureIndex] : nullptr,
                 m.emissiveTexture.has_value() ? _textures[idStartTextures + m.emissiveTexture.value().textureIndex] : nullptr
-            ));*/
+            ));
+        if (_materials.empty()) addMaterial(new Material(VEC4F_ONE,VEC3F_ONE,0.f,1.f,true,nullptr,nullptr,nullptr,nullptr,nullptr));
 
-        /*int idStartMeshes = (int)_meshes.size();
-        _meshes.reserve(idStartMeshes + model.meshes.size());
-        for (tinygltf::Mesh m : model.meshes) {
+        int idStartMeshes = (int)_meshes.size();
+        _meshes.reserve(idStartMeshes + asset->meshes.size());
+        for (fastgltf::Mesh m : asset->meshes) {
             Mesh* newMesh = new Mesh();
             m.primitives.reserve(m.primitives.size());
-            for (tinygltf::Primitive p : m.primitives) {
-                Primitive* newPrimitive = new Primitive(_materials[idStartMaterials+p.material]);
+            for (fastgltf::Primitive p : m.primitives) { // differents type pour la geometry
+                Primitive* newPrimitive = new Primitive(_materials[(p.materialIndex.has_value() ? idStartMaterials+p.materialIndex.value() : 0)]);
 
                 //tinygltf::BufferView bv_position = model.bufferViews[p.attributes.at("POSITION")];
                 //data = model.buffers[bv.buffer]; //memcopy
@@ -189,11 +195,11 @@ namespace Scene
                 newMesh->addPrimitive(newPrimitive);
             }
             addMesh(newMesh);
-        }*/
+        }
 
         int idStartLights = (int)_lights.size();
         _lights.reserve(idStartLights + (int)asset->lights.size());
-        for (fastgltf::Light l : asset->lights) {
+        for (fastgltf::Light l : asset->lights) {           // use range ??? + care intesity
             if (l.type == fastgltf::LightType::Spot ) {
                 addLight(new Light(
                     LIGHT_TYPE::SPOT,
@@ -212,8 +218,8 @@ namespace Scene
 
         int idStartCameras = (int)_cameras.size();
         _cameras.reserve(std::max(1,idStartCameras + (int)asset->cameras.size()));
-        for (fastgltf::Camera c : asset->cameras)
-            if (std::holds_alternative<fastgltf::Camera::Perspective>(c.camera)) {
+        for (fastgltf::Camera c : asset->cameras)       // implement ortho ??
+            if (std::holds_alternative<fastgltf::Camera::Perspective>(c.camera)) {  // use aspect ratio ??
                 fastgltf::Camera::Perspective cam_p = std::get<0>(c.camera);
                 addCamera(new Camera(cam_p.znear, cam_p.zfar.has_value() ? cam_p.zfar.value() : FLOAT_MAX, cam_p.yfov));
             }

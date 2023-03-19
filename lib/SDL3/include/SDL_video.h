@@ -152,6 +152,7 @@ typedef enum
     SDL_WINDOW_KEYBOARD_GRABBED     = 0x00100000,   /**< window has grabbed keyboard input */
     SDL_WINDOW_VULKAN               = 0x10000000,   /**< window usable for Vulkan surface */
     SDL_WINDOW_METAL                = 0x20000000,   /**< window usable for Metal view */
+    SDL_WINDOW_TRANSPARENT          = 0x40000000,   /**< window with transparent buffer */
 
 } SDL_WindowFlags;
 
@@ -669,18 +670,24 @@ extern DECLSPEC SDL_Window *SDLCALL SDL_CreateWindow(const char *title, int w, i
  *
  * 'flags' **must** contain exactly one of the following: -
  * 'SDL_WINDOW_TOOLTIP': The popup window is a tooltip and will not pass any
- * input events - 'SDL_WINDOW_POPUP_MENU': The popup window is a popup menu
+ * input events. - 'SDL_WINDOW_POPUP_MENU': The popup window is a popup menu.
+ * The topmost popup menu will implicitly gain the keyboard focus.
  *
- * The following flags are not valid for popup windows and will be ignored: -
- * 'SDL_WINDOW_MINIMIZED' - 'SDL_WINDOW_MAXIMIZED' - 'SDL_WINDOW_FULLSCREEN' -
- * `SDL_WINDOW_BORDERLESS` - `SDL_WINDOW_MOUSE_GRABBED`
+ * The following flags are not relevant to popup window creation and will be
+ * ignored: - 'SDL_WINDOW_MINIMIZED' - 'SDL_WINDOW_MAXIMIZED' -
+ * 'SDL_WINDOW_FULLSCREEN' - 'SDL_WINDOW_BORDERLESS' -
+ * 'SDL_WINDOW_SKIP_TASKBAR'
  *
  * The parent parameter **must** be non-null and a valid window. The parent of
  * a popup window can be either a regular, toplevel window, or another popup
  * window.
  *
- * Popup windows cannot be minimized, maximized, made fullscreen, or grab the
- * mouse. Attempts to do so will fail.
+ * Popup windows cannot be minimized, maximized, made fullscreen, raised,
+ * flash, be made a modal window, be the parent of a modal window, or grab the
+ * mouse and/or keyboard. Attempts to do so will fail.
+ *
+ * Popup windows implicitly do not have a border/decorations and do not appear
+ * on the taskbar/dock or in lists of windows such as alt-tab menus.
  *
  * If a parent window is hidden, any child popup windows will be recursively
  * hidden as well. Child popup windows not explicitly hidden will be restored
@@ -696,7 +703,8 @@ extern DECLSPEC SDL_Window *SDLCALL SDL_CreateWindow(const char *title, int w, i
  *                 of the parent window, in screen coordinates
  * \param w the width of the window, in screen coordinates
  * \param h the height of the window, in screen coordinates
- * \param flags 0, or one or more SDL_WindowFlags OR'd together
+ * \param flags SDL_WINDOW_TOOLTIP or SDL_WINDOW_POPUP MENU, and zero or more
+ *              additional SDL_WindowFlags OR'd together.
  * \returns the window that was created or NULL on failure; call
  *          SDL_GetError() for more information.
  *
@@ -704,6 +712,7 @@ extern DECLSPEC SDL_Window *SDLCALL SDL_CreateWindow(const char *title, int w, i
  *
  * \sa SDL_CreateWindow
  * \sa SDL_DestroyWindow
+ * \sa SDL_GetWindowParent
  */
 extern DECLSPEC SDL_Window *SDLCALL SDL_CreatePopupWindow(SDL_Window *parent, int offset_x, int offset_y, int w, int h, Uint32 flags);
 
@@ -757,6 +766,19 @@ extern DECLSPEC SDL_WindowID SDLCALL SDL_GetWindowID(SDL_Window *window);
  * \sa SDL_GetWindowID
  */
 extern DECLSPEC SDL_Window *SDLCALL SDL_GetWindowFromID(SDL_WindowID id);
+
+/**
+ * Get parent of a window.
+ *
+ * \param window the window to query
+ * \returns the parent of the window on success or NULL if the window has no
+ *          parent.
+ *
+ * \since This function is available since SDL 3.0.0.
+ *
+ * \sa SDL_CreatePopupWindow
+ */
+extern DECLSPEC SDL_Window *SDLCALL SDL_GetWindowParent(SDL_Window *window);
 
 /**
  * Get the window flags.
@@ -987,8 +1009,8 @@ extern DECLSPEC int SDLCALL SDL_GetWindowSizeInPixels(SDL_Window *window, int *w
  * Set the minimum size of a window's client area, in screen coordinates.
  *
  * \param window the window to change
- * \param min_w the minimum width of the window
- * \param min_h the minimum height of the window
+ * \param min_w the minimum width of the window, or 0 for no limit
+ * \param min_h the minimum height of the window, or 0 for no limit
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
  *
@@ -1021,8 +1043,8 @@ extern DECLSPEC int SDLCALL SDL_GetWindowMinimumSize(SDL_Window *window, int *w,
  * Set the maximum size of a window's client area, in screen coordinates.
  *
  * \param window the window to change
- * \param max_w the maximum width of the window
- * \param max_h the maximum height of the window
+ * \param max_w the maximum width of the window, or 0 for no limit
+ * \param max_h the maximum height of the window, or 0 for no limit
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
  *

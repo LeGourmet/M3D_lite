@@ -36,12 +36,6 @@
     <ClCompile Include="src\user_interface\graphical_user_interface.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\Vulkan\renderer_vulkan.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
-    <ClCompile Include="src\renderer\Vulkan\mesh_vulkan.hpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
     <ClCompile Include="lib\fastgltf\base64_decode.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
@@ -96,9 +90,6 @@
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\OpenGL\mesh_ogl.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\Vulkan\renderer_vulkan.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\OpenGL\pass\pass_ogl.hpp">
@@ -1599,8 +1590,6 @@
   <ItemGroup>
     <None Include="src\renderer\OpenGL\shaders\shadingPass.frag" />
     <None Include="src\renderer\OpenGL\shaders\shadingPass.vert" />
-    <None Include="src\renderer\Vulkan\shaders\pass0.frag" />
-    <None Include="src\renderer\Vulkan\shaders\pass0.vert" />
     <None Include="src\renderer\OpenGL\shaders\finalPass.frag" />
     <None Include="src\renderer\OpenGL\shaders\finalPass.vert" />
     <None Include="src\renderer\OpenGL\shaders\geometryPass.vert" />

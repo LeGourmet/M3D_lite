@@ -12,7 +12,7 @@ namespace M3D
 			FinalPassOGL(std::string p_pathVert, std::string p_pathFrag) : PassOGL(p_pathVert, p_pathFrag) {
 				_uGammaLoc = glGetUniformLocation(_program, "uGamma");
 
-				glGenVertexArrays(1, &_emptyVAO);
+				glCreateVertexArrays(1, &_emptyVAO);
 			}
 			~FinalPassOGL() { glDeleteVertexArrays(1, &_emptyVAO); }
 

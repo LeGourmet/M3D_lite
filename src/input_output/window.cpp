@@ -22,6 +22,7 @@ namespace M3D
 
         void Window::create(SDL_WindowFlags p_rendererTypeFlag) {
             try {
+                _rendererType = p_rendererTypeFlag;
                 _window = SDL_CreateWindow(
                     Application::getInstance().getTitle().c_str(),
                     Application::getInstance().getWidth(),
@@ -77,7 +78,7 @@ namespace M3D
             return _time - previousTime;
         }
 
-        bool Window::_captureEvent(SDL_Event p_event) {
+        bool Window::_captureEvent(const SDL_Event& p_event) {
             bool keyUp = (p_event.type == SDL_EVENT_KEY_UP);
             bool keyDown = (p_event.type == SDL_EVENT_KEY_DOWN);
 

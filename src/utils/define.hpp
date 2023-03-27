@@ -48,7 +48,7 @@ namespace M3D
 	constexpr Mat3f MAT3F_ID = Mat3f(1.f);
 	constexpr Mat4f MAT4F_ID = Mat4f(1.f);
 
-	constexpr Quatf QUAT_ID = Quatf(1.0, { 0.0, 0.0, 0.0 });
+	constexpr Quatf QUATF_ID = Quatf(1.0, { 0.0, 0.0, 0.0 });
 }
 
 #endif

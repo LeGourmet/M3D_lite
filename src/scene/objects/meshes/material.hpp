@@ -12,7 +12,7 @@ namespace Scene
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-        Material(Vec4f p_baseColor, Vec3f p_emissivity, float p_metalness, float p_roughness, bool p_isOpaque, 
+        Material(const Vec4f& p_baseColor, const Vec3f& p_emissivity, float p_metalness, float p_roughness, bool p_isOpaque,
                  Image* p_baseColorMap, Image* p_metalnessRougthnessMap, Image* p_normalMap, Image* p_occlusionMap, Image* p_emissivityMap):
             _baseColor(p_baseColor), _emissivity(p_emissivity), _metalness(p_metalness), _roughness(p_roughness), _isOpaque(p_isOpaque),
             _baseColorMap(p_baseColorMap), _metalnessRougthnessMap(p_metalnessRougthnessMap), _normalMap(p_normalMap), _occlusionMap(p_occlusionMap), _emissivityMap(p_emissivityMap) {}
@@ -41,6 +41,7 @@ namespace Scene
 
         // ior
         // emissivity power (strenth)
+        // is emissif ?
 
         Image* _baseColorMap = nullptr;
         Image* _metalnessRougthnessMap = nullptr;

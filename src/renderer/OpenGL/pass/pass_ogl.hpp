@@ -53,13 +53,12 @@ namespace Renderer
 				glCompileShader(p_shader);
 			}
 
-			void _generateAndAttachMap(GLuint* p_texture, int p_id) {
-				glGenTextures(1, p_texture);
-				glBindTexture(GL_TEXTURE_2D, *p_texture);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1, 1, 0, GL_RGBA, GL_FLOAT, 0);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + p_id, *p_texture, 0);
+			void _generateAndAttachMap(GLuint p_framebuffer, GLuint* p_texture, int p_id) {
+				glCreateTextures(GL_TEXTURE_2D, 1, p_texture);
+				glTextureParameteri(*p_texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTextureParameteri(*p_texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				glTextureStorage2D(*p_texture, 0, GL_RGBA32F, 1, 1); //  0 invalid mais marche
+				glNamedFramebufferTexture(p_framebuffer, GL_COLOR_ATTACHMENT0 + p_id, *p_texture, 0);
 			}
 	};
 }

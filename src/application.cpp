@@ -26,7 +26,7 @@ namespace M3D
 		_sceneManager	 = new Scene::SceneManager();
 		_gui			 = new UserInterface::GraphicalUserInterface();
 
-		_window->create(_renderer->getWindowFlag());
+		_window->create(_renderer->getWindowFlag()); // need vsync
 		_renderer->init(&_window->get());
 		_sceneManager->resize(_width,_height);
 		_gui->init();
@@ -38,8 +38,10 @@ namespace M3D
 	void Application::stop() { _running = false; }
 
 	void Application::pause() {
-		// ui pause => (set screen pause / do nothing if scene isn't display)
-		// clear events 
+		// pause le chrono ?
+		_sceneManager->clearEvents();
+		_gui->clearEvents();
+		_gui->pause();
 	}
 	
 	void Application::resume() { _window->chronoUpdate(); }
@@ -58,9 +60,10 @@ namespace M3D
 		_window->captureEvents();
 		_gui->update(deltaTime);
 		_sceneManager->update(deltaTime);
-		_renderer->drawFrame(&_window->get());
 
-		//_window->brideFPS();
-		// ===> if (1000/fps > frameStop - frameStart) SDL_Delay(1000/fps - (frameStop - frameStart));
+		_renderer->drawFrame(_window->get());
+		_gui->drawFrame();
+
+		_window->capFPS();
 	}
 }

@@ -11,16 +11,29 @@ namespace UserInterface
 	GraphicalUserInterface::~GraphicalUserInterface() { }
 
 	void GraphicalUserInterface::init(){
-		Application::getInstance().getSceneManager().loadNewScene("assets/sponza/Sponza.gltf");
-		//Application::getInstance().getSceneManager().loadNewScene("assets/musee/musee.gltf");
+		//Application::getInstance().getSceneManager().loadNewScene("assets/sponza/Sponza.gltf");
+		Application::getInstance().getSceneManager().loadNewScene("assets/musee/musee.gltf");
 	}
 
-	bool GraphicalUserInterface::captureEvent(SDL_Event event) {
+	
+	void GraphicalUserInterface::pause() {
+
+	}
+	
+	void GraphicalUserInterface::update(unsigned long long p_deltaTime) {
+
+	}
+
+	void GraphicalUserInterface::drawFrame() {
+
+	}
+
+	bool GraphicalUserInterface::captureEvent(const SDL_Event& event) {
 		return false; 
 	}
 
-	void GraphicalUserInterface::update(unsigned long long p_deltaTime) {
-
+	void GraphicalUserInterface::clearEvents() {
+		//(set screen pause / do nothing if scene isn't display)
 	}
 }
 }

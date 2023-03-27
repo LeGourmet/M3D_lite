@@ -17,6 +17,13 @@ namespace M3D
 
             // ----------------------------------------------------- GETTERS -------------------------------------------------------
             inline SDL_Window& get() const { return *_window; }
+            inline bool getVSync() { return _vSync; }
+
+            // ----------------------------------------------------- SETTERS -------------------------------------------------------
+            void setVSync(bool p_vSync) { 
+                _vSync = p_vSync; 
+                if (SDL_WINDOW_OPENGL) { SDL_GL_SetSwapInterval(p_vSync); }
+            }
 
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
             void create(SDL_WindowFlags p_rendererTypeFlag);
@@ -24,6 +31,11 @@ namespace M3D
             
             void chronoUpdate();
             unsigned long long getDeltaTime();
+
+            void capFPS() {
+                if (SDL_WINDOW_OPENGL) { SDL_GL_SwapWindow(_window); }
+                // ===> if (1000/fps > frameStop - frameStart) SDL_Delay(1000/fps - (frameStop - frameStart));
+            }
             // add loader d'audio 
             // add fonction qui permettent de supprimer des pistes
             // add fonction qui lis une piste / qui stop 
@@ -50,12 +62,16 @@ namespace M3D
         private:
             // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
             SDL_Window* _window = nullptr;
-            unsigned long long _time = 0;   // SDL ticks (ms) bias
+            SDL_WindowFlags _rendererType;
+            bool _vSync = false;
+            int targetFPS = 120;
+            unsigned long long _time = 0;
+
             // screen refresh rate (warning plusieur écrans)
             // add audio => liste de piste preload au lancerment de la window + celles qui vont s'add ==> use set
 
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-            bool _captureEvent(SDL_Event p_event);
+            bool _captureEvent(const SDL_Event& p_event);
             void _switchFullScreen2Maximized();
             void _takeScreenShot();
             void _dispose();

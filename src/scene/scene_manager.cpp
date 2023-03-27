@@ -1,11 +1,17 @@
 #include "scene_manager.hpp"
 
-#include <glm/gtc/type_ptr.hpp>
-#include <fastgltf_parser.hpp>
-#include <fastgltf_types.hpp>
-
 #include "application.hpp"
 #include "renderer/renderer.hpp"
+
+#include "scene_graph/scene_graph_node.hpp"
+#include "objects/cameras/camera.hpp"
+#include "objects/lights/light.hpp"
+#include "objects/meshes/mesh.hpp"
+#include "objects/meshes/material.hpp"
+#include "utils/image.hpp"
+#include "utils/define.hpp"
+
+#include <glm/gtc/type_ptr.hpp>
 
 #include <cmath>
 #include <variant>
@@ -67,13 +73,27 @@ namespace Scene
             rotation *= p_deltaTime * 0.0001;
 
             if(rotation != VEC3F_ZERO) _camera.rotateArround(Vec3f(0., 0., 0.), rotation);*/
+
+            for (Mesh* mesh : _meshes)
+                for (unsigned int i = 0; i < mesh->getSceneGraphNode().size();i++)
+                    Application::getInstance().getRenderer().updateInstance(
+                        mesh, i,
+                        mesh->getSceneGraphNode()[i]->computeTransformation(),
+                        _cameras[_currentCamera]->getViewMatrix(),
+                        _cameras[_currentCamera]->getProjectionMatrix()
+                    );
         }
     }
 
-    bool SceneManager::captureEvent(SDL_Event p_event) { 
+    bool SceneManager::captureEvent(const SDL_Event& p_event) { 
         Controller::KeyboardController::receiveEvent(p_event);
         Controller::MouseController::receiveEvent(p_event);
         return true; 
+    }
+
+    void SceneManager::clearEvents() { 
+        KeyboardController::clearEvents(); 
+        MouseController::clearEvents();
     }
 
     void SceneManager::clearScene() {
@@ -92,22 +112,35 @@ namespace Scene
         _sceneGraph.clear();
     }
 
-    /*void SceneManager::_createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, int* p_offsets, tinygltf::Model p_model) {
-        SceneGraphNode* current = new SceneGraphNode();
-        current->_parent = p_parent;
-        if(p_model.nodes[p_idCurrent].scale.size() == 3)       current->_scale = Vec3f(glm::make_vec3(p_model.nodes[p_idCurrent].scale.data()));
-        if(p_model.nodes[p_idCurrent].translation.size() == 3) current->_translation = Vec3f(glm::make_vec3(p_model.nodes[p_idCurrent].translation.data()));
-        if(p_model.nodes[p_idCurrent].rotation.size())         current->_rotation = Vec4f(glm::make_vec4(p_model.nodes[p_idCurrent].rotation.data()));
-        current->updateLocalTransformation();
+    void SceneManager::addInstance(Camera* p_camera, SceneGraphNode* p_node) { p_camera->addInstance(p_node); }
+
+    void SceneManager::addInstance(Light* p_light, SceneGraphNode* p_node) { p_light->addInstance(p_node); }
+
+    void SceneManager::addInstance(Mesh* p_mesh, SceneGraphNode* p_node) {
+        p_mesh->addInstance(p_node);
+
+        Application::getInstance().getRenderer().addInstance(
+            p_mesh,
+            p_node->computeTransformation(),
+            _cameras[_currentCamera]->getViewMatrix(),
+            _cameras[_currentCamera]->getProjectionMatrix()
+        );
+    }
+
+    void SceneManager::_createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, unsigned int p_meshOffset, unsigned int p_lightOffset, unsigned int p_camOffset, std::vector<fastgltf::Node>& p_nodes) {
+        Vec3f translation = (p_nodes[p_idCurrent].translation.size() == 3) ? (Vec3f)glm::make_vec3(p_nodes[p_idCurrent].translation.data()) : VEC3F_ZERO;
+        Vec3f scale       = (p_nodes[p_idCurrent].scale.size()       == 3) ? (Vec3f)glm::make_vec3(p_nodes[p_idCurrent].scale.data()) : VEC3F_ONE;
+        Quatf rotation    = (p_nodes[p_idCurrent].rotation.size()    == 4) ? Quatf((float)p_nodes[p_idCurrent].rotation[3], (float)p_nodes[p_idCurrent].rotation[0], (float)p_nodes[p_idCurrent].rotation[1], (float)p_nodes[p_idCurrent].rotation[2]) : QUATF_ID;
+        SceneGraphNode* current = new SceneGraphNode(p_parent, translation, scale, rotation);
         addNode(current);
 
-        if      (p_model.nodes[p_idCurrent].mesh != -1)  { _meshes [p_offsets[0] + p_model.nodes[p_idCurrent].mesh  ]->addInstance(current); }
-        else if (p_model.nodes[p_idCurrent].camera != -1){ _cameras[p_offsets[1] + p_model.nodes[p_idCurrent].camera]->addInstance(current); }
-        else                                             { _lights [p_offsets[2] + p_model.nodes[p_idCurrent].extensions.at("KHR_lights_punctual").Get("light").GetNumberAsInt()]->addInstance(current); }
+        if (p_nodes[p_idCurrent].mesh != -1)        { addInstance(_meshes[p_meshOffset + p_nodes[p_idCurrent].mesh],current); }
+        else if (p_nodes[p_idCurrent].camera != -1) { addInstance(_cameras[p_camOffset + p_nodes[p_idCurrent].camera],current); }
+        else                                        { addInstance(_lights[p_lightOffset + p_nodes[p_idCurrent].extensions.at("KHR_lights_punctual").Get("light").GetNumberAsInt()],current); }
 
-        for (int id : p_model.nodes[p_idCurrent].children)
-            _createSceneGraph(id,current,p_offsets,p_model);
-    }*/
+        for (int id : p_nodes[p_idCurrent].children)
+            _createSceneGraph(id, current, p_meshOffset, p_lightOffset, p_camOffset, p_nodes);
+    }
 
     void SceneManager::_loadFile(const std::filesystem::path &p_path)
     {
@@ -118,31 +151,17 @@ namespace Scene
         data.loadFromFile(p_path);
 
         std::unique_ptr<fastgltf::glTF> gltf =
-            (p_path.extension() == ".gltf") ?
-            parser.loadGLTF(&data, p_path.parent_path(), fastgltf::Options::AllowDouble | fastgltf::Options::DecomposeNodeMatrices ) :
-            parser.loadBinaryGLTF(&data, p_path.parent_path(), fastgltf::Options::AllowDouble | fastgltf::Options::DecomposeNodeMatrices );
+            (p_path.extension() == ".gltf") ? // test option => DontRequireValidAssetMember || LoadGLBBuffers || LoadExternalBuffers
+            parser.loadGLTF(&data, p_path.parent_path(), fastgltf::Options::DecomposeNodeMatrices ) :
+            parser.loadBinaryGLTF(&data, p_path.parent_path(), fastgltf::Options::DecomposeNodeMatrices );
 
         if (parser.getError() != fastgltf::Error::None) throw std::runtime_error("Fail to load file: " + p_path.string());
         if (gltf->parse() != fastgltf::Error::None) throw std::runtime_error("Fail to parse file: " + p_path.string());    // on peut cibler le parse (-skins/-animations)
 
         std::unique_ptr<fastgltf::Asset> asset = gltf->getParsedAsset();
-        std::cout << "acessors : " << asset->accessors.size() << std::endl;
-        std::cout << "animation : " << asset->animations.size() << std::endl;
-        std::cout << "buffers : " << asset->buffers.size() << std::endl;
-        std::cout << "bufferViews : " << asset->bufferViews.size() << std::endl;
-        std::cout << "cameras : " << asset->cameras.size() << std::endl;
-        std::cout << "images : " << asset->images.size() << std::endl;
-        std::cout << "lights : " << asset->lights.size() << std::endl;
-        std::cout << "materials : " << asset->materials.size() << std::endl;
-        std::cout << "meshes : " << asset->meshes.size() << std::endl;
-        std::cout << "nodes : " << asset->nodes.size() << std::endl;
-        std::cout << "samplers : " << asset->samplers.size() << std::endl;
-        std::cout << "scenes : " << asset->scenes.size() << std::endl;
-        std::cout << "skins : " << asset->skins.size() << std::endl;
-        std::cout << "textures : " << asset->textures.size() << std::endl;
 
         int idStartTextures = (int)_textures.size();
-        _textures.reserve(idStartTextures + asset->images.size());
+        _textures.reserve(idStartTextures + asset->images.size()); // => with this, duplicate image !!
         for (fastgltf::Texture t : asset->textures) { // care differents samplers
             if(!t.imageIndex.has_value()) throw std::runtime_error("Image index invalid!"); // change for better
            
@@ -170,7 +189,7 @@ namespace Scene
                 m.occlusionTexture.has_value() ? _textures[idStartTextures + m.occlusionTexture.value().textureIndex] : nullptr,
                 m.emissiveTexture.has_value() ? _textures[idStartTextures + m.emissiveTexture.value().textureIndex] : nullptr
             ));
-        if (_materials.empty()) addMaterial(new Material(VEC4F_ONE,VEC3F_ONE,0.f,1.f,true,nullptr,nullptr,nullptr,nullptr,nullptr));
+        if (_materials.empty()) addMaterial(new Material(VEC4F_ONE,VEC3F_ZERO,0.f,1.f,true,nullptr,nullptr,nullptr,nullptr,nullptr));
 
         int idStartMeshes = (int)_meshes.size();
         _meshes.reserve(idStartMeshes + asset->meshes.size());
@@ -179,19 +198,7 @@ namespace Scene
             m.primitives.reserve(m.primitives.size());
             for (fastgltf::Primitive p : m.primitives) { // differents type pour la geometry
                 Primitive* newPrimitive = new Primitive(_materials[(p.materialIndex.has_value() ? idStartMaterials+p.materialIndex.value() : 0)]);
-
-                //tinygltf::BufferView bv_position = model.bufferViews[p.attributes.at("POSITION")];
-                //data = model.buffers[bv.buffer]; //memcopy
-
-                //tinygltf::BufferView bv_normal = model.bufferViews[p.attributes.at("NORMAL")];
-                //data = model.buffers[bv.buffer]; //memcopy
-                
-                //tinygltf::BufferView bv_texcoord = model.bufferViews[p.attributes.at("TEXCOORD_0")];
-                //data = model.buffers[bv.buffer]; //memcopy
-
-                //tinygltf::BufferView bv_indices = model.bufferViews[p.indices];
-                //data = model.buffers[bv.buffer]; //memcopy
-
+                // cpy from 3dRainEngine
                 newMesh->addPrimitive(newPrimitive);
             }
             addMesh(newMesh);
@@ -199,22 +206,17 @@ namespace Scene
 
         int idStartLights = (int)_lights.size();
         _lights.reserve(idStartLights + (int)asset->lights.size());
-        for (fastgltf::Light l : asset->lights) {           // use range ??? + care intesity
-            if (l.type == fastgltf::LightType::Spot ) {
-                addLight(new Light(
-                    LIGHT_TYPE::SPOT,
-                    glm::make_vec3(l.color.data()),
-                    l.intensity,
-                    l.innerConeAngle.has_value() ? l.innerConeAngle.value() : 1.f,
-                    l.outerConeAngle.has_value() ? l.outerConeAngle.value() : -1.f ));
-            }else {
-                addLight(new Light(
-                    (l.type == fastgltf::LightType::Point) ? LIGHT_TYPE::POINT : LIGHT_TYPE::DIRECTINAL,
-                    glm::make_vec3(l.color.data()),
-                    l.intensity));
+        for (fastgltf::Light l : asset->lights) {
+            switch (l.type) {
+                case fastgltf::LightType::Spot:
+                    if (l.innerConeAngle.has_value() && l.outerConeAngle.has_value()) {
+                        addLight(new Light( LIGHT_TYPE::SPOT, glm::make_vec3(l.color.data()), l.intensity, l.innerConeAngle.value(), l.outerConeAngle.value()));
+                        break;
+                    }
+                case fastgltf::LightType::Point: addLight(new Light(LIGHT_TYPE::POINT, glm::make_vec3(l.color.data()), l.intensity)); break;
+                case fastgltf::LightType::Directional: addLight(new Light(LIGHT_TYPE::DIRECTIONAL, glm::make_vec3(l.color.data()), l.intensity)); break;
             }
         }
-        std::cout << _lights.size() << std::endl;
 
         int idStartCameras = (int)_cameras.size();
         _cameras.reserve(std::max(1,idStartCameras + (int)asset->cameras.size()));
@@ -223,15 +225,14 @@ namespace Scene
                 fastgltf::Camera::Perspective cam_p = std::get<0>(c.camera);
                 addCamera(new Camera(cam_p.znear, cam_p.zfar.has_value() ? cam_p.zfar.value() : FLOAT_MAX, cam_p.yfov));
             }
-        if (_cameras.empty()) addCamera(new Camera(1., 1000., 0.5));
+        if (_cameras.empty()) addCamera(new Camera(0.01f, 1000.f, PIf/3.f));
         _currentCamera = 0;
        
-        /*int idStartSceneGraph = (int)_sceneGraph.size();
-        _sceneGraph.reserve(idStartSceneGraph + model.nodes.size());
-        int offsets[] = {idStartMeshes,idStartCameras,idStartLights};
-        for (tinygltf::Scene s : model.scenes)
-            for (int id : s.nodes)
-                _createSceneGraph(id, nullptr, offsets, model);*/
+        int idStartSceneGraph = (int)_sceneGraph.size();
+        _sceneGraph.reserve(idStartSceneGraph + asset->nodes.size());
+        for (fastgltf::Scene s : asset->scenes)
+            for (int id : s.nodeIndices)
+                _createSceneGraph(id, nullptr, idStartMeshes, idStartCameras, idStartLights, asset->nodes);
 
         std::cout << "Finished to load " << p_path << std::endl;
     }

@@ -1,11 +1,11 @@
 #ifndef __MESH_OGL_HPP__
 #define __Mesh_OGL_HPP__
 
-#include "GL/gl3w.h"
-
 #include "scene/objects/meshes/mesh.hpp"
 #include "scene/objects/meshes/primitive.hpp"
 #include "scene/objects/meshes/vertex.hpp"
+
+#include "GL/gl3w.h"
 
 namespace M3D
 {
@@ -16,33 +16,41 @@ namespace M3D
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 			MeshOGL(Scene::Mesh* p_mesh) {
-				std::vector<Scene::Primitive*> mesh_primitives = p_mesh->getPrimitives();
+				glCreateBuffers(1, &_ssbo_transform_matrix);
 
-				_vaoPrimitives.reserve(mesh_primitives.size());
-				_vboPrimitives.reserve(mesh_primitives.size());
-				_eboPrimitives.reserve(mesh_primitives.size());
+				_vaoPrimitives.reserve(p_mesh->getPrimitives().size());
+				_vboPrimitives.reserve(p_mesh->getPrimitives().size());
+				_eboPrimitives.reserve(p_mesh->getPrimitives().size());
 
-				for (Scene::Primitive* p : mesh_primitives) {
+
+				for (Scene::Primitive* p : p_mesh->getPrimitives()) {
 					GLuint vao, vbo, ebo;
+
+					// todo les creer tous d'un coup
 					glCreateVertexArrays(1, &vao);
-					
 					glCreateBuffers(1, &vbo);
+					glCreateBuffers(1, &ebo);
+
+					glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Scene::Vertex));
+					_bindValue(vao, 0, 3, offsetof(Scene::Vertex, _position), 0);
+					_bindValue(vao, 1, 3, offsetof(Scene::Vertex, _normal), 0);
+					_bindValue(vao, 2, 2, offsetof(Scene::Vertex, _uv), 0);
+					_bindValue(vao, 3, 3, offsetof(Scene::Vertex, _tangent), 0);
+					_bindValue(vao, 4, 3, offsetof(Scene::Vertex, _bitangent), 0);
 
 					glNamedBufferData(vbo, p->getVertices().size() * sizeof(Scene::Vertex), p->getVertices().data(), GL_STATIC_DRAW);
-					_bindValue(vao, 0, 3, offsetof(Scene::Vertex, _position));
-					_bindValue(vao, 1, 3, offsetof(Scene::Vertex, _normal));
-					_bindValue(vao, 2, 2, offsetof(Scene::Vertex, _uv));
-					_bindValue(vao, 3, 3, offsetof(Scene::Vertex, _tangent));
-					_bindValue(vao, 4, 3, offsetof(Scene::Vertex, _bitangent));
-					glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Scene::Vertex));
-
-					glCreateBuffers(1, &ebo);
 					glNamedBufferData(ebo, p->getIndices().size() * sizeof(unsigned int), p->getIndices().data(), GL_STATIC_DRAW);
+					
 					glVertexArrayElementBuffer(vao, ebo);
+
+					_vaoPrimitives.push_back(vao);
+					_vboPrimitives.push_back(vbo);
+					_eboPrimitives.push_back(ebo);
 				}
 			}
 
 			~MeshOGL() {
+				//todo delete tous d'un coup
 				for (int i = 0; i < _vaoPrimitives.size();i++) {
 					glDisableVertexArrayAttrib(_vaoPrimitives[i], 0);
 					glDisableVertexArrayAttrib(_vaoPrimitives[i], 1);
@@ -53,22 +61,49 @@ namespace M3D
 					glDeleteBuffers(1, &_vboPrimitives[i]);
 					glDeleteBuffers(1, &_eboPrimitives[i]);
 				}
+				glDeleteBuffers(1, &_ssbo_transform_matrix);
 			}
 
-			// ------------------------------------------------------ GETTERS --------------------------------------------------------
-			std::vector<GLuint>& getVaos() { return _vaoPrimitives; }
+			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+			void bind(unsigned int p_i) {
+				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, _ssbo_transform_matrix);
+				glBindVertexArray(_vaoPrimitives[p_i]);
+			}
+
+			void addInstance(Mat4f p_M_matrix, Mat4f p_V_matrix, Mat4f p_P_matrix) {
+				glDeleteBuffers(1, &_ssbo_transform_matrix);
+				
+				_instance_transformation.push_back(p_M_matrix);
+				_instance_transformation.push_back(p_P_matrix * p_V_matrix * p_M_matrix);
+				_instance_transformation.push_back(glm::transpose(glm::inverse(p_M_matrix)));
+
+				glCreateBuffers(1, &_ssbo_transform_matrix);
+				glNamedBufferStorage(_ssbo_transform_matrix, _instance_transformation.size() * sizeof(Mat4f), _instance_transformation.data(), GL_DYNAMIC_STORAGE_BIT);
+			}
+
+			void updateTransformMatrix(unsigned int p_id, Mat4f p_M_matrix, Mat4f p_V_matrix, Mat4f p_P_matrix) {
+				_instance_transformation[p_id] = p_M_matrix;
+				_instance_transformation[p_id + 1] = p_P_matrix * p_V_matrix * p_M_matrix;
+				_instance_transformation[p_id + 2] = glm::transpose(glm::inverse(p_M_matrix));
+
+				glNamedBufferSubData(_ssbo_transform_matrix, p_id * 3 * sizeof(Mat4f), sizeof(Mat4f) * 3, &_instance_transformation[p_id]);
+			}
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+			GLuint			   _ssbo_transform_matrix;
+			std::vector<Mat4f> _instance_transformation;
+			
 			std::vector<GLuint> _vaoPrimitives;
 			std::vector<GLuint> _vboPrimitives;
 			std::vector<GLuint> _eboPrimitives;
 
 			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-			void _bindValue(GLuint p_vao, GLuint p_id, GLint p_size, GLuint offset) {
+			void _bindValue(GLuint p_vao, GLuint p_id, GLint p_size, GLuint offset, unsigned int p_updateFrequency) {
 				glEnableVertexArrayAttrib(p_vao, p_id);
 				glVertexArrayAttribFormat(p_vao, p_id, p_size, GL_FLOAT, GL_FALSE, offset);
 				glVertexArrayAttribBinding(p_vao, p_id, 0);
+				glVertexArrayBindingDivisor(p_vao, p_id, p_updateFrequency);
 			}
 		};
 	}

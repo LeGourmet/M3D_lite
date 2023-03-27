@@ -1,11 +1,11 @@
 #ifndef __RENDERER_HPP__
 #define __RENDERER_HPP__
 
-#include <SDL_video.h>
-
 #include "utils/define.hpp"
 #include "scene/objects/meshes/mesh.hpp"
 #include "utils/image.hpp"
+
+#include <SDL_video.h>
 
 namespace M3D
 {
@@ -20,7 +20,6 @@ namespace M3D
 
             // ----------------------------------------------------- GETTERS -------------------------------------------------------
             virtual SDL_WindowFlags getWindowFlag() = 0;
-            inline bool getVSync() { return _vSync; }
             inline float getGamma() { return _gamma; }
 
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
@@ -31,11 +30,14 @@ namespace M3D
 
             virtual void createMesh(Scene::Mesh* p_mesh) = 0;
             virtual void createTexture(Image* p_texture) = 0;
+
+            virtual void addInstance(Scene::Mesh* p_mesh, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) = 0;
+            virtual void updateInstance(Scene::Mesh* p_mesh, unsigned int p_id, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) = 0;
+
             virtual void deleteMesh(Scene::Mesh* p_mesh) = 0;
             virtual void deleteTexture(Image* p_texture) = 0;
 
         protected:
-            bool _vSync = true;
             float _gamma = 2.2f;
             Vec4f _clearColor = Vec4f(0., 0., 0., 0.);
         };

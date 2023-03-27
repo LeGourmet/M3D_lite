@@ -18,17 +18,28 @@ namespace Scene
         ~Primitive() {}
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
-        inline Material& getMaterial() const { return *_material; }
+        inline const Material& getMaterial() const { return *_material; }
         inline std::vector<Vertex>& getVertices() { return _vertices; }
         inline std::vector<unsigned int>& getIndices() { return _indices; }
 
-        // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-        void addVertex(Vertex p_vertex) { _vertices.push_back(p_vertex); }
+        // ----------------------------------------------------- SETTERS -------------------------------------------------------
+        void setIndices(const unsigned int* p_data, unsigned int p_count) {
+            _indices.reserve(p_count);
+            for (unsigned int i=0; i<p_count ;i++) _indices.push_back(p_data[i]);
+        }
 
-        /*void setIndices(std::vector<unsigned char> data) {
-            _indices.reserve();
-            memccpy(_indices.data(),data.data(), ,data.size());
-        }*/
+        void setIndices(const unsigned short* p_data, unsigned int p_count) {
+            _indices.reserve(p_count);
+            for(unsigned int i=0; i<p_count ;i++) _indices.push_back(p_data[i]);
+        }
+
+        void setIndices(const unsigned char* p_data, unsigned int p_count) {
+            _indices.reserve(p_count);
+            for(unsigned int i=0; i<p_count ;i++) _indices.push_back(p_data[i]);
+        }
+
+        // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+        void addVertex(const Vertex& p_vertex) { _vertices.push_back(p_vertex); }
 
     private:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------

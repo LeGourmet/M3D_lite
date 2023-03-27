@@ -16,8 +16,12 @@ namespace UserInterface
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void init();
-        bool captureEvent(SDL_Event p_event);
+        void pause();
         void update(unsigned long long p_deltaTime);
+        void drawFrame();
+        
+        bool captureEvent(const SDL_Event& p_event);
+        void clearEvents();
 
     private:
         // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------

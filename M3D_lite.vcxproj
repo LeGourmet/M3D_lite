@@ -26,8 +26,6 @@
     <ClCompile Include="src\application.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\renderer\OpenGL\renderer_ogl.cpp" />
-    <ClCompile Include="src\renderer\Vulkan\mesh_vulkan.hpp" />
-    <ClCompile Include="src\renderer\Vulkan\renderer_vulkan.cpp" />
     <ClCompile Include="src\scene\scene_manager.cpp" />
     <ClCompile Include="src\input_output\window.cpp" />
     <ClCompile Include="src\user_interface\graphical_user_interface.cpp" />
@@ -535,7 +533,6 @@
     <ClInclude Include="src\renderer\OpenGL\pass\shading_pass_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\renderer_ogl.hpp" />
     <ClInclude Include="src\renderer\renderer.hpp" />
-    <ClInclude Include="src\renderer\Vulkan\renderer_vulkan.hpp" />
     <ClInclude Include="src\scene\objects\cameras\camera.hpp" />
     <ClInclude Include="src\controller\gamepad_controller.hpp" />
     <ClInclude Include="src\controller\keyboard_controller.hpp" />
@@ -556,8 +553,6 @@
     <None Include="src\renderer\OpenGL\shaders\shadingPass.vert" />
     <None Include="src\renderer\OpenGL\shaders\finalPass.frag" />
     <None Include="src\renderer\OpenGL\shaders\finalPass.vert" />
-    <None Include="src\renderer\Vulkan\shaders\pass0.frag" />
-    <None Include="src\renderer\Vulkan\shaders\pass0.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

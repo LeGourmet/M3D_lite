@@ -1,18 +1,12 @@
 #ifndef __SCENE_MANAGER_HPP__
 #define __SCENE_MANAGER_HPP__
 
-#include <SDL_events.h>
-
 #include "controller/keyboard_controller.hpp"
 #include "controller/mouse_controller.hpp"
 
-#include "scene_graph/scene_graph_node.hpp"
-
-#include "objects/cameras/camera.hpp"
-#include "objects/lights/light.hpp"
-#include "objects/meshes/mesh.hpp"
-#include "objects/meshes/material.hpp"
-#include "utils/image.hpp"
+#include <SDL_events.h>
+#include <fastgltf_parser.hpp>
+#include <fastgltf_types.hpp>
 
 #include <string>
 #include <vector>
@@ -20,6 +14,17 @@
 
 namespace M3D
 {
+    class Image;
+
+    namespace Scene
+    {
+        class Camera;
+        class Light;
+        class Mesh;
+        class Material;
+        class SceneGraphNode;
+    }
+
 namespace Scene
 {
     class SceneManager : Controller::KeyboardController, Controller::MouseController
@@ -30,24 +35,29 @@ namespace Scene
         ~SceneManager();
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
-        inline std::vector<Mesh*> getMeshes() const { return _meshes; }
-        inline std::vector<Light*> getLights() const { return _lights; }
-        inline Camera &getCamera() { return *_cameras[_currentCamera]; }
+        inline const std::vector<Mesh*>& getMeshes() { return _meshes; }
+        inline const std::vector<Light*>& getLights() { return _lights; }
+        inline const Camera& getCamera() { return *_cameras[_currentCamera]; }
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void loadNewScene(const std::string& p_path);
         void addAsset(const std::string& p_path);
 
         void addCamera(Camera* p_camera);
+        void addInstance(Camera* p_camera, SceneGraphNode* p_node);
         void addLight(Light* p_light);
+        void addInstance(Light* p_light, SceneGraphNode* p_node);
         void addMesh(Mesh* p_mesh);
+        void addInstance(Mesh* p_mesh, SceneGraphNode* p_node);
         void addMaterial(Material* p_material);
         void addTexture(Image* p_image);
         void addNode(SceneGraphNode* p_node);
+
         
         void resize(const int p_width, const int p_height);
         void update(unsigned long long p_deltaTime);
-        bool captureEvent(SDL_Event p_event);
+        bool captureEvent(const SDL_Event& p_event);
+        void clearEvents();
 
         void clearScene();
         
@@ -64,7 +74,7 @@ namespace Scene
         
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void _loadFile(const std::filesystem::path &p_path);
-        //void _createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, int* p_offsets, tinygltf::Model p_model);
+        void _createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, unsigned int p_meshOffset, unsigned int p_lightOffset, unsigned int p_camOffset, std::vector<fastgltf::Node>& p_nodes);
     };
 }
 }

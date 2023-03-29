@@ -56,8 +56,8 @@ namespace fg = fastgltf;
 #endif
 
 namespace fastgltf::base64 {
-    using DecodeFunctionInplace = std::function<void(std::string_view, uint8_t*, size_t)>;
-    using DecodeFunction = std::function<std::vector<uint8_t>(std::string_view)>;
+    using DecodeFunctionInplace = std::function<void(std::string_view, std::uint8_t*, std::size_t)>;
+    using DecodeFunction = std::function<std::vector<std::uint8_t>(std::string_view)>;
 
     struct DecodeFunctionGetter {
         DecodeFunction func;
@@ -127,7 +127,7 @@ namespace fastgltf::base64 {
     return _mm256_madd_epi16(merge, _mm256_set1_epi32(0x00011000));
 }
 
-[[gnu::target("avx2")]] void fg::base64::avx2_decode_inplace(std::string_view encoded, uint8_t* output, size_t padding) {
+[[gnu::target("avx2")]] void fg::base64::avx2_decode_inplace(std::string_view encoded, std::uint8_t* output, std::size_t padding) {
     constexpr auto dataSetSize = 32;
     constexpr auto dataOutputSize = 24;
 
@@ -144,24 +144,28 @@ namespace fastgltf::base64 {
     const auto alignedSize = outputSize - (outputSize % dataOutputSize);
     auto* out = output;
 
-    size_t pos = 0;
+    // _mm256_setr_epi8 accepts only 'char' but 0xff would overflow a signed char.
+    // This gets optimised to the same assembly as a call to the aformentioned intrinsic.
+    static const std::array<std::uint8_t, 32> shuffleData = {{
+        2,  1,  0,
+        6,  5,  4,
+        10,  9,  8,
+        14, 13, 12,
+        0xff, 0xff, 0xff, 0xff,
+        2,  1,  0,
+        6,  5,  4,
+        10,  9,  8,
+        14, 13, 12,
+        0xff, 0xff, 0xff, 0xff
+    }};
+    __m256i shuffle;
+    std::memcpy(&shuffle, shuffleData.data(), shuffleData.size());
+
+    std::size_t pos = 0;
     while ((pos + dataSetSize) < alignedSize) {
         auto in = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(&encoded[pos]));
         auto values = avx2_lookup_pshufb_bitmask(in);
         const auto merged = avx2_pack_ints(values);
-
-        const auto shuffle = _mm256_setr_epi8(
-            2,  1,  0,
-            6,  5,  4,
-            10,  9,  8,
-            14, 13, 12,
-            char(0xff), char(0xff), char(0xff), char(0xff),
-            2,  1,  0,
-            6,  5,  4,
-            10,  9,  8,
-            14, 13, 12,
-            char(0xff), char(0xff), char(0xff), char(0xff));
-
         const auto shuffled = _mm256_shuffle_epi8(merged, shuffle);
 
         // Beware: This writes 32 bytes, we just discard the top 8 bytes.
@@ -176,11 +180,11 @@ namespace fastgltf::base64 {
     fallback_decode_inplace(encoded.substr(pos, encodedSize), out, padding);
 }
 
-[[gnu::target("avx2")]] std::vector<uint8_t> fg::base64::avx2_decode(std::string_view encoded) {
+[[gnu::target("avx2")]] std::vector<std::uint8_t> fg::base64::avx2_decode(std::string_view encoded) {
     const auto encodedSize = encoded.size();
     const auto padding = getPadding(encoded);
 
-    std::vector<uint8_t> ret(getOutputSize(encodedSize, padding));
+    std::vector<std::uint8_t> ret(getOutputSize(encodedSize, padding));
     avx2_decode_inplace(encoded, ret.data(), padding);
 
     return ret;
@@ -205,7 +209,7 @@ namespace fastgltf::base64 {
     return _mm_madd_epi16(merge, _mm_set1_epi32(0x00011000));
 }
 
-[[gnu::target("sse4.1")]] void fg::base64::sse4_decode_inplace(std::string_view encoded, uint8_t* output, size_t padding) {
+[[gnu::target("sse4.1")]] void fg::base64::sse4_decode_inplace(std::string_view encoded, std::uint8_t* output, std::size_t padding) {
     constexpr auto dataSetSize = 16;
     constexpr auto dataOutputSize = 12;
 
@@ -222,20 +226,24 @@ namespace fastgltf::base64 {
     const auto alignedSize = outputSize - (outputSize % dataOutputSize);
     auto* out = output;
 
-    size_t pos = 0;
+    // _mm_setr_epi8 accepts only 'char' but 0xff would overflow a signed char.
+    // This gets optimised to the same assembly as a call to the aformentioned intrinsic.
+    static const std::array<std::uint8_t, 16> shuffleData = {{
+        2,  1,  0,
+        6,  5,  4,
+        10,  9,  8,
+        14, 13, 12,
+        0xff, 0xff, 0xff, 0xff,
+    }};
+    __m128i shuffle;
+    std::memcpy(&shuffle, shuffleData.data(), shuffleData.size());
+
+    std::size_t pos = 0;
     while ((pos + dataSetSize) < alignedSize) {
         auto in = _mm_loadu_si128(reinterpret_cast<const __m128i*>(&encoded[pos]));
         auto values = sse4_lookup_pshufb_bitmask(in);
         const auto merged = sse4_pack_ints(values);
-
-        const auto shuf = _mm_setr_epi8(
-            2,  1,  0,
-            6,  5,  4,
-            10,  9,  8,
-            14, 13, 12,
-            char(0xff), char(0xff), char(0xff), char(0xff));
-
-        const auto shuffled = _mm_shuffle_epi8(merged, shuf);
+        const auto shuffled = _mm_shuffle_epi8(merged, shuffle);
 
         // Beware: This writes 16 bytes, we just discard the top 4 bytes.
         _mm_storeu_si128(reinterpret_cast<__m128i*>(out), shuffled);
@@ -248,11 +256,11 @@ namespace fastgltf::base64 {
     fallback_decode_inplace(encoded.substr(pos, encodedSize), out, padding);
 }
 
-[[gnu::target("sse4.1")]] std::vector<uint8_t> fg::base64::sse4_decode(std::string_view encoded) {
+[[gnu::target("sse4.1")]] std::vector<std::uint8_t> fg::base64::sse4_decode(std::string_view encoded) {
     const auto encodedSize = encoded.size();
     const auto padding = getPadding(encoded);
 
-    std::vector<uint8_t> ret(getOutputSize(encodedSize, padding));
+    std::vector<std::uint8_t> ret(getOutputSize(encodedSize, padding));
     sse4_decode_inplace(encoded, ret.data(), padding);
 
     return ret;
@@ -293,16 +301,16 @@ namespace fastgltf::base64 {
 }
 
 // clang-format off
-[[gnu::aligned(16)]] static constexpr std::array<int8_t, 16> shuffleData = {
+[[gnu::aligned(16)]] static constexpr std::array<uint8_t, 16> shuffleData = {
         2,  1,  0,
         6,  5,  4,
         10,  9,  8,
         14, 13, 12,
-        char(0xff), char(0xff), char(0xff), char(0xff)
+        0xff, 0xff, 0xff, 0xff
 };
 // clang-fomat on
 
-void fg::base64::neon_decode_inplace(std::string_view encoded, uint8_t* output, size_t padding) {
+void fg::base64::neon_decode_inplace(std::string_view encoded, std::uint8_t* output, std::size_t padding) {
     constexpr auto dataSetSize = 16;
     constexpr auto dataOutputSize = 12;
 
@@ -319,11 +327,11 @@ void fg::base64::neon_decode_inplace(std::string_view encoded, uint8_t* output, 
     auto* out = output;
 
     // Decode the first 16 long chunks with Neon intrinsics
-    const auto shuffle = vreinterpretq_u8_s8(vld1q_s8(shuffleData.data()));
-    size_t pos = 0;
+    const auto shuffle = vld1q_u8(shuffleData.data());
+    std::size_t pos = 0;
     while ((pos + dataSetSize) < alignedSize) {
         // Load 16 8-bit values into a 128-bit register.
-        auto in = vld1q_u8(reinterpret_cast<const uint8_t*>(&encoded[pos]));
+        auto in = vld1q_u8(reinterpret_cast<const std::uint8_t*>(&encoded[pos]));
         auto values = neon_lookup_pshufb_bitmask(in);
         const auto merged = neon_pack_ints(values);
 
@@ -340,11 +348,11 @@ void fg::base64::neon_decode_inplace(std::string_view encoded, uint8_t* output, 
     fallback_decode_inplace(encoded.substr(pos, encodedSize), out, padding);
 }
 
-std::vector<uint8_t> fg::base64::neon_decode(std::string_view encoded) {
+std::vector<std::uint8_t> fg::base64::neon_decode(std::string_view encoded) {
     const auto encodedSize = encoded.size();
     const auto padding = getPadding(encoded);
 
-    std::vector<uint8_t> ret(getOutputSize(encodedSize, padding));
+    std::vector<std::uint8_t> ret(getOutputSize(encodedSize, padding));
     neon_decode_inplace(encoded, ret.data(), padding);
 
     return ret;
@@ -353,7 +361,7 @@ std::vector<uint8_t> fg::base64::neon_decode(std::string_view encoded) {
 
 // clang-format off
 // ASCII value -> base64 value LUT
-static constexpr std::array<uint8_t, 128> base64lut = {
+static constexpr std::array<std::uint8_t, 128> base64lut = {
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,63,
     52, 53, 54, 55, 56, 57, 58, 59, 60, 61,
     0,0,0,0,0,0,0,
@@ -364,20 +372,20 @@ static constexpr std::array<uint8_t, 128> base64lut = {
 };
 // clang-format on
 
-void fg::base64::fallback_decode_inplace(std::string_view encoded, uint8_t* output, size_t padding) {
-    std::array<uint8_t, 4> sixBitChars = {};
-    std::array<uint8_t, 3> eightBitChars = {};
+void fg::base64::fallback_decode_inplace(std::string_view encoded, std::uint8_t* output, std::size_t padding) {
+    std::array<std::uint8_t, 4> sixBitChars = {};
+    std::array<std::uint8_t, 3> eightBitChars = {};
 
     // We use i here to track how many we've parsed and to batch 4 chars together.
     const auto encodedSize = encoded.size();
-    size_t i = 0U, cursor = 0U;
+    std::size_t i = 0U, cursor = 0U;
     for (auto pos = 0U; pos < encodedSize;) {
         sixBitChars[i++] = encoded[pos]; ++pos;
         if (i != 4)
             continue;
 
         for (i = 0; i < 4; i++) {
-            assert(static_cast<size_t>(sixBitChars[i]) < base64lut.size());
+            assert(static_cast<std::size_t>(sixBitChars[i]) < base64lut.size());
             sixBitChars[i] = base64lut[sixBitChars[i]];
         }
 
@@ -387,11 +395,11 @@ void fg::base64::fallback_decode_inplace(std::string_view encoded, uint8_t* outp
 
         // This adds 3 elements to the output vector. It also checks to not write zeroes that are
         // generate from the padding.
-        size_t charsToWrite = 3;
+        std::size_t charsToWrite = 3;
         if (pos == encodedSize) {
             charsToWrite = 4 - (padding + 1);
         }
-        for (size_t j = 0; j < charsToWrite; ++j) {
+        for (std::size_t j = 0; j < charsToWrite; ++j) {
             output[cursor++] = eightBitChars[j];
         }
 
@@ -399,23 +407,23 @@ void fg::base64::fallback_decode_inplace(std::string_view encoded, uint8_t* outp
     }
 }
 
-std::vector<uint8_t> fg::base64::fallback_decode(std::string_view encoded) {
+std::vector<std::uint8_t> fg::base64::fallback_decode(std::string_view encoded) {
     const auto encodedSize = encoded.size();
     const auto padding = getPadding(encoded);
 
-    std::vector<uint8_t> ret(getOutputSize(encodedSize, padding));
+    std::vector<std::uint8_t> ret(getOutputSize(encodedSize, padding));
     fallback_decode_inplace(encoded, ret.data(), padding);
 
     return ret;
 }
 
-void fg::base64::decode_inplace(std::string_view encoded, uint8_t* output, size_t padding) {
+void fg::base64::decode_inplace(std::string_view encoded, std::uint8_t* output, std::size_t padding) {
     assert(encoded.size() % 4 == 0);
 
     return DecodeFunctionGetter::get()->inplace(encoded, output, padding);
 }
 
-std::vector<uint8_t> fg::base64::decode(std::string_view encoded) {
+std::vector<std::uint8_t> fg::base64::decode(std::string_view encoded) {
     assert(encoded.size() % 4 == 0);
 
     return DecodeFunctionGetter::get()->func(encoded);

@@ -61,7 +61,6 @@ namespace M3D
             Mat4f _transformation = MAT4F_ID;
 
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-            // TODO warning check (seems revert)
             void _updateLocalTransformation() {
                 _transformation = glm::translate(MAT4F_ID, _translation)
                                 * glm::mat4_cast(_rotation)

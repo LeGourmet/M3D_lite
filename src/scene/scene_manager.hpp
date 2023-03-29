@@ -53,7 +53,6 @@ namespace Scene
         void addTexture(Image* p_image);
         void addNode(SceneGraphNode* p_node);
 
-        
         void resize(const int p_width, const int p_height);
         void update(unsigned long long p_deltaTime);
         bool captureEvent(const SDL_Event& p_event);
@@ -72,6 +71,8 @@ namespace Scene
         std::vector<SceneGraphNode*> _sceneGraph;
         unsigned int _currentCamera = 0;            // care instance camera
         
+        fastgltf::Parser parser = fastgltf::Parser(fastgltf::Extensions::KHR_lights_punctual);
+
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void _loadFile(const std::filesystem::path &p_path);
         void _createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, unsigned int p_meshOffset, unsigned int p_lightOffset, unsigned int p_camOffset, std::vector<fastgltf::Node>& p_nodes);

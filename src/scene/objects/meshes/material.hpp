@@ -37,11 +37,11 @@ namespace Scene
         Vec3f _emissivity = VEC3F_ZERO;
         float _metalness = 0.;
         float _roughness = 1.;
-        bool _isOpaque = true;
-
+        bool _isOpaque = true; // !((_baseColorMap != nullptr && baseColorMap.getNbChannels() == 4) || (_basColorMap == nullptr && _baseColor.a != 1.))
+        // bool _isEmissive = false; // (_emissivityMap != nullptr) || (_emissivityMap == nullptr && glm::length(_emissivity) > 0.f) 
+        
         // ior
         // emissivity power (strenth)
-        // is emissif ?
 
         Image* _baseColorMap = nullptr;
         Image* _metalnessRougthnessMap = nullptr;

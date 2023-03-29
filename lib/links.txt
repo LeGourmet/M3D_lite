@@ -11,4 +11,4 @@ STB_image_write 	1.16	12/03/2023	: https://github.com/nothings/stb
 SDL3			3.2.0	19/03/2023	: https://github.com/libsdl-org/SDL
 
 SIMD_JSON 		3.1.6	18/03/2023	: https://github.com/simdjson/simdjson
-FAST_GLTF 		0.3.0	19/03/2023	: https://github.com/spnda/fastgltf
+FAST_GLTF 		0.4.0	29/03/2023	: https://github.com/spnda/fastgltf

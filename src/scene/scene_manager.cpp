@@ -42,9 +42,7 @@ namespace Scene
 
     void SceneManager::addNode(SceneGraphNode* p_node) { _sceneGraph.push_back(p_node); }
 
-    void SceneManager::resize(const int p_width, const int p_height) {
-        for (int i=0; i<_cameras.size() ;i++) _cameras[i]->setScreenSize(p_width,p_height);
-    }
+    void SceneManager::resize(const int p_width, const int p_height) { for (int i=0; i<_cameras.size() ;i++) _cameras[i]->setScreenSize(p_width,p_height); }
 
     void SceneManager::update(unsigned long long p_deltaTime) {
         if (_cameras.size() != 0) {
@@ -75,7 +73,7 @@ namespace Scene
             if(rotation != VEC3F_ZERO) _camera.rotateArround(Vec3f(0., 0., 0.), rotation);*/
 
             for (Mesh* mesh : _meshes)
-                for (unsigned int i = 0; i < mesh->getSceneGraphNode().size();i++)
+                for (unsigned int i=0; i<mesh->getSceneGraphNode().size() ;i++)
                     Application::getInstance().getRenderer().updateInstance(
                         mesh, i,
                         mesh->getSceneGraphNode()[i]->computeTransformation(),
@@ -145,9 +143,8 @@ namespace Scene
     void SceneManager::_loadFile(const std::filesystem::path &p_path)
     {
         std::cout << "Start loading " << p_path << std::endl;
-        fastgltf::Parser parser (fastgltf::Extensions::KHR_lights_punctual); // can be re-use
 
-        fastgltf::GltfDataBuffer data; // can be re-use
+        fastgltf::GltfDataBuffer data;
         data.loadFromFile(p_path);
 
         std::unique_ptr<fastgltf::glTF> gltf =

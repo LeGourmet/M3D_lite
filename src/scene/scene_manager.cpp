@@ -126,7 +126,7 @@ namespace Scene
     }
 
     void SceneManager::_createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, unsigned int p_meshOffset, unsigned int p_lightOffset, unsigned int p_camOffset, std::vector<fastgltf::Node>& p_nodes) {
-        Vec3f translation = (p_nodes[p_idCurrent].translation.size() == 3) ? (Vec3f)glm::make_vec3(p_nodes[p_idCurrent].translation.data()) : VEC3F_ZERO;
+        /*Vec3f translation = (p_nodes[p_idCurrent].translation.size() == 3) ? (Vec3f)glm::make_vec3(p_nodes[p_idCurrent].translation.data()) : VEC3F_ZERO;
         Vec3f scale       = (p_nodes[p_idCurrent].scale.size()       == 3) ? (Vec3f)glm::make_vec3(p_nodes[p_idCurrent].scale.data()) : VEC3F_ONE;
         Quatf rotation    = (p_nodes[p_idCurrent].rotation.size()    == 4) ? Quatf((float)p_nodes[p_idCurrent].rotation[3], (float)p_nodes[p_idCurrent].rotation[0], (float)p_nodes[p_idCurrent].rotation[1], (float)p_nodes[p_idCurrent].rotation[2]) : QUATF_ID;
         SceneGraphNode* current = new SceneGraphNode(p_parent, translation, scale, rotation);
@@ -137,7 +137,7 @@ namespace Scene
         else                                        { addInstance(_lights[p_lightOffset + p_nodes[p_idCurrent].extensions.at("KHR_lights_punctual").Get("light").GetNumberAsInt()],current); }
 
         for (int id : p_nodes[p_idCurrent].children)
-            _createSceneGraph(id, current, p_meshOffset, p_lightOffset, p_camOffset, p_nodes);
+            _createSceneGraph(id, current, p_meshOffset, p_lightOffset, p_camOffset, p_nodes);*/
     }
 
     void SceneManager::_loadFile(const std::filesystem::path &p_path)
@@ -146,6 +146,8 @@ namespace Scene
 
         fastgltf::GltfDataBuffer data;
         data.loadFromFile(p_path);
+
+        std::cout << "load file!" << std::endl;
 
         std::unique_ptr<fastgltf::glTF> gltf =
             (p_path.extension() == ".gltf") ? // test option => DontRequireValidAssetMember || LoadGLBBuffers || LoadExternalBuffers

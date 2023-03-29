@@ -22,51 +22,42 @@ namespace M3D
 				_vboPrimitives.reserve(p_mesh->getPrimitives().size());
 				_eboPrimitives.reserve(p_mesh->getPrimitives().size());
 
+				glCreateVertexArrays(p_mesh->getPrimitives().size(), _vaoPrimitives.data());
+				glCreateBuffers(p_mesh->getPrimitives().size(), _vboPrimitives.data());
+				glCreateBuffers(p_mesh->getPrimitives().size(), _eboPrimitives.data());
 
-				for (Scene::Primitive* p : p_mesh->getPrimitives()) {
-					GLuint vao, vbo, ebo;
+				for (int i=0; i<p_mesh->getPrimitives().size() ;i++) {
+					glVertexArrayVertexBuffer(_vaoPrimitives[i], 0, _vboPrimitives[i], 0, sizeof(Scene::Vertex));
+					_bindValue(_vaoPrimitives[i], 0, 3, offsetof(Scene::Vertex, _position), 0);
+					_bindValue(_vaoPrimitives[i], 1, 3, offsetof(Scene::Vertex, _normal), 0);
+					_bindValue(_vaoPrimitives[i], 2, 2, offsetof(Scene::Vertex, _uv), 0);
+					_bindValue(_vaoPrimitives[i], 3, 3, offsetof(Scene::Vertex, _tangent), 0);
+					_bindValue(_vaoPrimitives[i], 4, 3, offsetof(Scene::Vertex, _bitangent), 0);
 
-					// todo les creer tous d'un coup
-					glCreateVertexArrays(1, &vao);
-					glCreateBuffers(1, &vbo);
-					glCreateBuffers(1, &ebo);
-
-					glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Scene::Vertex));
-					_bindValue(vao, 0, 3, offsetof(Scene::Vertex, _position), 0);
-					_bindValue(vao, 1, 3, offsetof(Scene::Vertex, _normal), 0);
-					_bindValue(vao, 2, 2, offsetof(Scene::Vertex, _uv), 0);
-					_bindValue(vao, 3, 3, offsetof(Scene::Vertex, _tangent), 0);
-					_bindValue(vao, 4, 3, offsetof(Scene::Vertex, _bitangent), 0);
-
-					glNamedBufferData(vbo, p->getVertices().size() * sizeof(Scene::Vertex), p->getVertices().data(), GL_STATIC_DRAW);
-					glNamedBufferData(ebo, p->getIndices().size() * sizeof(unsigned int), p->getIndices().data(), GL_STATIC_DRAW);
+					glNamedBufferData(_vboPrimitives[i], p_mesh->getPrimitives()[i]->getVertices().size() * sizeof(Scene::Vertex), p_mesh->getPrimitives()[i]->getVertices().data(), GL_STATIC_DRAW);
+					glNamedBufferData(_eboPrimitives[i], p_mesh->getPrimitives()[i]->getIndices().size() * sizeof(unsigned int), p_mesh->getPrimitives()[i]->getIndices().data(), GL_STATIC_DRAW);
 					
-					glVertexArrayElementBuffer(vao, ebo);
-
-					_vaoPrimitives.push_back(vao);
-					_vboPrimitives.push_back(vbo);
-					_eboPrimitives.push_back(ebo);
+					glVertexArrayElementBuffer(_vaoPrimitives[i], _eboPrimitives[i]);
 				}
 			}
 
 			~MeshOGL() {
-				//todo delete tous d'un coup
+				glDeleteVertexArrays(_vaoPrimitives.size(), _vaoPrimitives.data());
 				for (int i = 0; i < _vaoPrimitives.size();i++) {
 					glDisableVertexArrayAttrib(_vaoPrimitives[i], 0);
 					glDisableVertexArrayAttrib(_vaoPrimitives[i], 1);
 					glDisableVertexArrayAttrib(_vaoPrimitives[i], 2);
 					glDisableVertexArrayAttrib(_vaoPrimitives[i], 3);
 					glDisableVertexArrayAttrib(_vaoPrimitives[i], 4);
-					glDeleteVertexArrays(1, &_vaoPrimitives[i]);
-					glDeleteBuffers(1, &_vboPrimitives[i]);
-					glDeleteBuffers(1, &_eboPrimitives[i]);
 				}
+				glDeleteBuffers(_vboPrimitives.size(), _vboPrimitives.data());
+				glDeleteBuffers(_eboPrimitives.size(), _eboPrimitives.data());
 				glDeleteBuffers(1, &_ssbo_transform_matrix);
 			}
 
 			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 			void bind(unsigned int p_i) {
-				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, _ssbo_transform_matrix);
+				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _ssbo_transform_matrix);
 				glBindVertexArray(_vaoPrimitives[p_i]);
 			}
 

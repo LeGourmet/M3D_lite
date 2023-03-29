@@ -23,7 +23,6 @@ namespace M3D
 				glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 				glTextureParameteri(_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				
-				// TODO respect internal format, bit depth ...
 				GLenum format, internalFormat;
 				switch ( p_texture->getNbChannels()) {
 					case 1: format = GL_RED; internalFormat = GL_R32F; break;
@@ -34,7 +33,7 @@ namespace M3D
 
 				unsigned int lvMipMap = (unsigned int)glm::floor(glm::log2(glm::max<int>(p_texture->getWidth(), p_texture->getHeight()))) + 1;
 				glTextureStorage2D(_id, lvMipMap, internalFormat, p_texture->getWidth(), p_texture->getHeight());
-				glTextureSubImage2D(_id, 0, 0, 0, p_texture->getWidth(), p_texture->getHeight(), format, GL_UNSIGNED_BYTE, p_texture->getData());
+				glTextureSubImage2D(_id, 0, 0, 0, p_texture->getWidth(), p_texture->getHeight(), format, GL_UNSIGNED_BYTE, p_texture->getData()); // care bitdepth ??
 				glGenerateTextureMipmap(_id);
 			}
 

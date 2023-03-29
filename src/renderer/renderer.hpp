@@ -2,13 +2,16 @@
 #define __RENDERER_HPP__
 
 #include "utils/define.hpp"
-#include "scene/objects/meshes/mesh.hpp"
 #include "utils/image.hpp"
 
 #include <SDL_video.h>
 
 namespace M3D
 {
+    namespace Scene{
+        class mesh;
+    }
+
     namespace Renderer
     {
         class Renderer
@@ -20,12 +23,10 @@ namespace M3D
 
             // ----------------------------------------------------- GETTERS -------------------------------------------------------
             virtual SDL_WindowFlags getWindowFlag() = 0;
-            inline float getGamma() { return _gamma; }
 
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
             virtual void init(SDL_Window* p_window) = 0;
             virtual void resize(const int p_width, const int p_height) = 0;
-            virtual void setVSync(bool p_vSync) = 0;
             virtual void drawFrame(SDL_Window* p_window) = 0;
 
             virtual void createMesh(Scene::Mesh* p_mesh) = 0;

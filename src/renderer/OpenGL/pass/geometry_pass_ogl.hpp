@@ -1,21 +1,25 @@
 #ifndef __GEOMETRY_PASS_OGL_HPP__
 #define __GEOMETRY_PASS_OGL_HPP__
 
-#include "glm/gtc/type_ptr.hpp"
-
 #include "pass_ogl.hpp"
+
 #include "application.hpp"
-#include "scene/scene_manager.hpp"
+#include "scene/objects/meshes/mesh.hpp"
+#include "scene/objects/meshes/primitive.hpp"
+#include "renderer/OpenGL/mesh_ogl.hpp"
+#include "renderer/OpenGL/texture_ogl.hpp"
 
 #include <map>
 
+#include "glm/gtc/type_ptr.hpp"
+
 namespace M3D
 {
-namespace Renderer
-{
-	class GeometryPassOGL : public PassOGL{
+	namespace Renderer
+	{
+		class GeometryPassOGL : public PassOGL {
 		public:
-			GeometryPassOGL(std::string p_pathVert, std::string p_pathFrag) : PassOGL(p_pathVert,p_pathFrag) {
+			GeometryPassOGL(std::string p_pathVert, std::string p_pathFrag) : Pass(p_pathVert, p_pathFrag) {
 				_uAlbedoLoc						= glGetUniformLocation(_program, "uAlbedo");
 				_uMetalnessLoc					= glGetUniformLocation(_program, "uMetalness");
 				_uRoughnessLoc					= glGetUniformLocation(_program, "uRoughness");
@@ -24,10 +28,10 @@ namespace Renderer
 				_uHasNormalMapLoc				= glGetUniformLocation(_program, "uHasNormalMap");
 
 				glCreateFramebuffers(1, &_fbo);
-				_generateAndAttachMap(_fbo, &_positionMetalnessMap, 0);
-				_generateAndAttachMap(_fbo, &_normalRoughnessMap, 1);
-				_generateAndAttachMap(_fbo, &_albedoMap, 2);
-				GLenum DrawBuffers[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+				_generateAndAttachMap(_fbo, &_positionMetalnessMap, 1);
+				_generateAndAttachMap(_fbo, &_normalRoughnessMap, 2);
+				_generateAndAttachMap(_fbo, &_albedoMap, 3);
+				GLenum DrawBuffers[3] = { GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
 				glNamedFramebufferDrawBuffers(_fbo, 3, DrawBuffers);
 
 				glCreateRenderbuffers(1, &_rbo);
@@ -38,6 +42,7 @@ namespace Renderer
 				glDeleteTextures(1, &_positionMetalnessMap);
 				glDeleteTextures(1, &_normalRoughnessMap);
 				glDeleteTextures(1, &_albedoMap);
+				glDeleteFramebuffers(1, &_fbo);
 			}
 
 			GLuint getPositionMetalnessMap() { return _positionMetalnessMap; }
@@ -48,8 +53,6 @@ namespace Renderer
 				glBindTexture(GL_TEXTURE_2D, _positionMetalnessMap);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, p_width, p_height, 0, GL_RGBA, GL_FLOAT, 0);
 				glBindTexture(GL_TEXTURE_2D, _normalRoughnessMap);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, p_width, p_height, 0, GL_RGBA, GL_FLOAT, 0);
-				glBindTexture(GL_TEXTURE_2D, _ambientMap);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, p_width, p_height, 0, GL_RGBA, GL_FLOAT, 0);
 				glBindTexture(GL_TEXTURE_2D, _albedoMap);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, p_width, p_height, 0, GL_RGBA, GL_FLOAT, 0);
@@ -68,9 +71,9 @@ namespace Renderer
 				//glBindProgramPipeline(_program);
 				glUseProgram(_program);
 
-				for (Scene::Mesh* mesh : p_meshes) {
-					for (unsigned int i = 0; i < mesh->getPrimitives().size();i++) {
-						Scene::Primitive* primitive = mesh->getPrimitives()[i];
+				for (std::pair<Scene::Mesh*, Mesh*> mesh : p_meshes_ogl) {
+					for (unsigned int i = 0; i < mesh.first->getPrimitives().size();i++) {
+						Scene::Primitive* primitive = mesh.first->getPrimitives()[i];
 
 						glProgramUniform1i(_program, _uHasAlbedoMapLoc, primitive->getMaterial().getBaseColorMap() != nullptr);
 						glProgramUniform3fv(_program, _uAlbedoLoc, 1, glm::value_ptr(primitive->getMaterial().getBaseColor()));
@@ -84,28 +87,28 @@ namespace Renderer
 						glProgramUniform1i(_program, _uHasNormalMapLoc, primitive->getMaterial().getNormalMap() != nullptr);
 						if (primitive->getMaterial().getNormalMap() != nullptr) glBindTextureUnit(2, p_textures_ogl.at(primitive->getMaterial().getNormalMap())->getId());
 
-						p_meshes_ogl.at(mesh)->bind(i);
-						glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)primitive->getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh->getSceneGraphNode().size());
+						mesh.second->bind(i);
+						glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)primitive->getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getSceneGraphNode().size());
 						glBindVertexArray(0);
 					}
 				}
 			}
 
-	private:
-		GLuint _fbo								= GL_INVALID_INDEX;
-		GLuint _rbo								= GL_INVALID_INDEX;
+		private:
+			GLuint _fbo = GL_INVALID_INDEX;
+			GLuint _rbo = GL_INVALID_INDEX;
 
-		GLuint _positionMetalnessMap			= GL_INVALID_INDEX;
-		GLuint _normalRoughnessMap				= GL_INVALID_INDEX;
-		GLuint _albedoMap						= GL_INVALID_INDEX;
+			GLuint _positionMetalnessMap = GL_INVALID_INDEX;
+			GLuint _normalRoughnessMap = GL_INVALID_INDEX;
+			GLuint _albedoMap = GL_INVALID_INDEX;
 
-		GLint  _uAlbedoLoc						= GL_INVALID_INDEX;
-		GLint  _uMetalnessLoc					= GL_INVALID_INDEX;
-		GLint  _uRoughnessLoc					= GL_INVALID_INDEX;
-		GLint  _uHasAlbedoMapLoc				= GL_INVALID_INDEX;
-		GLint  _uHasMetalnessRoughnessMapLoc	= GL_INVALID_INDEX;
-		GLint  _uHasNormalMapLoc				= GL_INVALID_INDEX;
-	};
-}
+			GLint  _uAlbedoLoc = GL_INVALID_INDEX;
+			GLint  _uMetalnessLoc = GL_INVALID_INDEX;
+			GLint  _uRoughnessLoc = GL_INVALID_INDEX;
+			GLint  _uHasAlbedoMapLoc = GL_INVALID_INDEX;
+			GLint  _uHasMetalnessRoughnessMapLoc = GL_INVALID_INDEX;
+			GLint  _uHasNormalMapLoc = GL_INVALID_INDEX;
+		};
+	}
 }
 #endif

@@ -3,8 +3,6 @@
 
 #include "renderer/renderer.hpp"
 
-#include <SDL_video.h>
-
 #include <map>
 
 namespace M3D
@@ -41,12 +39,11 @@ namespace M3D
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+			// mieux abstraire + renderGraph
 			GeometryPassOGL* _geometryPass;
 			ShadingPassOGL* _shadingPass;
 			FinalPassOGL* _finalPass;
 
-			int _viewport_width = 0;
-			int _viewport_height = 0;
 			std::map<Scene::Mesh*,MeshOGL*> _meshes;
 			std::map<Image*, TextureOGL*> _textures;
 		};

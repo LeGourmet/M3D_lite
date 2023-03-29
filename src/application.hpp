@@ -28,8 +28,8 @@ namespace M3D
 
 		// ----------------------------------------------------- GETTERS -------------------------------------------------------
 		inline std::string getTitle() const { return _title; }
-		inline unsigned int getWidth() const { return _width; }
-		inline unsigned int getHeight() const { return _height; }
+		inline int getWidth() const { return _width; }
+		inline int getHeight() const { return _height; }
 		inline bool isRunning() const { return _running; }
 		
 		inline InputOutput::Window& getWindow() const { return *_window; }

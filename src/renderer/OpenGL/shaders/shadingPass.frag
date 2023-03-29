@@ -1,8 +1,9 @@
 #version 450
+
 #define PI				3.1415926535897932384626433832795
 #define TWO_PI			6.2831853071795864769252867665590
 #define INV_SQRT_TWO	0.70710678118654752440084436210485
-#define EPS				0.00001
+#define EPS				0.0001
 
 layout( location = 0 ) out vec4 fragColor;
 
@@ -11,9 +12,10 @@ layout( binding = 1 ) uniform sampler2D uNormal_RoughnessMap;
 layout( binding = 2 ) uniform sampler2D uAlbedoMap;
 
 uniform vec3 uCamPos;
-uniform vec4 uLightPosition;	 // position  + type
-uniform vec4 uLightDirection;	 // direction + angle Min (entre -1 et 1)
-uniform vec4 uLightEmissivity;   // emission  + angle Max (entre -1 et 1)
+uniform vec4 uLightPositionType;	 // position  + type
+uniform vec4 uLightDirectionInner;	 // direction + cosInnerAngle
+uniform vec4 uLightEmissivityOuter;  // emission  + cosOuterAngle
+
 in vec2 uv;
 
 // ------------- fresnel -------------	:	schilk
@@ -51,6 +53,19 @@ float getDiffuse(float a, float cosNV, float cosNL, vec3 N, vec3 V, vec3 L ){
 	return (A+( B * max(0.,PHI) * sin(max(Ti,To)) * tan(min(Ti,To)) ) ) / PI;
 }
 
+void getDirectional(inout vec3 p_lightDir, inout vec3 p_lightComponant){
+	p_lightDir = normalize(-uLightDirectionInner.xyz);
+	p_lightComponant = uLightEmissivityOuter.xyz;
+}
+
+void getPonctualLight(in vec3 fragPos, inout vec3 p_lightDir, inout vec3 p_lightComponant){
+	p_lightDir = uLightPositionType.xyz-fragPos;
+	float attenuation = 1./max(dot(p_lightDir,p_lightDir),EPS); // or 1./(a*d*d + b*d + c)
+	p_lightDir = normalize(p_lightDir);
+	float intensity = clamp((dot(-p_lightDir, normalize(uLightDirectionInner.xyz))-uLightEmissivityOuter.w) / (uLightDirectionInner.w-uLightEmissivityOuter.w), 0., 1.);
+	p_lightComponant = uLightEmissivityOuter.xyz * intensity * attenuation; 
+}
+
 void main()
 {
 	vec4 albedo = texture2D(uAlbedoMap,uv);
@@ -59,32 +74,21 @@ void main()
 	vec4 position_metalness = texture2D(uPosition_MetalnessMap,uv);
 	vec4 normal_roughness = texture2D(uNormal_RoughnessMap,uv);
 
-	vec3 L,Light_Componant;
-	if(uLightPosition.w < 0.5){
-		L = normalize(-uLightDirection.xyz);
-		Light_Componant = uLightEmissivity.xyz;
-	}else{
-		L = uLightPosition.xyz-position_metalness.xyz;
-		float attenuation = 1./dot(L,L); // or 1./(a*d*d + b*d + c)
-		L = normalize(L);
-		float intensity = clamp((dot(-L, normalize(uLightDirection.xyz)) - uLightDirection.w) / (uLightEmissivity.w-uLightDirection.w), 0., 1.);
-		Light_Componant = uLightEmissivity.xyz * intensity * attenuation; 
-	}
-
 	vec3 N = normal_roughness.xyz;
-	float cosNL = dot(N,L); // cti
-	if(cosNL <= 0.) discard;
-
 	vec3 V = normalize(uCamPos-position_metalness.xyz);
-	float cosNV = dot(N,V); // cto
-	if(cosNV <= 0.) discard;
+	float cosNV = dot(N,V);
+	if(cosNV<0.) { N *= -1.; cosNV=dot(N,V); }
+
+	vec3 L,Light_Componant;
+	if(uLightPositionType.w < 0.5){ getDirectional(L,Light_Componant); }
+	else{ getPonctualLight(position_metalness.xyz, L, Light_Componant); }
+
+	float cosNL = dot(N,L);
+	if(cosNL<0.) discard;
 	
 	vec3 H = normalize(V+L);
 	float cosNH = dot(N,H);
 	float cosHV = dot(H,V);
-
-	normal_roughness.a = 0.2;
-	position_metalness.a  = 0.8;
 
 	float specular = getSpecular(normal_roughness.a*normal_roughness.a,cosNV,cosNL,cosNH);
 	float diffuse = getDiffuse(normal_roughness.a,cosNV,cosNL,N,V,L);

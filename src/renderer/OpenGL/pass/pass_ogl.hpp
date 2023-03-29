@@ -1,11 +1,11 @@
 #ifndef __PASS_OGL_HPP__
 #define __PASS_OGL_HPP__
 
-#include "GL/gl3w.h"
-
 #include <string>
 #include <fstream>
 #include <sstream>
+
+#include "GL/gl3w.h"
 
 namespace M3D
 {
@@ -30,6 +30,7 @@ namespace Renderer
 				glDeleteShader(vertexShader);
 				glDeleteShader(fragmentShader);
 			}
+
 			~PassOGL() { glDeleteProgram(_program); }
 
 			virtual void resize(int p_width, int p_height) = 0;
@@ -57,7 +58,7 @@ namespace Renderer
 				glCreateTextures(GL_TEXTURE_2D, 1, p_texture);
 				glTextureParameteri(*p_texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 				glTextureParameteri(*p_texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTextureStorage2D(*p_texture, 0, GL_RGBA32F, 1, 1); //  0 invalid mais marche
+				//glTextureStorage2D(*p_texture, 0, GL_RGBA32F, 1, 1); //  0 invalid mais marche
 				glNamedFramebufferTexture(p_framebuffer, GL_COLOR_ATTACHMENT0 + p_id, *p_texture, 0);
 			}
 	};

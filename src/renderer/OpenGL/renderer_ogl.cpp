@@ -2,11 +2,12 @@
 
 #include "mesh_ogl.hpp"
 #include "texture_ogl.hpp"
-#include "application.hpp"
-#include "scene/scene_manager.hpp"
 #include "pass/geometry_pass_ogl.hpp"
 #include "pass/shading_pass_ogl.hpp"
 #include "pass/final_pass_ogl.hpp"
+
+#include "application.hpp"
+#include "scene/scene_manager.hpp"
 #include "scene/objects/meshes/mesh.hpp"
 
 #include "GL/gl3w.h"
@@ -28,6 +29,7 @@ namespace Renderer
 	}
 
 	void RendererOGL::init(SDL_Window* p_window) {
+		// ****** go dans SDL ******
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -35,10 +37,11 @@ namespace Renderer
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
 		SDL_GLContext glContext = SDL_GL_CreateContext(p_window);
 		if (glContext == nullptr) throw std::exception(SDL_GetError());
 		SDL_GL_MakeCurrent(p_window, glContext);
+		// *************************
+
 		if (gl3wInit()) throw std::exception("gl3wInit() failed");
 		if (!gl3wIsSupported(4, 5)) throw std::exception("OpenGL version not supported");
 
@@ -46,25 +49,21 @@ namespace Renderer
 		_shadingPass = new ShadingPassOGL("src/renderer/OpenGL/shaders/shadingPass.vert", "src/renderer/OpenGL/shaders/shadingPass.frag");
 		_finalPass = new FinalPassOGL("src/renderer/OpenGL/shaders/finalPass.vert", "src/renderer/OpenGL/shaders/finalPass.frag");
 
-		SDL_GetWindowSize(p_window, &_viewport_width, &_viewport_height);
-		resize(_viewport_width, _viewport_height);
+		resize(Application::getInstance().getWidth(), Application::getInstance().getHeight());
 
 		glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.a);
 	}
 
 	void RendererOGL::resize(const int p_width, const int p_height) {
-		_viewport_width = p_width;
-		_viewport_height = p_height;
-
 		_geometryPass->resize(p_width, p_height);
 		_shadingPass->resize(p_width, p_height);
 		_finalPass->resize(p_width, p_height);
 	}
 
 	void RendererOGL::drawFrame(SDL_Window* p_window) {
-		_geometryPass->execute(_viewport_width,_viewport_height,_meshes);
-		_shadingPass->execute(_viewport_width,_viewport_height,_geometryPass->getPositionMetalnessMap(),_geometryPass->getNormalRoughnessMap(),_geometryPass->getAlbedoMap());
-		_finalPass->execute(_viewport_width,_viewport_height,_gamma,_shadingPass->getShadingMap());
+		_geometryPass->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(),_meshes);
+		_shadingPass->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(),_geometryPass->getPositionMetalnessMap(),_geometryPass->getNormalRoughnessMap(),_geometryPass->getAlbedoMap());
+		_finalPass->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(),_gamma,_shadingPass->getShadingMap());
 	}
 
 	void RendererOGL::createMesh(Scene::Mesh* p_mesh) { _meshes.insert(std::pair<Scene::Mesh*, MeshOGL*>(p_mesh, new MeshOGL(p_mesh))); }

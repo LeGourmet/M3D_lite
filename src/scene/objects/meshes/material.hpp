@@ -12,10 +12,14 @@ namespace Scene
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-        Material(const Vec4f& p_baseColor, const Vec3f& p_emissivity, float p_metalness, float p_roughness, bool p_isOpaque,
+        Material(const Vec4f& p_baseColor, const Vec3f& p_emissivity, float p_metalness, float p_roughness,
                  Image* p_baseColorMap, Image* p_metalnessRougthnessMap, Image* p_normalMap, Image* p_occlusionMap, Image* p_emissivityMap):
-            _baseColor(p_baseColor), _emissivity(p_emissivity), _metalness(p_metalness), _roughness(p_roughness), _isOpaque(p_isOpaque),
-            _baseColorMap(p_baseColorMap), _metalnessRougthnessMap(p_metalnessRougthnessMap), _normalMap(p_normalMap), _occlusionMap(p_occlusionMap), _emissivityMap(p_emissivityMap) {}
+            _baseColor(p_baseColor), _emissivity(p_emissivity), _metalness(p_metalness), _roughness(p_roughness),
+            _baseColorMap(p_baseColorMap), _metalnessRougthnessMap(p_metalnessRougthnessMap), _normalMap(p_normalMap), _occlusionMap(p_occlusionMap), _emissivityMap(p_emissivityMap) 
+        {
+            _isOpaque = (_baseColorMap != nullptr && _baseColorMap->getNbChannels() < 4) || (_baseColorMap == nullptr && _baseColor.a == 1.);
+            _isEmissive = (_emissivityMap != nullptr) || (_emissivityMap == nullptr && glm::length(_emissivity) > 0.f);
+        }
         ~Material(){}
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
@@ -24,6 +28,7 @@ namespace Scene
         inline float getMetalness() const { return _metalness; }
         inline float getRoughness() const { return _roughness; }
         inline bool isOpaque() const { return _isOpaque; }
+        inline bool isEmissive() const { return _isEmissive; }
 
         inline Image* getBaseColorMap() const { return _baseColorMap; }
         inline Image* getMetalnessRougthnessMap() const { return _metalnessRougthnessMap; }
@@ -33,15 +38,14 @@ namespace Scene
 
     private:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+        // add emissivity power (strenth) ? + ior
+        
         Vec4f _baseColor = VEC4F_ONE;
         Vec3f _emissivity = VEC3F_ZERO;
         float _metalness = 0.;
         float _roughness = 1.;
-        bool _isOpaque = true; // !((_baseColorMap != nullptr && baseColorMap.getNbChannels() == 4) || (_basColorMap == nullptr && _baseColor.a != 1.))
-        // bool _isEmissive = false; // (_emissivityMap != nullptr) || (_emissivityMap == nullptr && glm::length(_emissivity) > 0.f) 
-        
-        // ior
-        // emissivity power (strenth)
+        bool _isOpaque = true;
+        bool _isEmissive = false; 
 
         Image* _baseColorMap = nullptr;
         Image* _metalnessRougthnessMap = nullptr;

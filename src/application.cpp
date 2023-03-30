@@ -61,7 +61,7 @@ namespace M3D
 		_gui->update(deltaTime);
 		_sceneManager->update(deltaTime);
 
-		_renderer->drawFrame(_window->get());
+		_renderer->drawFrame(&_window->get());
 		_gui->drawFrame();
 
 		_window->capFPS();

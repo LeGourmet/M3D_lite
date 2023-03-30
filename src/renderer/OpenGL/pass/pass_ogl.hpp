@@ -9,9 +9,9 @@
 
 namespace M3D
 {
-namespace Renderer
-{
-	class PassOGL {
+	namespace Renderer
+	{
+		class PassOGL {
 		public:
 			PassOGL(std::string p_pathVert, std::string p_pathFrag) {
 				GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -30,14 +30,13 @@ namespace Renderer
 				glDeleteShader(vertexShader);
 				glDeleteShader(fragmentShader);
 			}
-
 			~PassOGL() { glDeleteProgram(_program); }
 
 			virtual void resize(int p_width, int p_height) = 0;
 
 		protected:
 			GLuint _program = GL_INVALID_INDEX;
-			
+
 			std::string _readShader(std::string p_path) {
 				std::ifstream ifstream(p_path, std::ifstream::in);
 				if (!ifstream.is_open()) throw std::ios_base::failure("Cannot open file: " + p_path);
@@ -58,10 +57,10 @@ namespace Renderer
 				glCreateTextures(GL_TEXTURE_2D, 1, p_texture);
 				glTextureParameteri(*p_texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 				glTextureParameteri(*p_texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				//glTextureStorage2D(*p_texture, 0, GL_RGBA32F, 1, 1); //  0 invalid mais marche
+				//glTextureStorage2D(*p_texture, 0, GL_RGBA32F, 1, 1); // pas bon car imuable => need resize justjust after
 				glNamedFramebufferTexture(p_framebuffer, GL_COLOR_ATTACHMENT0 + p_id, *p_texture, 0);
 			}
-	};
-}
+		};
+	}
 }
 #endif

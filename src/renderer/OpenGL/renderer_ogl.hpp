@@ -34,6 +34,10 @@ namespace M3D
 			
 			void createMesh(Scene::Mesh* p_mesh) override;
 			void createTexture(Image* p_texture) override;
+
+			void addInstance(Scene::Mesh* p_mesh, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) override;
+			void updateInstance(Scene::Mesh* p_mesh, unsigned int p_id, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) override;
+
 			void deleteMesh(Scene::Mesh* p_mesh) override;
 			void deleteTexture(Image* p_texture) override;
 

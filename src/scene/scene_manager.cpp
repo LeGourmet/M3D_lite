@@ -13,7 +13,6 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include <cmath>
 #include <variant>
 #include <optional>
 
@@ -23,7 +22,11 @@ namespace M3D
 {
 namespace Scene
 {
-    SceneManager::SceneManager() { }       
+    SceneManager::SceneManager() { 
+        addMaterial(new Material(VEC4F_ONE, VEC3F_ZERO, 0.f, 1.f, nullptr, nullptr, nullptr, nullptr, nullptr)); 
+        addCamera(new Camera(0.01f, 1000.f, PIf/3.f));
+    }
+
     SceneManager::~SceneManager() { clearScene(); }
 
     void SceneManager::loadNewScene(const std::string& p_path) { clearScene(); _loadFile(p_path); }
@@ -95,19 +98,19 @@ namespace Scene
     }
 
     void SceneManager::clearScene() {
+        for (int i=1; i<_cameras.size() ;i++) delete _cameras[i];
+        for (int i=1; i<_materials.size() ;i++) delete _materials[i];
+        for (int i=0; i<_sceneGraph.size() ;i++) delete _sceneGraph[i]; // add default camera graph
+        _cameras.clear(); // need to not clear all
+        _materials.clear(); // need to not clear all
+        _sceneGraph.clear(); // need to not clear all
+
         for (int i=0; i<_meshes.size() ;i++) { Application::getInstance().getRenderer().deleteMesh(_meshes[i]); delete _meshes[i]; }
         for (int i=0; i<_textures.size() ;i++) { Application::getInstance().getRenderer().deleteTexture(_textures[i]); delete _textures[i]; }
-        for (int i=0; i<_cameras.size() ;i++) delete _cameras[i];
         for (int i=0; i<_lights.size() ;i++) delete _lights[i];
-        for (int i=0; i<_materials.size() ;i++) delete _materials[i];
-        for (int i=0; i<_sceneGraph.size() ;i++) delete _sceneGraph[i];
-
         _meshes.clear();
         _textures.clear();
-        _cameras.clear();
         _lights.clear();
-        _materials.clear();
-        _sceneGraph.clear();
     }
 
     void SceneManager::addInstance(Camera* p_camera, SceneGraphNode* p_node) { p_camera->addInstance(p_node); }
@@ -160,44 +163,107 @@ namespace Scene
         std::unique_ptr<fastgltf::Asset> asset = gltf->getParsedAsset();
 
         int idStartTextures = (int)_textures.size();
-        _textures.reserve(idStartTextures + asset->images.size()); // => with this, duplicate image !!
-        for (fastgltf::Texture t : asset->textures) { // care differents samplers
-            if(!t.imageIndex.has_value()) throw std::runtime_error("Image index invalid!"); // change for better
+        _textures.reserve(idStartTextures + (int)asset->textures.size());
+        for (fastgltf::Texture t : asset->textures) { // care differents samplers + duplicate images
+            if(!t.imageIndex.has_value()) throw std::runtime_error("Image: invalid index!"); // change for better
            
             fastgltf::DataSource dataSource = asset->images[t.imageIndex.value()].data;
-            if(std::holds_alternative<std::monostate>(dataSource)) throw std::runtime_error("Image data source invalid!"); // change for better
-            if(std::holds_alternative<fastgltf::sources::BufferView>(dataSource)) { /*parse data*/ }
-            if(std::holds_alternative<fastgltf::sources::FilePath>(dataSource)) { /*use stb to parse*/ }
-            if(std::holds_alternative<fastgltf::sources::Vector>(dataSource)) { /*memcpy ou use pointer + mime type for datas*/ }
-            if(std::holds_alternative<fastgltf::sources::CustomBuffer>(dataSource)) { /* ??? planter ??? */ }
-            //addTexture(new Image(    ));
+            if(std::holds_alternative<std::monostate>(dataSource) || std::holds_alternative<fastgltf::sources::CustomBuffer>(dataSource)) throw std::runtime_error("Image data source invalid!"); // change for better
+            if(std::holds_alternative<fastgltf::sources::BufferView>(dataSource)) { /*addTexture(new Image()); parse data*/ }
+            if(std::holds_alternative<fastgltf::sources::FilePath>(dataSource)) { /*addTexture(new Image()); use stb to parse*/ }
+            if(std::holds_alternative<fastgltf::sources::Vector>(dataSource)) { /*addTexture(new Image()); memcpy ou use pointer + mime type for datas*/ }
         }
         
         int idStartMaterials = (int)_materials.size();
-        _materials.reserve(idStartMaterials + asset->materials.size());
+        _materials.reserve(1 + idStartMaterials + (int)asset->materials.size());
         for (fastgltf::Material m : asset->materials)
             addMaterial(new Material(
                 m.pbrData.has_value() ? glm::make_vec4(m.pbrData.value().baseColorFactor.data()) : VEC4F_ONE,
                 glm::make_vec3(m.emissiveFactor.data()),
                 m.pbrData.has_value() ? m.pbrData.value().metallicFactor : 0.f,
                 m.pbrData.has_value() ? m.pbrData.value().roughnessFactor : 1.f,
-                m.alphaMode == fastgltf::AlphaMode::Opaque,
                 m.pbrData.has_value() ? (m.pbrData.value().baseColorTexture.has_value() ? _textures[idStartTextures + m.pbrData.value().baseColorTexture.value().textureIndex] : nullptr) : nullptr,
                 m.pbrData.has_value() ? (m.pbrData.value().metallicRoughnessTexture.has_value() ?_textures[idStartTextures + m.pbrData.value().metallicRoughnessTexture.value().textureIndex] : nullptr) : nullptr,
                 m.normalTexture.has_value() ? _textures[idStartTextures + m.normalTexture.value().textureIndex] : nullptr,
                 m.occlusionTexture.has_value() ? _textures[idStartTextures + m.occlusionTexture.value().textureIndex] : nullptr,
                 m.emissiveTexture.has_value() ? _textures[idStartTextures + m.emissiveTexture.value().textureIndex] : nullptr
             ));
-        if (_materials.empty()) addMaterial(new Material(VEC4F_ONE,VEC3F_ZERO,0.f,1.f,true,nullptr,nullptr,nullptr,nullptr,nullptr));
 
         int idStartMeshes = (int)_meshes.size();
-        _meshes.reserve(idStartMeshes + asset->meshes.size());
+        _meshes.reserve(idStartMeshes + (int)asset->meshes.size());
         for (fastgltf::Mesh m : asset->meshes) {
             Mesh* newMesh = new Mesh();
             m.primitives.reserve(m.primitives.size());
             for (fastgltf::Primitive p : m.primitives) { // differents type pour la geometry
+                if (!p.indicesAccessor.has_value()) throw std::runtime_error("Fail to load file: primitive indices must be define.");
+                if (p.type != fastgltf::PrimitiveType::Triangles) throw std::runtime_error("Fail to load file: primitives must be define by triangles.");
+                
                 Primitive* newPrimitive = new Primitive(_materials[(p.materialIndex.has_value() ? idStartMaterials+p.materialIndex.value() : 0)]);
-                // cpy from 3dRainEngine
+                
+                if(!p.attributes.contains("POSITION")) throw std::runtime_error("Fail to load file: primitives must contain POSITION.");
+                fastgltf::Accessor a_position = asset->accessors[p.attributes.at("POSITION")];
+
+                if (!p.attributes.contains("NORMAL")) throw std::runtime_error("Fail to load file: primitives must contain NORMAL.");
+                fastgltf::Accessor a_normal = asset->accessors[p.attributes.at("NORMAL")];
+
+                if (!p.attributes.contains("TEXCOORD_0")) throw std::runtime_error("Fail to load file: primitives must contain TEXCOORD_0.");
+                fastgltf::Accessor a_texcoord = asset->accessors[p.attributes.at("TEXCOORD_0")];
+                
+                bool isTangent = p.attributes.contains("TANGENT");
+                fastgltf::Accessor a_tangent;
+                if (isTangent) a_tangent = asset->accessors[p.attributes.at("TANGENT")];
+
+                if (!((a_position.count == a_normal.count) && (a_normal.count == a_texcoord.count) && (!isTangent || (a_texcoord.count == a_tangent.count)))) throw std::runtime_error("Fail to load file: primitive vertices must have the same number of position, normal, tangent and texcoord0.");
+
+                if(!a_position.bufferViewIndex.has_value()) throw std::runtime_error("Fail to load file: accessor need to have an index view buffer.");
+                fastgltf::BufferView bv_position = asset->bufferViews[a_position.bufferViewIndex.value()];
+                //const float* positionsBuffer = reinterpret_cast<const float*>(&model.buffers[bv_position.buffer].data[a_position.byteOffset + bv_position.byteOffset]);
+                
+                if (!a_normal.bufferViewIndex.has_value()) throw std::runtime_error("Fail to load file: accessor need to have an index view buffer.");
+                fastgltf::BufferView bv_normal = asset->bufferViews[a_normal.bufferViewIndex.value()];
+                //const float* normalsBuffer = reinterpret_cast<const float*>(&model.buffers[bv_normal.buffer].data[a_normal.byteOffset + bv_normal.byteOffset]);
+
+                if (!a_texcoord.bufferViewIndex.has_value()) throw std::runtime_error("Fail to load file: accessor need to have an index view buffer.");
+                fastgltf::BufferView bv_texcoord = asset->bufferViews[a_texcoord.bufferViewIndex.value()];
+                //const float* texCoord0Buffer = reinterpret_cast<const float*>(&model.buffers[bv_texcoord.buffer].data[a_texcoord.byteOffset + bv_texcoord.byteOffset]);
+
+                const float* tangentsBuffer = nullptr;
+                if (isTangent) {
+                    if (!a_tangent.bufferViewIndex.value()) isTangent = false;
+                    else {
+                        fastgltf::BufferView bv_tangent = asset->bufferViews[a_tangent.bufferViewIndex.value()];
+                        //tangentsBuffer = reinterpret_cast<const float*>(&model.buffers[bv_tangent.buffer].data[a_tangent.byteOffset + bv_tangent.byteOffset]);
+                    }
+                }
+
+                //fastgltf::Accessor a_indices = model.accessors[p.indices];
+                
+                /*newPrimitive->getVertices().reserve(a_position.count);
+                for (unsigned int i=0; i<a_position.count ;i++) {
+                    Vertex v = Vertex{ 
+                                        ._position = glm::make_vec3(&positionsBuffer[i * 3]),
+                                        ._normal = glm::normalize(glm::make_vec3(&normalsBuffer[i * 3])),
+                                        ._uv = glm::make_vec2(&texCoord0Buffer[i * 2])
+                                     };
+                    v._tangent = (isTangent) ? glm::normalize(glm::make_vec3(&tangentsBuffer[i * 3])) : VEC3F_X;
+                    v._bitangent = glm::normalize(glm::cross(v._normal, v._tangent));
+                    newPrimitive->addVertex(v) ;
+                }
+
+                tinygltf::BufferView bv_indices = model.bufferViews[a_indices.bufferView];
+                switch (a_indices.componentType) {
+                    case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT:
+                        newPrimitive->setIndices(reinterpret_cast<const unsigned int*>(&model.buffers[bv_indices.buffer].data[a_indices.byteOffset + bv_indices.byteOffset]), (unsigned int)a_indices.count);
+                        break;
+                    case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT:
+                        newPrimitive->setIndices(reinterpret_cast<const unsigned short*>(&model.buffers[bv_indices.buffer].data[a_indices.byteOffset + bv_indices.byteOffset]), (unsigned int)a_indices.count);
+                        break;
+                    case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE:
+                        newPrimitive->setIndices(reinterpret_cast<const unsigned char*>(&model.buffers[bv_indices.buffer].data[a_indices.byteOffset + bv_indices.byteOffset]), (unsigned int)a_indices.count);
+                        break;
+                }
+                */
+
                 newMesh->addPrimitive(newPrimitive);
             }
             addMesh(newMesh);
@@ -218,17 +284,16 @@ namespace Scene
         }
 
         int idStartCameras = (int)_cameras.size();
-        _cameras.reserve(std::max(1,idStartCameras + (int)asset->cameras.size()));
+        _cameras.reserve(1 + idStartCameras + (int)asset->cameras.size());
         for (fastgltf::Camera c : asset->cameras)       // implement ortho ??
             if (std::holds_alternative<fastgltf::Camera::Perspective>(c.camera)) {  // use aspect ratio ??
                 fastgltf::Camera::Perspective cam_p = std::get<0>(c.camera);
                 addCamera(new Camera(cam_p.znear, cam_p.zfar.has_value() ? cam_p.zfar.value() : FLOAT_MAX, cam_p.yfov));
             }
-        if (_cameras.empty()) addCamera(new Camera(0.01f, 1000.f, PIf/3.f));
-        _currentCamera = 0;
+        // _currentCamera = 0;
        
         int idStartSceneGraph = (int)_sceneGraph.size();
-        _sceneGraph.reserve(idStartSceneGraph + asset->nodes.size());
+        _sceneGraph.reserve(idStartSceneGraph + (int)asset->nodes.size());
         for (fastgltf::Scene s : asset->scenes)
             for (int id : s.nodeIndices)
                 _createSceneGraph(id, nullptr, idStartMeshes, idStartCameras, idStartLights, asset->nodes);

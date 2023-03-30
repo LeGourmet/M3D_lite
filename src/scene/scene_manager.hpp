@@ -8,7 +8,6 @@
 #include <fastgltf_parser.hpp>
 #include <fastgltf_types.hpp>
 
-#include <string>
 #include <vector>
 #include <filesystem>
 

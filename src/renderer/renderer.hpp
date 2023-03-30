@@ -4,14 +4,12 @@
 #include "utils/define.hpp"
 #include "utils/image.hpp"
 
+#include "scene/objects/meshes/mesh.hpp"
+
 #include <SDL_video.h>
 
 namespace M3D
 {
-    namespace Scene{
-        class mesh;
-    }
-
     namespace Renderer
     {
         class Renderer

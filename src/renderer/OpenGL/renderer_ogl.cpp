@@ -1,14 +1,12 @@
 #include "renderer_ogl.hpp"
 
+#include "application.hpp"
+
 #include "mesh_ogl.hpp"
 #include "texture_ogl.hpp"
 #include "pass/geometry_pass_ogl.hpp"
 #include "pass/shading_pass_ogl.hpp"
 #include "pass/final_pass_ogl.hpp"
-
-#include "application.hpp"
-#include "scene/scene_manager.hpp"
-#include "scene/objects/meshes/mesh.hpp"
 
 #include "GL/gl3w.h"
 
@@ -18,7 +16,7 @@ namespace M3D
 {
 namespace Renderer
 {
-	RendererOGL::RendererOGL(){}
+	RendererOGL::RendererOGL() {}
 
 	RendererOGL::~RendererOGL() {
 		delete _geometryPass;
@@ -29,7 +27,6 @@ namespace Renderer
 	}
 
 	void RendererOGL::init(SDL_Window* p_window) {
-		// ****** go dans SDL ******
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -37,10 +34,10 @@ namespace Renderer
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
 		SDL_GLContext glContext = SDL_GL_CreateContext(p_window);
 		if (glContext == nullptr) throw std::exception(SDL_GetError());
 		SDL_GL_MakeCurrent(p_window, glContext);
-		// *************************
 
 		if (gl3wInit()) throw std::exception("gl3wInit() failed");
 		if (!gl3wIsSupported(4, 5)) throw std::exception("OpenGL version not supported");
@@ -68,6 +65,10 @@ namespace Renderer
 
 	void RendererOGL::createMesh(Scene::Mesh* p_mesh) { _meshes.insert(std::pair<Scene::Mesh*, MeshOGL*>(p_mesh, new MeshOGL(p_mesh))); }
 	void RendererOGL::createTexture(Image* p_texture) { _textures.insert(std::pair<Image*, TextureOGL*>(p_texture, new TextureOGL(p_texture))); }
+	
+	void RendererOGL::addInstanceMesh(Scene::Mesh* p_mesh, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) { _meshes.at(p_mesh)->addInstance(p_M_matrix, p_V_matrix, p_P_matrix); }
+	void RendererOGL::updateInstanceMesh(Scene::Mesh* p_mesh, unsigned int p_id, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) { _meshes.at(p_mesh)->updateTransformMatrix(p_id, p_M_matrix, p_V_matrix, p_P_matrix); }
+	
 	void RendererOGL::deleteMesh(Scene::Mesh* p_mesh) { delete _meshes.at(p_mesh); _meshes.erase(_meshes.find(p_mesh)); }
 	void RendererOGL::deleteTexture(Image* p_texture) { delete _textures.at(p_texture); _textures.erase(_textures.find(p_texture)); }
 }

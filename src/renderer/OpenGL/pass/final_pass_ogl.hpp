@@ -16,15 +16,12 @@ namespace M3D
 			}
 			~FinalPassOGL() { glDeleteVertexArrays(1, &_emptyVAO); }
 
-			void resize(int p_width, int p_height) override {}
+			void resize(int p_width, int p_height) override { }
 
-			void execute(int p_viewport_width, int p_viewport_height, float p_gamma, GLuint p_HDRMap) {
+			void execute(float p_gamma, GLuint p_HDRMap) {
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
-				glViewport(0, 0, p_viewport_width, p_viewport_height);
 
-				glDisable(GL_BLEND);
-				glDisable(GL_DEPTH_TEST);
-				glClear(GL_COLOR_BUFFER_BIT);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 				glUseProgram(_program);
 

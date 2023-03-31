@@ -12,3 +12,4 @@ SDL3			3.2.0	19/03/2023	: https://github.com/libsdl-org/SDL
 
 SIMD_JSON 		3.1.6	18/03/2023	: https://github.com/simdjson/simdjson
 FAST_GLTF 		0.4.0	29/03/2023	: https://github.com/spnda/fastgltf
+tinygltf       	2.8.1 21/03/2023  : https://github.com/syoyo/tinygltf

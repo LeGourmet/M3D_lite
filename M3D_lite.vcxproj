@@ -23,6 +23,7 @@
     <ClCompile Include="lib\fastgltf\fastgltf.cpp" />
     <ClCompile Include="lib\gl3w\GL\gl3w.c" />
     <ClCompile Include="lib\simdjson\simdjson.cpp" />
+    <ClCompile Include="lib\tinygltf\tiny_gltf.cc" />
     <ClCompile Include="src\application.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\renderer\OpenGL\renderer_ogl.cpp" />
@@ -519,6 +520,10 @@
     <ClInclude Include="lib\simdjson\simdjson.h" />
     <ClInclude Include="lib\stb\stb_image.h" />
     <ClInclude Include="lib\stb\stb_image_write.h" />
+    <ClInclude Include="lib\tinygltf\json.hpp" />
+    <ClInclude Include="lib\tinygltf\stb_image.h" />
+    <ClInclude Include="lib\tinygltf\stb_image_write.h" />
+    <ClInclude Include="lib\tinygltf\tiny_gltf.h" />
     <ClInclude Include="src\application.hpp" />
     <ClInclude Include="src\renderer\OpenGL\texture_ogl.hpp" />
     <ClInclude Include="src\scene\objects\meshes\material.hpp" />

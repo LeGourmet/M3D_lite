@@ -6,6 +6,7 @@
 #include "scene/objects/meshes/mesh.hpp"
 #include "scene/objects/meshes/primitive.hpp"
 #include "renderer/OpenGL/mesh_ogl.hpp"
+#include "renderer/OpenGL/texture_ogl.hpp"
 
 #include "glm/gtc/type_ptr.hpp"
 
@@ -76,15 +77,15 @@ namespace M3D
 
 						glProgramUniform1i(_program, _uHasAlbedoMapLoc, primitive->getMaterial().getBaseColorMap() != nullptr);
 						glProgramUniform3fv(_program, _uAlbedoLoc, 1, glm::value_ptr(primitive->getMaterial().getBaseColor()));
-						if (primitive->getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures_ogl.at(primitive->getMaterial().getBaseColorMap())->getId());
+						//if (primitive->getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures_ogl.at(primitive->getMaterial().getBaseColorMap())->getId());
 
 						glProgramUniform1i(_program, _uHasMetalnessRoughnessMapLoc, primitive->getMaterial().getMetalnessRoughnessMap() != nullptr);
 						glProgramUniform1f(_program, _uMetalnessLoc, primitive->getMaterial().getMetalness());
 						glProgramUniform1f(_program, _uRoughnessLoc, primitive->getMaterial().getRoughness());
-						if (primitive->getMaterial().getMetalnessRoughnessMap() != nullptr)  glBindTextureUnit(2, p_textures_ogl.at(primitive->getMaterial().getMetalnessRoughnessMap())->getId());
+						//if (primitive->getMaterial().getMetalnessRoughnessMap() != nullptr)  glBindTextureUnit(2, p_textures_ogl.at(primitive->getMaterial().getMetalnessRoughnessMap())->getId());
 
 						glProgramUniform1i(_program, _uHasNormalMapLoc, primitive->getMaterial().getNormalMap() != nullptr);
-						if (primitive->getMaterial().getNormalMap() != nullptr) glBindTextureUnit(3, p_textures_ogl.at(primitive->getMaterial().getNormalMap())->getId());
+						//if (primitive->getMaterial().getNormalMap() != nullptr) glBindTextureUnit(3, p_textures_ogl.at(primitive->getMaterial().getNormalMap())->getId());
 
 						mesh.second->bind(i);
 						glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)primitive->getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getSceneGraphNode().size());

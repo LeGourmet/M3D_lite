@@ -13,9 +13,9 @@ namespace Scene
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
         Material(const Vec4f& p_baseColor, const Vec3f& p_emissivity, float p_metalness, float p_roughness,
-                 Image* p_baseColorMap, Image* p_metalnessRougthnessMap, Image* p_normalMap, Image* p_occlusionMap, Image* p_emissivityMap):
+                 Image* p_baseColorMap, Image* p_metalnessRoughnessMap, Image* p_normalMap, Image* p_occlusionMap, Image* p_emissivityMap):
             _baseColor(p_baseColor), _emissivity(p_emissivity), _metalness(p_metalness), _roughness(p_roughness),
-            _baseColorMap(p_baseColorMap), _metalnessRougthnessMap(p_metalnessRougthnessMap), _normalMap(p_normalMap), _occlusionMap(p_occlusionMap), _emissivityMap(p_emissivityMap) 
+            _baseColorMap(p_baseColorMap), _metalnessRoughnessMap(p_metalnessRoughnessMap), _normalMap(p_normalMap), _occlusionMap(p_occlusionMap), _emissivityMap(p_emissivityMap) 
         {
             _isOpaque = (_baseColorMap != nullptr && _baseColorMap->getNbChannels() < 4) || (_baseColorMap == nullptr && _baseColor.a == 1.);
             _isEmissive = (_emissivityMap != nullptr) || (_emissivityMap == nullptr && glm::length(_emissivity) > 0.f);
@@ -31,7 +31,7 @@ namespace Scene
         inline bool isEmissive() const { return _isEmissive; }
 
         inline Image* getBaseColorMap() const { return _baseColorMap; }
-        inline Image* getMetalnessRougthnessMap() const { return _metalnessRougthnessMap; }
+        inline Image* getMetalnessRoughnessMap() const { return _metalnessRoughnessMap; }
         inline Image* getNormalMap() const { return _normalMap; }
         inline Image* getOcclusionMap() const { return _occlusionMap; }
         inline Image* getEmissivityMap() const { return _emissivityMap; }
@@ -48,7 +48,7 @@ namespace Scene
         bool _isEmissive = false; 
 
         Image* _baseColorMap = nullptr;
-        Image* _metalnessRougthnessMap = nullptr;
+        Image* _metalnessRoughnessMap = nullptr;
         Image* _normalMap = nullptr;
         Image* _occlusionMap = nullptr;
         Image* _emissivityMap = nullptr;

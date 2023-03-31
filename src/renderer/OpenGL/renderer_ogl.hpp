@@ -7,7 +7,8 @@
 
 namespace M3D
 {
-	namespace Renderer {
+	namespace Renderer 
+	{
 		class MeshOGL;
 		class TextureOGL;
 		class GeometryPassOGL;
@@ -21,16 +22,12 @@ namespace M3D
 		{
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-			RendererOGL();
+			RendererOGL(SDL_Window* p_window);
 			~RendererOGL();
 
-			// ----------------------------------------------------- GETTERS -------------------------------------------------------
-			inline SDL_WindowFlags getWindowFlag() { return SDL_WINDOW_OPENGL; }
-
 			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-			void init(SDL_Window* p_window) override;
 			void resize(const int p_width, const int p_height)  override;
-			void drawFrame(SDL_Window* p_window) override;
+			void drawFrame() override;
 			
 			void createMesh(Scene::Mesh* p_mesh) override;
 			void createTexture(Image* p_texture) override;

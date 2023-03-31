@@ -14,26 +14,52 @@ namespace M3D
 {
     namespace InputOutput
     {
-        Window::Window() {
-            if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0)
-                throw std::runtime_error("Exception caught: " + std::string(SDL_GetError()));
-        }
-        Window::~Window() { _dispose(); }
-
-        void Window::create(SDL_WindowFlags p_rendererTypeFlag) {
+        Window::Window(SDL_WindowFlags p_rendererTypeFlag) : _rendererType(p_rendererTypeFlag) {
             try {
-                _rendererType = p_rendererTypeFlag;
-                _window = SDL_CreateWindow(
-                    Application::getInstance().getTitle().c_str(),
-                    Application::getInstance().getWidth(),
-                    Application::getInstance().getHeight(),
-                    p_rendererTypeFlag | SDL_WINDOW_RESIZABLE);
+                if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0)
+                    throw std::runtime_error("Exception caught: " + std::string(SDL_GetError()));
+
+                switch(p_rendererTypeFlag){
+                    case SDL_WINDOW_OPENGL:    
+                        // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0); // IDK
+                        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+                        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+                        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+                        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+                        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+                        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
+                        _window = SDL_CreateWindow(
+                            Application::getInstance().getTitle().c_str(),
+                            Application::getInstance().getWidth(),
+                            Application::getInstance().getHeight(),
+                            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+                        break;
+                    
+                    case SDL_WINDOW_VULKAN: break;
+
+                    default : throw std::runtime_error("Exception caught: Renderer type unknown.");
+                }
+                
                 if (_window == nullptr)
                     throw std::runtime_error("Exception caught: " + std::string(SDL_GetError()));
+
+                setVSync(_vSync);
             }
             catch (const std::exception& p_e) {
                 std::cerr << "Exception caught: " << std::endl << p_e.what() << std::endl;
                 _dispose();
+            }
+
+        }
+        
+        Window::~Window() { _dispose(); }
+
+        void Window::setVSync(bool p_vSync) {
+            _vSync = p_vSync;
+            switch (_rendererType) {
+            case SDL_WINDOW_OPENGL: SDL_GL_SetSwapInterval(p_vSync); break;
+            case SDL_WINDOW_VULKAN: break;
             }
         }
 
@@ -78,6 +104,34 @@ namespace M3D
             return _time - previousTime;
         }
 
+        void Window::capFPS() {
+            switch (_rendererType) {
+            case SDL_WINDOW_OPENGL: SDL_GL_SwapWindow(_window); break;
+            case SDL_WINDOW_VULKAN: break;
+            }
+            // ===> if (1000/fps > frameStop - frameStart) SDL_Delay(1000/fps - (frameStop - frameStart));
+            // screen refresh rate (warning plusieur écrans)
+            // respect targetFPS if no vsync (0=infini)
+            /*
+            SDLGetWindowRefreshRate(SDL_Window *Window)
+            {
+                SDL_DisplayMode Mode;
+                int DisplayIndex = SDL_GetWindowDisplayIndex(Window);
+                // If we can't find the refresh rate, we'll return this:
+                int DefaultRefreshRate = 60;
+                if (SDL_GetDesktopDisplayMode(DisplayIndex, &Mode) != 0)
+                {
+                    return DefaultRefreshRate;
+                }
+                if (Mode.refresh_rate == 0)
+                {
+                    return DefaultRefreshRate;
+                }
+                return Mode.refresh_rate;
+            }
+            */
+        }
+
         bool Window::_captureEvent(const SDL_Event& p_event) {
             bool keyUp = (p_event.type == SDL_EVENT_KEY_UP);
             bool keyDown = (p_event.type == SDL_EVENT_KEY_DOWN);
@@ -110,11 +164,11 @@ namespace M3D
         void Window::_takeScreenShot() {
             try {
                 /*SDL_Surface* surface = SDL_CreateRGBSurface(0, Application::getInstance().getWidth(), Application::getInstance().getHeight(), 32,
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+                #if SDL_BYTEORDER == SDL_BIG_ENDIAN
                     0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff
-#else
+                #else
                     0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
-#endif
+                #endif
                 );
                 SDL_LockSurface(surface);
                 SDL_RenderReadPixels(SDL_GetRenderer(_window), NULL, surface->format->format, surface->pixels, surface->pitch);

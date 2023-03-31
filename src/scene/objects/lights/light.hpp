@@ -20,12 +20,12 @@ namespace Scene
 			: _type(p_type), _color(p_color), _intensity(p_intensity) {
 			_cosInnerConeAngle = glm::cos(p_innerConeAngle);
 			_cosOuterConeAngle = glm::cos(p_outerConeAngle);
-			_range = (float)glm::sqrt(256.*_intensity*glm::max(_color.x,glm::max(_color.y,_color.z)));
+			_range = (float)glm::sqrt(256.*_intensity*glm::max<float>(_color.x,glm::max<float>(_color.y,_color.z)));
 		}
 
 		Light(LIGHT_TYPE p_type, const Vec3f& p_color, const float p_intensity) 
 			: _type(p_type), _color(p_color), _intensity(p_intensity) {
-			_range = (float)glm::sqrt(256.*_intensity*glm::max(_color.x,glm::max(_color.y,_color.z)));
+			_range = (float)glm::sqrt(256.*_intensity*glm::max<float>(_color.x,glm::max<float>(_color.y,_color.z)));
 		}
 
 		~Light(){}

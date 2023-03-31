@@ -7,13 +7,13 @@ namespace M3D
 {
 namespace UserInterface
 {
-	GraphicalUserInterface::GraphicalUserInterface() { }
-	GraphicalUserInterface::~GraphicalUserInterface() { }
-
-	void GraphicalUserInterface::init(){
+	GraphicalUserInterface::GraphicalUserInterface() { 
 		//Application::getInstance().getSceneManager().loadNewScene("assets/sponza/Sponza.gltf");
 		Application::getInstance().getSceneManager().loadNewScene("assets/musee/musee.gltf");
 	}
+
+	GraphicalUserInterface::~GraphicalUserInterface() { }
+
 
 	
 	void GraphicalUserInterface::pause() {

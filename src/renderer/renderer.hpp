@@ -17,15 +17,12 @@ namespace M3D
         public:
             // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
             Renderer() {}
+            //virtual Renderer(SDL_Window* p_window) = 0;
             virtual ~Renderer() = default;
 
-            // ----------------------------------------------------- GETTERS -------------------------------------------------------
-            virtual SDL_WindowFlags getWindowFlag() = 0;
-
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-            virtual void init(SDL_Window* p_window) = 0;
             virtual void resize(const int p_width, const int p_height) = 0;
-            virtual void drawFrame(SDL_Window* p_window) = 0;
+            virtual void drawFrame() = 0;
 
             virtual void createMesh(Scene::Mesh* p_mesh) = 0;
             virtual void createTexture(Image* p_texture) = 0;

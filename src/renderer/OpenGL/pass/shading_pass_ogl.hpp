@@ -60,7 +60,7 @@ namespace M3D
 			}*/
 
 			void execute(GLuint p_positionMetalnessMap, GLuint p_normalRoughnessMap, GLuint p_albedoMap) {
-				glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+				/*glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_ONE, GL_ONE);
@@ -91,9 +91,6 @@ namespace M3D
 					case LIGHT_TYPE::POINT:
 					case LIGHT_TYPE::SPOT:
 						glProgramUniform4fv(_program, _uLightPositionTypeLoc, 1, glm::value_ptr(Vec4f(pos.x, pos.y, pos.z, 1.)));
-						/*glNamedBufferSubData(_vbo, 0, 6 * sizeof(Vec2f), new Vec2f[]{
-							projectBillboard(pos.x - r,pos.y - r,VP) , projectBillboard(pos.x + r,pos.y - r,VP) , projectBillboard(pos.x + r,pos.y + r,VP),
-							projectBillboard(pos.x + r,pos.y + r,VP) , projectBillboard(pos.x - r,pos.y + r,VP) , projectBillboard(pos.x - r,pos.y - r,VP) });*/
 						glNamedBufferSubData(_vbo, 0, 6 * sizeof(Vec2f), &billBoardCoord);
 						break;
 					default:
@@ -106,7 +103,7 @@ namespace M3D
 					glBindVertexArray(0);
 				}
 
-				glDisable(GL_BLEND);
+				glDisable(GL_BLEND);*/
 			}
 
 		private:

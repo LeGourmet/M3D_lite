@@ -15,7 +15,6 @@ namespace UserInterface
         ~GraphicalUserInterface();
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-        void init();
         void pause();
         void update(unsigned long long p_deltaTime);
         void drawFrame();

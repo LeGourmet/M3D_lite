@@ -16,25 +16,7 @@ namespace M3D
 {
 namespace Renderer
 {
-	RendererOGL::RendererOGL() {}
-
-	RendererOGL::~RendererOGL() {
-		delete _geometryPass;
-		delete _shadingPass;
-		delete _finalPass;
-		for (std::pair<Scene::Mesh*, MeshOGL*> pair : _meshes) delete pair.second;
-		for (std::pair<Image*, TextureOGL*> pair : _textures) delete pair.second;
-	}
-
-	void RendererOGL::init(SDL_Window* p_window) {
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-		SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
+	RendererOGL::RendererOGL(SDL_Window* p_window) {
 		SDL_GLContext glContext = SDL_GL_CreateContext(p_window);
 		if (glContext == nullptr) throw std::exception(SDL_GetError());
 		SDL_GL_MakeCurrent(p_window, glContext);
@@ -51,16 +33,24 @@ namespace Renderer
 		glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.a);
 	}
 
+	RendererOGL::~RendererOGL() {
+		delete _geometryPass;
+		delete _shadingPass;
+		delete _finalPass;
+		for (std::pair<Scene::Mesh*, MeshOGL*> pair : _meshes) delete pair.second;
+		for (std::pair<Image*, TextureOGL*> pair : _textures) delete pair.second;
+	}
+
 	void RendererOGL::resize(const int p_width, const int p_height) {
 		_geometryPass->resize(p_width, p_height);
 		_shadingPass->resize(p_width, p_height);
 		_finalPass->resize(p_width, p_height);
 	}
 
-	void RendererOGL::drawFrame(SDL_Window* p_window) {
-		_geometryPass->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(),_meshes);
-		_shadingPass->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(),_geometryPass->getPositionMetalnessMap(),_geometryPass->getNormalRoughnessMap(),_geometryPass->getAlbedoMap());
-		_finalPass->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(),_gamma,_shadingPass->getShadingMap());
+	void RendererOGL::drawFrame() {
+		_geometryPass->execute(_meshes,_textures);
+		_shadingPass->execute(_geometryPass->getPositionMetalnessMap(),_geometryPass->getNormalRoughnessMap(),_geometryPass->getAlbedoMap());
+		_finalPass->execute(_gamma,_shadingPass->getShadingMap());
 	}
 
 	void RendererOGL::createMesh(Scene::Mesh* p_mesh) { _meshes.insert(std::pair<Scene::Mesh*, MeshOGL*>(p_mesh, new MeshOGL(p_mesh))); }

@@ -11,25 +11,21 @@ namespace M3D
 
 	Application::~Application()
 	{
-		delete _window;
-		delete _gui;
 		delete _sceneManager;
+		delete _gui;
 		delete _renderer;
+		delete _window;
 	}
 
 	void Application::start()
 	{
 		_running = true;
 		
-		_window			 = new InputOutput::Window();
-		_renderer		 = new Renderer::RendererOGL();
-		_sceneManager	 = new Scene::SceneManager();
+		// decide if use ogl or vulkan and if we are on / linux / mac / android / windows
+		_window			 = new InputOutput::Window(SDL_WINDOW_OPENGL);
+		_renderer		 = new Renderer::RendererOGL(&_window->get());
+		_sceneManager	 = new Scene::SceneManager(_width, _height);
 		_gui			 = new UserInterface::GraphicalUserInterface();
-
-		_window->create(_renderer->getWindowFlag()); // need vsync
-		_renderer->init(&_window->get());
-		_sceneManager->resize(_width,_height);
-		_gui->init();
 
 		_window->chronoUpdate();
 		while (_running) _update();
@@ -38,7 +34,6 @@ namespace M3D
 	void Application::stop() { _running = false; }
 
 	void Application::pause() {
-		// pause le chrono ?
 		_sceneManager->clearEvents();
 		_gui->clearEvents();
 		_gui->pause();
@@ -51,18 +46,18 @@ namespace M3D
 		_height = p_height;
 		_sceneManager->resize(p_width,p_height);
 		_renderer->resize(p_width,p_height);
+		//_gui->resize(p_width, p_height);
 	}
 
-	void Application::_update() const
-	{
+	void Application::_update() const {
 		unsigned long long deltaTime = _window->getDeltaTime();
 
 		_window->captureEvents();
 		_gui->update(deltaTime);
 		_sceneManager->update(deltaTime);
 
-		_renderer->drawFrame(&_window->get());
-		_gui->drawFrame();
+		_renderer->drawFrame();			// &_window->get() / context ?
+		_gui->drawFrame();				// &_window->get() / context ?
 
 		_window->capFPS();
 	}

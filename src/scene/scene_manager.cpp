@@ -1,5 +1,7 @@
 #include "scene_manager.hpp"
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include "application.hpp"
 #include "renderer/renderer.hpp"
 
@@ -9,8 +11,6 @@
 #include "objects/meshes/mesh.hpp"
 #include "objects/meshes/material.hpp"
 #include "utils/define.hpp"
-
-#include <glm/gtc/type_ptr.hpp>
 
 //#include <variant>
 //#include <optional>
@@ -22,11 +22,22 @@ namespace Scene
 {
     SceneManager::SceneManager(const int p_width, const int p_height) {
         addMaterial(new Material(VEC4F_ONE, VEC3F_ZERO, 0.f, 1.f, nullptr, nullptr, nullptr, nullptr, nullptr)); 
+        
         addCamera(new Camera(0.01f, 1000.f, PIf/3.f));
+        addNode(new SceneGraphNode(nullptr,VEC3F_ZERO,VEC3F_ONE,QUATF_ID));
+        addInstance(_cameras[0], _sceneGraph[0]);
+        
         resize(p_width, p_height);
     }
 
-    SceneManager::~SceneManager() { clearScene(); } // + delete material 0 and camera 0
+    SceneManager::~SceneManager() { 
+        for (int i=0; i<_cameras.size() ;i++) delete _cameras[i];
+        for (int i=0; i<_materials.size() ;i++) delete _materials[i];
+        for (int i=0; i<_sceneGraph.size() ;i++) delete _sceneGraph[i];
+        for (int i=0; i<_meshes.size() ;i++) { Application::getInstance().getRenderer().deleteMesh(_meshes[i]); delete _meshes[i]; }
+        for (int i=0; i<_textures.size() ;i++) { Application::getInstance().getRenderer().deleteTexture(_textures[i]); delete _textures[i]; }
+        for (int i=0; i<_lights.size() ;i++) delete _lights[i];
+    }
 
     void SceneManager::loadNewScene(const std::string& p_path) { clearScene(); _loadFile(p_path); }
 
@@ -76,7 +87,7 @@ namespace Scene
 
             for (Mesh* mesh : _meshes)
                 for (unsigned int i=0; i<mesh->getSceneGraphNode().size() ;i++)
-                    Application::getInstance().getRenderer().updateInstance(
+                    Application::getInstance().getRenderer().updateInstanceMesh(
                         mesh, i,
                         mesh->getSceneGraphNode()[i]->computeTransformation(),
                         _cameras[_currentCamera]->getViewMatrix(),
@@ -99,10 +110,10 @@ namespace Scene
     void SceneManager::clearScene() {
         for (int i=1; i<_cameras.size() ;i++) delete _cameras[i];
         for (int i=1; i<_materials.size() ;i++) delete _materials[i];
-        for (int i=0; i<_sceneGraph.size() ;i++) delete _sceneGraph[i]; // add default camera graph
-        _cameras.clear(); // need to not clear all
-        _materials.clear(); // need to not clear all
-        _sceneGraph.clear(); // need to not clear all
+        for (int i=1; i<_sceneGraph.size() ;i++) delete _sceneGraph[i];
+        _cameras.erase(_cameras.begin()+1,_cameras.end());
+        _materials.erase(_materials.begin()+1,_materials.end());
+        _sceneGraph.erase(_sceneGraph.begin()+1,_sceneGraph.end());
 
         for (int i=0; i<_meshes.size() ;i++) { Application::getInstance().getRenderer().deleteMesh(_meshes[i]); delete _meshes[i]; }
         for (int i=0; i<_textures.size() ;i++) { Application::getInstance().getRenderer().deleteTexture(_textures[i]); delete _textures[i]; }
@@ -119,7 +130,7 @@ namespace Scene
     void SceneManager::addInstance(Mesh* p_mesh, SceneGraphNode* p_node) {
         p_mesh->addInstance(p_node);
 
-        Application::getInstance().getRenderer().addInstance(
+        Application::getInstance().getRenderer().addInstanceMesh(
             p_mesh,
             p_node->computeTransformation(),
             _cameras[_currentCamera]->getViewMatrix(),
@@ -135,7 +146,9 @@ namespace Scene
         addNode(current);
 
         if (p_model.nodes[p_idCurrent].mesh != -1) { addInstance(_meshes[p_meshOffset + p_model.nodes[p_idCurrent].mesh], current); }
-        else if (p_model.nodes[p_idCurrent].camera == -1) { addInstance(_lights[p_lightOffset + p_model.nodes[p_idCurrent].extensions.at("KHR_lights_punctual").Get("light").GetNumberAsInt()], current); }
+        else if (p_model.nodes[p_idCurrent].camera != -1) { addInstance(_cameras[p_camOffset + p_model.nodes[p_idCurrent].camera], current); }
+        // check better
+        else if (p_model.nodes[p_idCurrent].skin == -1) { addInstance(_lights[p_lightOffset + p_model.nodes[p_idCurrent].extensions.at("KHR_lights_punctual").Get("light").GetNumberAsInt()], current); }
 
         for (int id : p_model.nodes[p_idCurrent].children)
             _createSceneGraph(id, current, p_meshOffset, p_lightOffset, p_camOffset, p_model);
@@ -172,7 +185,7 @@ namespace Scene
 
         // ------------- MATERIALS
         unsigned int startIdMaterials = (unsigned int)_materials.size();
-        _textures.reserve(startIdMaterials + model.materials.size());
+        _materials.reserve(startIdMaterials + model.materials.size());
         for (tinygltf::Material m : model.materials)
             addMaterial(new Material(
                 glm::make_vec4(m.pbrMetallicRoughness.baseColorFactor.data()),
@@ -188,10 +201,10 @@ namespace Scene
 
         // ------------- MESHES
         unsigned int startIdMeshes = (unsigned int)_meshes.size();
-        _textures.reserve(startIdMeshes + model.meshes.size());
+        _meshes.reserve(startIdMeshes + model.meshes.size());
         for (tinygltf::Mesh m : model.meshes) {
             Mesh* newMesh = new Mesh();
-            m.primitives.reserve(m.primitives.size());
+            newMesh->getPrimitives().reserve(m.primitives.size());
             for (tinygltf::Primitive p : m.primitives) {
                 if (p.indices == -1) throw std::runtime_error("Fail to load file: primitive indices must be define.");
 
@@ -229,7 +242,7 @@ namespace Scene
                                         ._normal = glm::normalize(glm::make_vec3(&normalsBuffer[i * 3])),
                                         ._uv = glm::make_vec2(&texCoord0Buffer[i * 2])
                     };
-                    v._tangent = (isTangent) ? glm::normalize(glm::make_vec3(&tangentsBuffer[i * 3])) : VEC3F_X;
+                    v._tangent = (isTangent) ? glm::normalize(glm::make_vec3(&tangentsBuffer[i * 3])) : VEC3F_X; // care shit
                     v._bitangent = glm::normalize(glm::cross(v._normal, v._tangent));
                     newPrimitive->addVertex(v);
                 }
@@ -254,7 +267,7 @@ namespace Scene
 
         // ------------- LIGHTS
         unsigned int startIdLights = (unsigned int)_lights.size();
-        _textures.reserve(startIdLights + model.lights.size());
+        _lights.reserve(startIdLights + model.lights.size());
         for (tinygltf::Light l : model.lights) {
             if (l.type == "spot") {
                 addLight(new Light(LIGHT_TYPE::SPOT, ((l.color.size() != 3) ? VEC3F_ONE : (Vec3f)glm::make_vec3(l.color.data())), (float)l.intensity, (float)l.spot.innerConeAngle, (float)l.spot.outerConeAngle));

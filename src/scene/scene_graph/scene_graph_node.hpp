@@ -1,9 +1,10 @@
 #ifndef __SCENE_GRAPH_NODE_HPP__
 #define __SCENE_GRAPH_NODE_HPP__
 
-#include "utils/define.hpp"
 #include "glm/detail/_fixes.hpp"
 #include "glm/gtx/quaternion.hpp"
+
+#include "utils/define.hpp"
 
 namespace M3D
 {

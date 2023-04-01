@@ -2,6 +2,7 @@
 #define __KEYBOARD_CONTROLLER_HPP__
 
 #include <SDL_events.h>
+
 #include <set>
 
 namespace M3D

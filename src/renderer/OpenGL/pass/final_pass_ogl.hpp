@@ -9,6 +9,7 @@ namespace M3D
 	{
 		class FinalPassOGL : public PassOGL {
 		public:
+			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 			FinalPassOGL(std::string p_pathVert, std::string p_pathFrag) : PassOGL(p_pathVert, p_pathFrag) {
 				_uGammaLoc = glGetUniformLocation(_program, "uGamma");
 
@@ -16,6 +17,7 @@ namespace M3D
 			}
 			~FinalPassOGL() { glDeleteVertexArrays(1, &_emptyVAO); }
 
+			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 			void resize(int p_width, int p_height) override { }
 
 			void execute(float p_gamma, GLuint p_HDRMap) {
@@ -33,6 +35,7 @@ namespace M3D
 			}
 
 		private:
+			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 			GLint  _uGammaLoc = GL_INVALID_INDEX;
 
 			GLuint _emptyVAO = GL_INVALID_INDEX;

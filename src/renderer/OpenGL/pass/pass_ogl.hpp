@@ -1,11 +1,11 @@
 #ifndef __PASS_OGL_HPP__
 #define __PASS_OGL_HPP__
 
+#include "GL/gl3w.h"
+
 #include <string>
 #include <fstream>
 #include <sstream>
-
-#include "GL/gl3w.h"
 
 namespace M3D
 {
@@ -13,6 +13,7 @@ namespace M3D
 	{
 		class PassOGL {
 		public:
+			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 			PassOGL(std::string p_pathVert, std::string p_pathFrag) {
 				GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 				GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -32,11 +33,14 @@ namespace M3D
 			}
 			~PassOGL() { glDeleteProgram(_program); }
 
+			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 			virtual void resize(int p_width, int p_height) = 0;
 
 		protected:
+			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 			GLuint _program = GL_INVALID_INDEX;
 
+			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 			std::string _readShader(std::string p_path) {
 				std::ifstream ifstream(p_path, std::ifstream::in);
 				if (!ifstream.is_open()) throw std::ios_base::failure("Cannot open file: " + p_path);

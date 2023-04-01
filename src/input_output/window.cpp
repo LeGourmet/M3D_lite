@@ -1,12 +1,12 @@
 #include "window.hpp"
 
-#include "application.hpp"
-#include "scene/scene_manager.hpp"
-#include "user_interface/graphical_user_interface.hpp"
-
 #include <SDL_init.h>
 #include <SDL_error.h>
 #include <SDL_timer.h>
+
+#include "application.hpp"
+#include "scene/scene_manager.hpp"
+#include "user_interface/graphical_user_interface.hpp"
 
 #include <iostream>
 
@@ -18,24 +18,31 @@ namespace M3D
             try {
                 if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0)
                     throw std::runtime_error("Exception caught: " + std::string(SDL_GetError()));
-
+                
                 switch(p_rendererTypeFlag){
-                    case SDL_WINDOW_OPENGL:    
-                        // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0); // IDK
-                        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-                        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-                        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-                        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
-                        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-                        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+                    case SDL_WINDOW_OPENGL:
+                        {
+                            // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0); // IDK
+                            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+                            SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+                            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+                            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+                            SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+                            SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-                        _window = SDL_CreateWindow(
-                            Application::getInstance().getTitle().c_str(),
-                            Application::getInstance().getWidth(),
-                            Application::getInstance().getHeight(),
-                            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-                        break;
-                    
+                            _window = SDL_CreateWindow(
+                                Application::getInstance().getTitle().c_str(),
+                                Application::getInstance().getWidth(),
+                                Application::getInstance().getHeight(),
+                                SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+
+                            SDL_GLContext glContext = SDL_GL_CreateContext(_window);
+                            if (glContext == nullptr) 
+                                throw std::runtime_error("Exception caught: " + std::string(SDL_GetError()));
+
+                            SDL_GL_MakeCurrent(_window, glContext);
+                            break;
+                        }
                     case SDL_WINDOW_VULKAN: break;
 
                     default : throw std::runtime_error("Exception caught: Renderer type unknown.");
@@ -187,7 +194,7 @@ namespace M3D
 
         void Window::_dispose() {
             if (_window) SDL_DestroyWindow(_window);
-            _window = nullptr;
+            // delete contexte gl/vulkan ?
             SDL_Quit();
         }
     }

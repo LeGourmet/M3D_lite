@@ -1,9 +1,11 @@
 #ifndef __CAMERA_HPP__
 #define __CAMERA_HPP__
 
+#include "glm/detail/_fixes.hpp"
+#include "glm/gtx/quaternion.hpp"
+
 #include "utils/define.hpp"
 #include "scene/objects/object.hpp"
-#include "glm/gtc/quaternion.hpp"
 
 namespace M3D
 {

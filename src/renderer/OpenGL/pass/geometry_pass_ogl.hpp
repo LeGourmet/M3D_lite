@@ -1,14 +1,14 @@
 #ifndef __GEOMETRY_PASS_OGL_HPP__
 #define __GEOMETRY_PASS_OGL_HPP__
 
+#include "glm/gtc/type_ptr.hpp"
+
 #include "pass_ogl.hpp"
 
 #include "scene/objects/meshes/mesh.hpp"
 #include "scene/objects/meshes/primitive.hpp"
 #include "renderer/OpenGL/mesh_ogl.hpp"
 #include "renderer/OpenGL/texture_ogl.hpp"
-
-#include "glm/gtc/type_ptr.hpp"
 
 #include <map>
 
@@ -18,6 +18,7 @@ namespace M3D
 	{
 		class GeometryPassOGL : public PassOGL {
 		public:
+			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 			GeometryPassOGL(std::string p_pathVert, std::string p_pathFrag) : PassOGL(p_pathVert, p_pathFrag) {
 				_uAlbedoLoc						= glGetUniformLocation(_program, "uAlbedo");
 				_uMetalnessLoc					= glGetUniformLocation(_program, "uMetalness");
@@ -45,10 +46,12 @@ namespace M3D
 				glDeleteFramebuffers(1, &_fbo);
 			}
 
+			// ----------------------------------------------------- GETTERS -------------------------------------------------------
 			GLuint getPositionMetalnessMap() { return _positionMetalnessMap; }
 			GLuint getNormalRoughnessMap() { return _normalRoughnessMap; }
 			GLuint getAlbedoMap() { return _albedoMap; }
 
+			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 			void resize(int p_width, int p_height) override {
 				glBindTexture(GL_TEXTURE_2D, _positionMetalnessMap);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, p_width, p_height, 0, GL_RGBA, GL_FLOAT, 0);
@@ -77,15 +80,15 @@ namespace M3D
 
 						glProgramUniform1i(_program, _uHasAlbedoMapLoc, primitive->getMaterial().getBaseColorMap() != nullptr);
 						glProgramUniform3fv(_program, _uAlbedoLoc, 1, glm::value_ptr(primitive->getMaterial().getBaseColor()));
-						//if (primitive->getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures_ogl.at(primitive->getMaterial().getBaseColorMap())->getId());
+						if (primitive->getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures_ogl.at(primitive->getMaterial().getBaseColorMap())->getId());
 
 						glProgramUniform1i(_program, _uHasMetalnessRoughnessMapLoc, primitive->getMaterial().getMetalnessRoughnessMap() != nullptr);
 						glProgramUniform1f(_program, _uMetalnessLoc, primitive->getMaterial().getMetalness());
 						glProgramUniform1f(_program, _uRoughnessLoc, primitive->getMaterial().getRoughness());
-						//if (primitive->getMaterial().getMetalnessRoughnessMap() != nullptr)  glBindTextureUnit(2, p_textures_ogl.at(primitive->getMaterial().getMetalnessRoughnessMap())->getId());
+						if (primitive->getMaterial().getMetalnessRoughnessMap() != nullptr)  glBindTextureUnit(2, p_textures_ogl.at(primitive->getMaterial().getMetalnessRoughnessMap())->getId());
 
 						glProgramUniform1i(_program, _uHasNormalMapLoc, primitive->getMaterial().getNormalMap() != nullptr);
-						//if (primitive->getMaterial().getNormalMap() != nullptr) glBindTextureUnit(3, p_textures_ogl.at(primitive->getMaterial().getNormalMap())->getId());
+						if (primitive->getMaterial().getNormalMap() != nullptr) glBindTextureUnit(3, p_textures_ogl.at(primitive->getMaterial().getNormalMap())->getId());
 
 						mesh.second->bind(i);
 						glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)primitive->getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getSceneGraphNode().size());
@@ -97,6 +100,7 @@ namespace M3D
 			}
 
 		private:
+			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 			GLuint _fbo = GL_INVALID_INDEX;
 			GLuint _rbo = GL_INVALID_INDEX;
 

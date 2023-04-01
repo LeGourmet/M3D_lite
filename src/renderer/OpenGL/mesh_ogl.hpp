@@ -1,11 +1,11 @@
 #ifndef __MESH_OGL_HPP__
-#define __Mesh_OGL_HPP__
+#define __MESH_OGL_HPP__
+
+#include "GL/gl3w.h"
 
 #include "scene/objects/meshes/mesh.hpp"
 #include "scene/objects/meshes/primitive.hpp"
 #include "scene/objects/meshes/vertex.hpp"
-
-#include "GL/gl3w.h"
 
 namespace M3D
 {
@@ -22,9 +22,9 @@ namespace M3D
 				_vboPrimitives.reserve(p_mesh->getPrimitives().size());
 				_eboPrimitives.reserve(p_mesh->getPrimitives().size());
 
-				glCreateVertexArrays(p_mesh->getPrimitives().size(), _vaoPrimitives.data());
-				glCreateBuffers(p_mesh->getPrimitives().size(), _vboPrimitives.data());
-				glCreateBuffers(p_mesh->getPrimitives().size(), _eboPrimitives.data());
+				glCreateVertexArrays((GLsizei)p_mesh->getPrimitives().size(), _vaoPrimitives.data());
+				glCreateBuffers((GLsizei)p_mesh->getPrimitives().size(), _vboPrimitives.data());
+				glCreateBuffers((GLsizei)p_mesh->getPrimitives().size(), _eboPrimitives.data());
 
 				for (int i=0; i<p_mesh->getPrimitives().size() ;i++) {
 					glVertexArrayVertexBuffer(_vaoPrimitives[i], 0, _vboPrimitives[i], 0, sizeof(Scene::Vertex));
@@ -42,16 +42,17 @@ namespace M3D
 			}
 
 			~MeshOGL() {
-				glDeleteVertexArrays(_vaoPrimitives.size(), _vaoPrimitives.data());
-				for (int i = 0; i < _vaoPrimitives.size();i++) {
+				for (int i=0; i<_vaoPrimitives.size() ;i++) {
 					glDisableVertexArrayAttrib(_vaoPrimitives[i], 0);
 					glDisableVertexArrayAttrib(_vaoPrimitives[i], 1);
 					glDisableVertexArrayAttrib(_vaoPrimitives[i], 2);
 					glDisableVertexArrayAttrib(_vaoPrimitives[i], 3);
 					glDisableVertexArrayAttrib(_vaoPrimitives[i], 4);
 				}
-				glDeleteBuffers(_vboPrimitives.size(), _vboPrimitives.data());
-				glDeleteBuffers(_eboPrimitives.size(), _eboPrimitives.data());
+				glDeleteVertexArrays((GLsizei)_vaoPrimitives.size(), _vaoPrimitives.data());
+
+				glDeleteBuffers((GLsizei)_vboPrimitives.size(), _vboPrimitives.data());
+				glDeleteBuffers((GLsizei)_eboPrimitives.size(), _eboPrimitives.data());
 				glDeleteBuffers(1, &_ssbo_transform_matrix);
 			}
 
@@ -90,9 +91,9 @@ namespace M3D
 			std::vector<GLuint> _eboPrimitives;
 
 			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-			void _bindValue(GLuint p_vao, GLuint p_id, GLint p_size, GLuint offset, unsigned int p_updateFrequency) {
+			void _bindValue(GLuint p_vao, GLuint p_id, GLint p_size, GLuint p_offset, unsigned int p_updateFrequency) {
 				glEnableVertexArrayAttrib(p_vao, p_id);
-				glVertexArrayAttribFormat(p_vao, p_id, p_size, GL_FLOAT, GL_FALSE, offset);
+				glVertexArrayAttribFormat(p_vao, p_id, p_size, GL_FLOAT, GL_FALSE, p_offset);
 				glVertexArrayAttribBinding(p_vao, p_id, 0);
 				glVertexArrayBindingDivisor(p_vao, p_id, p_updateFrequency);
 			}

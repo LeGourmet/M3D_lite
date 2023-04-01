@@ -1,6 +1,8 @@
 #ifndef __SHADING_PASS_OGL_HPP__
 #define __SHADING_PASS_OGL_HPP__
 
+#include "glm/gtc/type_ptr.hpp"
+
 #include "pass_ogl.hpp"
 
 #include "application.hpp"
@@ -8,7 +10,6 @@
 #include "scene/objects/lights/light.hpp"
 #include "scene/objects/cameras/camera.hpp"
 
-#include "glm/gtc/type_ptr.hpp"
 
 namespace M3D
 {
@@ -16,6 +17,7 @@ namespace M3D
 	{
 		class ShadingPassOGL : public PassOGL {
 		public:
+			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 			ShadingPassOGL(std::string p_pathVert, std::string p_pathFrag) : PassOGL(p_pathVert, p_pathFrag) {
 				_uCamPosLoc					= glGetUniformLocation(_program, "uCamPos");
 				_uLightPositionTypeLoc		= glGetUniformLocation(_program, "uLightPositionType");
@@ -44,8 +46,10 @@ namespace M3D
 				glDeleteFramebuffers(1, &_fbo);
 			}
 
+			// ----------------------------------------------------- GETTERS -------------------------------------------------------
 			GLuint getShadingMap() { return _shadingMap; }
 
+			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 			void resize(int p_width, int p_height) override {
 				glBindTexture(GL_TEXTURE_2D, _shadingMap);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, p_width, p_height, 0, GL_RGBA, GL_FLOAT, 0);
@@ -60,7 +64,7 @@ namespace M3D
 			}*/
 
 			void execute(GLuint p_positionMetalnessMap, GLuint p_normalRoughnessMap, GLuint p_albedoMap) {
-				/*glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+				glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_ONE, GL_ONE);
@@ -103,10 +107,11 @@ namespace M3D
 					glBindVertexArray(0);
 				}
 
-				glDisable(GL_BLEND);*/
+				glDisable(GL_BLEND);
 			}
 
 		private:
+			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 			GLuint _fbo = GL_INVALID_INDEX;
 
 			GLuint _vao = GL_INVALID_INDEX;

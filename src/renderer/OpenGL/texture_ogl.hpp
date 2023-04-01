@@ -1,11 +1,12 @@
 #ifndef __TEXTURE_OGL_HPP__
 #define __TEXTURE_OGL_HPP__
 
+#include "GL/gl3w.h"
+#include "glm/detail/_fixes.hpp"
+#include "glm/gtc/integer.hpp"
+
 #include "utils/define.hpp"
 #include "utils/image.hpp"
-
-#include "GL/gl3w.h"
-#include "glm/gtc/integer.hpp"
 
 namespace M3D
 {

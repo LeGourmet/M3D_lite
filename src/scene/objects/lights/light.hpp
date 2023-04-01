@@ -35,7 +35,7 @@ namespace Scene
 
 		inline const Vec3f& getColor() const { return _color; }
 		inline float getIntensity() const { return _intensity; }
-		inline Vec3f getEmissivity() const { return _color*_intensity; }
+		inline const Vec3f getEmissivity() const { return _color*_intensity; }
 		inline float getRange() const { return _range; }
 
 		inline float getCosInnerConeAngle() const { return _cosInnerConeAngle; }

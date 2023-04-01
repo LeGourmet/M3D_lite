@@ -1,15 +1,15 @@
 #ifndef __SCENE_MANAGER_HPP__
 #define __SCENE_MANAGER_HPP__
 
-#include "utils/image.hpp"
-
-#include "controller/keyboard_controller.hpp"
-#include "controller/mouse_controller.hpp"
-
 #include <SDL_events.h>
 //#include <fastgltf_parser.hpp>
 //#include <fastgltf_types.hpp>
 #include "tinygltf/tiny_gltf.h"
+
+#include "utils/image.hpp"
+
+#include "controller/keyboard_controller.hpp"
+#include "controller/mouse_controller.hpp"
 
 #include <vector>
 #include <filesystem>
@@ -35,9 +35,9 @@ namespace Scene
         ~SceneManager();
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
-        inline const std::vector<Mesh*>& getMeshes() { return _meshes; }
-        inline const std::vector<Light*>& getLights() { return _lights; }
-        inline const Camera& getCamera() { return *_cameras[_currentCamera]; }
+        inline const std::vector<Mesh*>& getMeshes() const { return _meshes; }
+        inline const std::vector<Light*>& getLights() const { return _lights; }
+        inline const Camera& getCamera() const { return *_cameras[_currentCamera]; }
         // + getCamera(int i)
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------

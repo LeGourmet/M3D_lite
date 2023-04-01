@@ -1,14 +1,14 @@
 #include "renderer_ogl.hpp"
 
+#include "GL/gl3w.h"
+
 #include "application.hpp"
 
-#include "mesh_ogl.hpp"
-#include "texture_ogl.hpp"
-#include "pass/geometry_pass_ogl.hpp"
-#include "pass/shading_pass_ogl.hpp"
-#include "pass/final_pass_ogl.hpp"
-
-#include "GL/gl3w.h"
+#include "renderer/OpenGL/mesh_ogl.hpp"
+#include "renderer/OpenGL/texture_ogl.hpp"
+#include "renderer/OpenGL/pass/geometry_pass_ogl.hpp"
+#include "renderer/OpenGL/pass/shading_pass_ogl.hpp"
+#include "renderer/OpenGL/pass/final_pass_ogl.hpp"
 
 #include <iostream>
 
@@ -17,10 +17,6 @@ namespace M3D
 namespace Renderer
 {
 	RendererOGL::RendererOGL(SDL_Window* p_window) {
-		SDL_GLContext glContext = SDL_GL_CreateContext(p_window);
-		if (glContext == nullptr) throw std::exception(SDL_GetError());
-		SDL_GL_MakeCurrent(p_window, glContext);
-
 		if (gl3wInit()) throw std::exception("gl3wInit() failed");
 		if (!gl3wIsSupported(4, 5)) throw std::exception("OpenGL version not supported");
 
@@ -51,6 +47,23 @@ namespace Renderer
 		_geometryPass->execute(_meshes,_textures);
 		_shadingPass->execute(_geometryPass->getPositionMetalnessMap(),_geometryPass->getNormalRoughnessMap(),_geometryPass->getAlbedoMap());
 		_finalPass->execute(_gamma,_shadingPass->getShadingMap());
+
+		GLenum err;
+		while ((err = glGetError()) != GL_NO_ERROR)
+		{
+			std::string error;
+			switch (err)
+			{
+			case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
+			case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
+			case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
+			case GL_STACK_OVERFLOW:                error = "STACK_OVERFLOW"; break;
+			case GL_STACK_UNDERFLOW:               error = "STACK_UNDERFLOW"; break;
+			case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
+			case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+			}
+			std::cout << error << std::endl;
+		}
 	}
 
 	void RendererOGL::createMesh(Scene::Mesh* p_mesh) { _meshes.insert(std::pair<Scene::Mesh*, MeshOGL*>(p_mesh, new MeshOGL(p_mesh))); }

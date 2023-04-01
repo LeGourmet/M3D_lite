@@ -18,7 +18,7 @@ namespace Scene
         ~Mesh() { for(int i=0; i<_primitives.size() ;i++) delete _primitives[i]; }
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
-        inline const std::vector<Primitive*>& getPrimitives() const { return _primitives; }
+        inline std::vector<Primitive*>& getPrimitives() { return _primitives; }
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void addPrimitive(Primitive* p_primitive) { _primitives.push_back(p_primitive); }

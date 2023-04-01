@@ -1,12 +1,12 @@
 #ifndef __RENDERER_HPP__
 #define __RENDERER_HPP__
 
+#include <SDL_video.h>
+
 #include "utils/define.hpp"
 #include "utils/image.hpp"
 
 #include "scene/objects/meshes/mesh.hpp"
-
-#include <SDL_video.h>
 
 namespace M3D
 {
@@ -27,8 +27,8 @@ namespace M3D
             virtual void createMesh(Scene::Mesh* p_mesh) = 0;
             virtual void createTexture(Image* p_texture) = 0;
 
-            virtual void addInstance(Scene::Mesh* p_mesh, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) = 0;
-            virtual void updateInstance(Scene::Mesh* p_mesh, unsigned int p_id, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) = 0;
+            virtual void addInstanceMesh(Scene::Mesh* p_mesh, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) = 0;
+            virtual void updateInstanceMesh(Scene::Mesh* p_mesh, unsigned int p_id, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) = 0;
 
             virtual void deleteMesh(Scene::Mesh* p_mesh) = 0;
             virtual void deleteTexture(Image* p_texture) = 0;

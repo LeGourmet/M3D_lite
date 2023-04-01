@@ -14,5 +14,6 @@ void main(){
 	//col = vec3(1.) - exp(-col * 5.);															// exposure tone mapping	(exposure = 5 here)
 	col = clamp((col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14), 0., 1.);		// ACES filmic tone mapping
 	col = pow(col,vec3(1./uGamma));																// gama correction
+	
 	fragColor = vec4(col,1.);
 }

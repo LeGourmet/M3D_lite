@@ -4,6 +4,8 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include "pass_ogl.hpp"
+#include "shadow_pass.hpp"
+#include "cube_shadow_pass.hpp"
 
 #include "application.hpp"
 #include "scene/scene_manager.hpp"
@@ -19,31 +21,34 @@ namespace M3D
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 			ShadingPassOGL(std::string p_pathVert, std::string p_pathFrag) : PassOGL(p_pathVert, p_pathFrag) {
+				//_cubeShadowPass = new CubeShadowPassOGL("src/renderer/OpenGL/shaders/.vert", "src/renderer/OpenGL/shaders/.frag");
+				//_shadowPass = new ShadowPassOGL("src/renderer/OpenGL/shaders/.vert", "src/renderer/OpenGL/shaders/.frag");
+				
 				_uCamPosLoc					= glGetUniformLocation(_program, "uCamPos");
 				_uLightPositionTypeLoc		= glGetUniformLocation(_program, "uLightPositionType");
 				_uLightDirectionInnerLoc	= glGetUniformLocation(_program, "uLightDirectionInner");
 				_uLightEmissivityOuterLoc	= glGetUniformLocation(_program, "uLightEmissivityOuter");
 
-				glCreateFramebuffers(1, &_fbo);
-				_generateAndAttachMap(_fbo, &_shadingMap, 0);
+				glCreateFramebuffers(1, &_fboShading);
+				_generateAndAttachMap(_fboShading, &_shadingMap, 0);
 				GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-				glNamedFramebufferDrawBuffers(_fbo, 1, DrawBuffers);
+				glNamedFramebufferDrawBuffers(_fboShading, 1, DrawBuffers);
 
-				glCreateVertexArrays(1, &_vao);
-				glCreateBuffers(1, &_vbo);
+				glCreateVertexArrays(1, &_vaoBillboard);
+				glCreateBuffers(1, &_vboBillboard);
 
-				glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vec2f));
-				glEnableVertexArrayAttrib(_vao, 0);
-				glVertexArrayAttribFormat(_vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-				glVertexArrayAttribBinding(_vao, 0, 0);
-				glNamedBufferData(_vbo, 6 * sizeof(Vec2f), nullptr, GL_DYNAMIC_DRAW);
+				glVertexArrayVertexBuffer(_vaoBillboard, 0, _vboBillboard, 0, sizeof(Vec2f));
+				glEnableVertexArrayAttrib(_vaoBillboard, 0);
+				glVertexArrayAttribFormat(_vaoBillboard, 0, 2, GL_FLOAT, GL_FALSE, 0);
+				glVertexArrayAttribBinding(_vaoBillboard, 0, 0);
+				glNamedBufferData(_vboBillboard, 6 * sizeof(Vec2f), nullptr, GL_DYNAMIC_DRAW);
 			}
 			~ShadingPassOGL() {
 				glDeleteTextures(1, &_shadingMap);
-				glDisableVertexArrayAttrib(_vao, 0);
-				glDeleteBuffers(1, &_vbo);
-				glDeleteVertexArrays(1, &_vao);
-				glDeleteFramebuffers(1, &_fbo);
+				glDisableVertexArrayAttrib(_vaoBillboard, 0);
+				glDeleteBuffers(1, &_vboBillboard);
+				glDeleteVertexArrays(1, &_vaoBillboard);
+				glDeleteFramebuffers(1, &_fboShading);
 			}
 
 			// ----------------------------------------------------- GETTERS -------------------------------------------------------
@@ -54,12 +59,48 @@ namespace M3D
 				glBindTexture(GL_TEXTURE_2D, _shadingMap);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, p_width, p_height, 0, GL_RGBA, GL_FLOAT, 0);
 
-				glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+				glBindFramebuffer(GL_FRAMEBUFFER, _fboShading);
 				glViewport(0, 0, p_width, p_height);
 			}
 
-			void execute(GLuint p_positionMetalnessMap, GLuint p_normalRoughnessMap, GLuint p_albedoMap) {
-				glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+			void execute(GLuint p_positionMap, GLuint p_normalMetalnessMap, GLuint p_albedoRoughnessMap) {
+				/*for (Scene::Light* l : Application::getInstance().getSceneManager().getLights()) {
+					for(unsigned int i=0; i<l->getNumberInstances(); i++){
+						switch (l->getType()) {
+							case LIGHT_TYPE::POINT:
+							case LIGHT_TYPE::SPOT: {
+								// compute shadow
+
+								// compute shading
+								glBindFramebuffer(GL_FRAMEBUFFER, _fboShading);
+
+								glEnable(GL_BLEND);
+								glBlendFunc(GL_ONE, GL_ONE);
+								glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+								glUseProgram(_program);
+
+								glBindTextureUnit(0, p_positionMap);
+								glBindTextureUnit(1, p_normalMetalnessMap);
+								glBindTextureUnit(2, p_albedoRoughnessMap);
+
+								break;
+							}
+							case LIGHT_TYPE::DIRECTIONAL: {
+								// compute shadow
+								
+								// compute shading
+
+								break;
+							}
+						}
+						
+
+
+
+					}
+				}*/
+				glBindFramebuffer(GL_FRAMEBUFFER, _fboShading);
 
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_ONE, GL_ONE);
@@ -67,9 +108,9 @@ namespace M3D
 
 				glUseProgram(_program);
 
-				glBindTextureUnit(0, p_positionMetalnessMap);
-				glBindTextureUnit(1, p_normalRoughnessMap);
-				glBindTextureUnit(2, p_albedoMap);
+				glBindTextureUnit(0, p_positionMap);
+				glBindTextureUnit(1, p_normalMetalnessMap);
+				glBindTextureUnit(2, p_albedoRoughnessMap);
 
 				Vec3f postionCamera = Application::getInstance().getSceneManager().getMainCameraTransformation() * Vec4f(VEC3F_ZERO, 1.);
 				Mat4f VP = Application::getInstance().getSceneManager().getMainCameraProjectionMatrix() * Application::getInstance().getSceneManager().getMainCameraViewMatrix();
@@ -82,6 +123,16 @@ namespace M3D
 						Mat4f transformation = l->getInstance(i)->computeTransformation();
 						Vec3f pos = transformation * Vec4f(VEC3F_ZERO, 1.);
 						Vec3f dir = transformation * Vec4f(-VEC3F_Z, 0.);
+
+						Mat4f shadowProj = glm::perspective(PIf, 1.f, 1e-2f, 1000.f);
+						std::vector<Mat4f> shadowTransforms = {
+							(shadowProj * glm::lookAt(pos, pos+VEC3F_X, -VEC3F_Y)),
+							(shadowProj * glm::lookAt(pos, pos-VEC3F_X, -VEC3F_Y)),
+							(shadowProj * glm::lookAt(pos, pos+VEC3F_Y,  VEC3F_Z)), // sure ?
+							(shadowProj * glm::lookAt(pos, pos-VEC3F_Y, -VEC3F_Z)), // sure ?
+							(shadowProj * glm::lookAt(pos, pos+VEC3F_Z, -VEC3F_Y)),
+							(shadowProj * glm::lookAt(pos, pos-VEC3F_Z, -VEC3F_Y))
+						};
 
 						std::vector<Vec2f> billBoardCoord;
 						billBoardCoord.reserve(6);
@@ -105,9 +156,9 @@ namespace M3D
 						
 						glProgramUniform4fv(_program, _uLightPositionTypeLoc, 1, glm::value_ptr(Vec4f(pos, type)));
 						glProgramUniform4fv(_program, _uLightDirectionInnerLoc, 1, glm::value_ptr(Vec4f(glm::normalize(dir), l->getCosInnerConeAngle())));
-						glNamedBufferSubData(_vbo, 0, 6 * sizeof(Vec2f), billBoardCoord.data());
+						glNamedBufferSubData(_vboBillboard, 0, 6 * sizeof(Vec2f), billBoardCoord.data());
 
-						glBindVertexArray(_vao);
+						glBindVertexArray(_vaoBillboard);
 						glDrawArrays(GL_TRIANGLES, 0, 6);
 						glBindVertexArray(0);
 					}
@@ -118,11 +169,11 @@ namespace M3D
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-			GLuint _fbo = GL_INVALID_INDEX;
+			GLuint _fboShading = GL_INVALID_INDEX;
 
-			GLuint _vao = GL_INVALID_INDEX;
-			GLuint _vbo = GL_INVALID_INDEX;
-			GLuint _ebo = GL_INVALID_INDEX;
+			GLuint _vaoBillboard = GL_INVALID_INDEX;
+			GLuint _vboBillboard = GL_INVALID_INDEX;
+			GLuint _eboBillboard = GL_INVALID_INDEX;
 
 			GLuint _shadingMap = GL_INVALID_INDEX;
 
@@ -130,6 +181,11 @@ namespace M3D
 			GLuint _uLightPositionTypeLoc = GL_INVALID_INDEX;
 			GLuint _uLightDirectionInnerLoc = GL_INVALID_INDEX;
 			GLuint _uLightEmissivityOuterLoc = GL_INVALID_INDEX;
+
+			CubeShadowPassOGL* _cubeShadowPass = nullptr;
+			ShadowPassOGL* _shadowPass = nullptr;
+			GLuint _uHasCubeShadow = GL_INVALID_INDEX;
+			GLuint _uHasSimpleShadow = GL_INVALID_INDEX;
 		};
 	}
 }

@@ -7,9 +7,9 @@
 
 layout( location = 0 ) out vec4 fragColor;
 
-layout( binding = 0 ) uniform sampler2D uPosition_MetalnessMap;
-layout( binding = 1 ) uniform sampler2D uNormal_RoughnessMap;
-layout( binding = 2 ) uniform sampler2D uAlbedoMap;
+layout( binding = 0 ) uniform sampler2D uPositionMap;
+layout( binding = 1 ) uniform sampler2D uNormal_MetalnessMap;
+layout( binding = 2 ) uniform sampler2D uAlbedo_RoughnessMap;
 
 uniform vec3 uCamPos;
 uniform vec4 uLightPositionType;	 // position  + type
@@ -68,20 +68,20 @@ void getPonctualLight(in vec3 fragPos, inout vec3 p_lightDir, inout vec3 p_light
 
 void main()
 {
-	vec4 albedo = texture2D(uAlbedoMap,uv);
-	if(albedo.a<0.5) discard;
+	vec4 position = texture2D(uPositionMap,uv);
+	if(position.a<0.5) discard;
 
-	vec4 position_metalness = texture2D(uPosition_MetalnessMap,uv);
-	vec4 normal_roughness = texture2D(uNormal_RoughnessMap,uv);
+	vec4 albedo_roughness = texture2D(uAlbedo_RoughnessMap,uv);
+	vec4 normal_metalness = texture2D(uNormal_MetalnessMap,uv);
 
-	vec3 N = normal_roughness.xyz;
-	vec3 V = normalize(uCamPos-position_metalness.xyz);
+	vec3 N = normal_metalness.xyz;
+	vec3 V = normalize(uCamPos-position.xyz);
 	float cosNV = dot(N,V);
 	if(cosNV<0.) { N *= -1.; cosNV=dot(N,V); }
 
 	vec3 L,Light_Componant;
 	if(uLightPositionType.w < 0.5){ getDirectional(L,Light_Componant); }
-	else{ getPonctualLight(position_metalness.xyz, L, Light_Componant); }
+	else{ getPonctualLight(position.xyz, L, Light_Componant); }
 
 	float cosNL = dot(N,L);
 	if(cosNL<0.) discard;
@@ -90,11 +90,11 @@ void main()
 	float cosNH = dot(N,H);
 	float cosHV = dot(H,V);
 
-	float specular = getSpecular(normal_roughness.a*normal_roughness.a,cosNV,cosNL,cosNH);
-	float diffuse = getDiffuse(normal_roughness.a,cosNV,cosNL,N,V,L);
+	float specular = getSpecular(albedo_roughness.a*albedo_roughness.a,cosNV,cosNL,cosNH);
+	float diffuse = getDiffuse(albedo_roughness.a,cosNV,cosNL,N,V,L);
 
-	vec3 dielectricComponent = albedo.xyz * mix(diffuse,specular,getFresnel(0.04,cosHV)); //we can use ior with ((1-ior)/(1+ior))^2 that emplace 0.04
-	vec3 MetalComponent = getFresnel(albedo.xyz,cosHV) * specular;
+	vec3 dielectricComponent = albedo_roughness.xyz * mix(diffuse,specular,getFresnel(0.04,cosHV)); //we can use ior with ((1-ior)/(1+ior))^2 that emplace 0.04
+	vec3 MetalComponent = getFresnel(albedo_roughness.xyz,cosHV) * specular;
 
-	fragColor = vec4(mix(dielectricComponent,MetalComponent,position_metalness.a) * Light_Componant * cosNL, 1.); 
+	fragColor = vec4(mix(dielectricComponent,MetalComponent,normal_metalness.a) * Light_Componant * cosNL, 1.); 
 }

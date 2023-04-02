@@ -9,7 +9,7 @@ namespace UserInterface
 {
 	GraphicalUserInterface::GraphicalUserInterface() { 
 		//Application::getInstance().getSceneManager().loadNewScene("assets/sponza/Sponza.gltf");
-		Application::getInstance().getSceneManager().loadNewScene("assets/musee/musee.gltf");
+		Application::getInstance().getSceneManager().loadNewScene("assets/musee/musee.glb");
 	}
 
 	GraphicalUserInterface::~GraphicalUserInterface() { }

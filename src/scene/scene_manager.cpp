@@ -20,7 +20,7 @@ namespace M3D
 namespace Scene
 {
     SceneManager::SceneManager(const int p_width, const int p_height) {
-        addMaterial(new Material(VEC4F_ONE, VEC3F_ZERO, 0.f, 1.f, nullptr, nullptr, nullptr, nullptr, nullptr)); 
+        addMaterial(new Material(VEC4F_ONE, VEC3F_ZERO, 0.f, 0.f, 1.f, nullptr, nullptr, nullptr, nullptr, nullptr)); 
         
         addCamera(new Camera(PIf/3.f, 1., 1e-2f, 1e3f ,CAMERA_TYPE::PERSPECTIVE));
         addNode(new SceneGraphNode(nullptr,VEC3F_ZERO,VEC3F_ONE,QUATF_ID));
@@ -220,6 +220,7 @@ namespace Scene
             addMaterial(new Material(
                 glm::make_vec4(m.pbrMetallicRoughness.baseColorFactor.data()),
                 glm::make_vec3(m.emissiveFactor.data()),
+                m.extensions.find("KHR_materials_emissive_strength") != m.extensions.end() && m.extensions.at("KHR_materials_emissive_strength").Has("emissiveStrength") ? (float)m.extensions.at("KHR_materials_emissive_strength").Get("emissiveStrength").GetNumberAsDouble() : 0.f,
                 (float)m.pbrMetallicRoughness.metallicFactor,
                 (float)m.pbrMetallicRoughness.roughnessFactor,
                 (m.pbrMetallicRoughness.baseColorTexture.index == -1.) ? nullptr : _textures[startIdTextures + m.pbrMetallicRoughness.baseColorTexture.index],

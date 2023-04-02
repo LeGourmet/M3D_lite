@@ -16,15 +16,16 @@ namespace Scene
 	{
 	public:
 		// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
+		// blender exporter just divide multiply it's unitless/w light by 683 to have some lm (we need candela in the spec normaly)
 		Light(LIGHT_TYPE p_type, const Vec3f& p_color, const float p_intensity, const float p_innerConeAngle, const float p_outerConeAngle ) 
-			: _type(p_type), _color(p_color), _intensity(p_intensity) {
+			: _type(p_type), _color(p_color), _intensity(p_intensity/683) {
 			_cosInnerConeAngle = glm::cos(p_innerConeAngle);
 			_cosOuterConeAngle = glm::cos(p_outerConeAngle);
 			_range = (float)glm::sqrt(256.*_intensity*glm::max<float>(_color.x,glm::max<float>(_color.y,_color.z)));
 		}
 
 		Light(LIGHT_TYPE p_type, const Vec3f& p_color, const float p_intensity) 
-			: _type(p_type), _color(p_color), _intensity(p_intensity) {
+			: _type(p_type), _color(p_color), _intensity(p_intensity/683) {
 			_range = (float)glm::sqrt(256.*_intensity*glm::max<float>(_color.x,glm::max<float>(_color.y,_color.z)));
 		}
 

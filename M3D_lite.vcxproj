@@ -525,6 +525,8 @@
     <ClInclude Include="lib\tinygltf\stb_image_write.h" />
     <ClInclude Include="lib\tinygltf\tiny_gltf.h" />
     <ClInclude Include="src\application.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\cube_shadow_pass.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\shadow_pass.hpp" />
     <ClInclude Include="src\renderer\OpenGL\texture_ogl.hpp" />
     <ClInclude Include="src\scene\objects\meshes\material.hpp" />
     <ClInclude Include="src\scene\objects\meshes\primitive.hpp" />

@@ -45,7 +45,7 @@ namespace Renderer
 
 	void RendererOGL::drawFrame() {
 		_geometryPass->execute(_meshes,_textures);
-		_shadingPass->execute(_geometryPass->getPositionMetalnessMap(),_geometryPass->getNormalRoughnessMap(),_geometryPass->getAlbedoMap());
+		_shadingPass->execute(_geometryPass->getPositionMap(),_geometryPass->getNormalMetalnessMap(),_geometryPass->getAlbedoRoughnessMap());
 		_finalPass->execute(_gamma,_shadingPass->getShadingMap());
 
 		GLenum err;

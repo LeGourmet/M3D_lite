@@ -1601,6 +1601,12 @@
     <ClInclude Include="lib\tinygltf\tiny_gltf.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\pass\shadow_pass.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\pass\cube_shadow_pass.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\renderer\OpenGL\shaders\shadingPass.frag" />

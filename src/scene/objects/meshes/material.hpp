@@ -12,19 +12,22 @@ namespace Scene
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-        Material(const Vec4f& p_baseColor, const Vec3f& p_emissivity, float p_metalness, float p_roughness,
+        Material(const Vec4f& p_baseColor, const Vec3f& p_emissiveColor, float p_emissiveStrength, float p_metalness, float p_roughness,
                  Image* p_baseColorMap, Image* p_metalnessRoughnessMap, Image* p_normalMap, Image* p_occlusionMap, Image* p_emissivityMap):
-            _baseColor(p_baseColor), _emissivity(p_emissivity), _metalness(p_metalness), _roughness(p_roughness),
+            _baseColor(p_baseColor), _emissiveColor(p_emissiveColor), _emissiveStrength(p_emissiveStrength), _metalness(p_metalness), _roughness(p_roughness),
             _baseColorMap(p_baseColorMap), _metalnessRoughnessMap(p_metalnessRoughnessMap), _normalMap(p_normalMap), _occlusionMap(p_occlusionMap), _emissivityMap(p_emissivityMap) 
         {
             _isOpaque = (_baseColorMap != nullptr && _baseColorMap->getNbChannels() < 4) || (_baseColorMap == nullptr && _baseColor.a == 1.);
-            _isEmissive = (_emissivityMap != nullptr) || (_emissivityMap == nullptr && glm::length(_emissivity) > 0.f);
+            _isEmissive = (_emissivityMap != nullptr) || (_emissivityMap == nullptr && glm::length(getEmissivity()) > 0.f);
         }
         ~Material(){}
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
         inline const Vec4f& getBaseColor() const { return _baseColor; }
-        inline const Vec3f& getEmissivity() const { return _emissivity; }
+        inline const Vec3f& getEmissiveColor() const { return _emissiveColor; }
+        inline const Vec3f getEmissivity() const { return _emissiveColor*_emissiveStrength; }
+
+        inline float getEmissiveStrength() const { return _emissiveStrength; }
         inline float getMetalness() const { return _metalness; }
         inline float getRoughness() const { return _roughness; }
         inline bool isOpaque() const { return _isOpaque; }
@@ -38,12 +41,14 @@ namespace Scene
 
     private:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-        // add emissivity power (strenth) ? + ior
+        // add ior
         
         Vec4f _baseColor = VEC4F_ONE;
-        Vec3f _emissivity = VEC3F_ZERO;
-        float _metalness = 0.;
-        float _roughness = 1.;
+        Vec3f _emissiveColor = VEC3F_ZERO;
+
+        float _emissiveStrength = 0.f;
+        float _metalness = 0.f;
+        float _roughness = 1.f;
         bool _isOpaque = true;
         bool _isEmissive = false; 
 

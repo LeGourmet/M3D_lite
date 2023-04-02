@@ -21,8 +21,8 @@ namespace Renderer
 		if (!gl3wIsSupported(4, 5)) throw std::exception("OpenGL version not supported");
 
 		_geometryPass = new GeometryPassOGL("src/renderer/OpenGL/shaders/geometryPass.vert", "src/renderer/OpenGL/shaders/geometryPass.frag");
-		_shadingPass = new ShadingPassOGL("src/renderer/OpenGL/shaders/shadingPass.vert", "src/renderer/OpenGL/shaders/shadingPass.frag");
-		_finalPass = new FinalPassOGL("src/renderer/OpenGL/shaders/finalPass.vert", "src/renderer/OpenGL/shaders/finalPass.frag");
+		_shadingPass = new ShadingPassOGL("src/renderer/OpenGL/shaders/billboard.vert", "src/renderer/OpenGL/shaders/shadingPass.frag");
+		_finalPass = new FinalPassOGL("src/renderer/OpenGL/shaders/quadScreen.vert", "src/renderer/OpenGL/shaders/finalPass.frag");
 
 		resize(Application::getInstance().getWidth(), Application::getInstance().getHeight());
 

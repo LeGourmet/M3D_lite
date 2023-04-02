@@ -9,139 +9,77 @@
 
 namespace M3D
 {
+    enum CAMERA_TYPE { PERSPECTIVE, ORTHOGRAPHIC };
+
 namespace Scene
 {
     class Camera : public Object
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------
-        Camera(float p_znear, float p_zfar, float p_fovy) { 
-            setNear(p_znear);
-            setFar(p_zfar);
-            setFovy(p_fovy);
-            _updateRotation(); 
+        /*
+        * p_arg1 is interpreted as fovy or xmag, it depend of the CAMERA_TYPE
+        * p_arg2 is interpreted as aspect ratio or ymag, it depend of the CAMERA_TYPE
+        */
+        Camera(float p_arg1, float p_arg2, float p_znear, float p_zfar, CAMERA_TYPE p_type) : _type(p_type) {
+            switch (p_type) {
+                case CAMERA_TYPE::PERSPECTIVE:  setFovy(p_arg1); setAspectRatio(p_arg2); break;
+                case CAMERA_TYPE::ORTHOGRAPHIC: setXMag(p_arg1); setYMag(p_arg2);        break;
+            }
+
+            setZNear(p_znear);
+            setZFar(p_zfar);
         }
-        
         ~Camera() {}
 
-        // ----------------------------------------------------- GETTERS -------------------------------------------------------
-        inline const Quatf& getRotation() const { return _rotation; }
-        inline const Vec3f& getPosition() const { return _position; }
-
-        inline const Mat4f& getViewMatrix() const { return _viewMatrix; }
-        inline const Mat4f& getProjectionMatrix() const { return _projectionMatrix; }
-
-        inline const Vec3f& getFront() const { return _front; }
-        inline const Vec3f& getLeft() const { return _left; }
-        inline const Vec3f& getUp() const { return _up; }
-
-        // ----------------------------------------------------- SETTERS -------------------------------------------------------
-        void setScreenSize(const unsigned int p_width, const unsigned int p_height) {
-            _screenWidth = p_width;
-            _screenHeight = p_height;
-            _aspectRatio = float(_screenWidth) / float(_screenHeight);
-            _updateProjectionMatrix();
+        // ------------------------------------------------------ GETTERS ------------------------------------------------------
+        const Mat4f getViewMatrix(const unsigned int p_instanceId) const {
+            if (p_instanceId < _instances.size()) {
+                Mat4f transformation = _instances[p_instanceId]->computeTransformation();
+                Vec3f position  = transformation * Vec4f(VEC3F_ZERO, 1.);
+                Vec3f front     = transformation * Vec4f(-VEC3F_Z, 0.);     // CHECK if == and why need -
+                Vec3f up        = transformation * Vec4f(VEC3F_Y, 0.);      // CHECK if ==
+                return glm::lookAt( position, position+front, up );
+            }
+            return MAT4F_ID;
         }
 
-        void setPosition(const Vec3f& p_position) {
-            _position = p_position;
-            _updateViewMatrix();
+        const Mat4f getProjectionMatrix(const unsigned int p_instanceId) const {
+            if(p_instanceId < _instances.size())
+                switch (_type) {
+                    case CAMERA_TYPE::PERSPECTIVE:  return glm::perspective(_fovy, _aspectRatio, _znear, _zfar);
+                    case CAMERA_TYPE::ORTHOGRAPHIC: return glm::ortho(-0.5f*_xmag, 0.5f*_xmag, -0.5f*_ymag, 0.5f*_ymag, _znear, _zfar);
+                }
+            return MAT4F_ID;
         }
 
-        void setRotation(const Quatf& p_rotation) {
-            _rotation = glm::normalize(p_rotation);
-            _updateRotation();
-        }
+        // ------------------------------------------------------ SETTERS ------------------------------------------------------
+        inline void setCameraType(CAMERA_TYPE p_type) { _type = p_type; }
 
-        void setNear(const float p_near) {
-            _near = glm::max<float>(1e-2f, p_near);
-            _updateProjectionMatrix();
-        }
+        inline void setZNear(const float p_znear) { _znear = glm::max<float>(1e-2f, p_znear); }
+        inline void setZFar(const float p_zfar) { _zfar = glm::max<float>(1e-2f, p_zfar); }
 
-        void setFar(const float p_far) {
-            _far = glm::max<float>(1e-2f, p_far);
-            _updateProjectionMatrix();
-        }
-
-        void setFovy(const float p_fovy){
-            _fovy = p_fovy;
-            _updateProjectionMatrix();
-        }
-
-        // ----------------------------------------------------- FONCTIONS -------------------------------------------------------
-        void move(const Vec3f& p_delta) {
-            _position += _left * p_delta.x;
-            _position += _up * p_delta.y;
-            _position += _front * p_delta.z;
-            _updateViewMatrix();
-        }
-
-        void rotateArround(const Vec3f& p_pivot, const Vec3f& p_delta){
-            _position = Quatf(p_delta) * (_position - p_pivot) + p_pivot;
-            lookAt(p_pivot);
-        }
+        inline void setFovy(const float p_fovy) { _fovy = p_fovy; }
+        inline void setAspectRatio(const float p_aspectRatio) { _aspectRatio = p_aspectRatio; }
+        inline void setScreenSize(const unsigned int p_width, const unsigned int p_height) { _aspectRatio = float(p_width) / float(p_height); }
         
-        void rotate(const Vec3f& p_delta) {
-            _rotation *= Quatf(p_delta);
-            _updateRotation();
-        }
-
-        // ne marche pas 
-        void lookAt(const Vec3f& p_lookAt) {
-            Vec3f dir = glm::normalize(p_lookAt - _position);
-            float cosAngle = glm::dot(dir, _front);
-
-            if (glm::abs(cosAngle+1.) < 0.001) _rotation = Quatf(PIf, {_up});
-            else if(glm::abs(cosAngle-1.) < 0.001) _rotation = QUATF_ID;
-
-            float halfAngle = (float)(glm::acos(cosAngle) * 0.5);
-            _rotation = Quatf(glm::cos(halfAngle), { glm::normalize(glm::cross(dir, _front)) * glm::sin(halfAngle) });
-            _updateRotation();
-        }
-
-        void reset() {
-            _position = VEC3F_ZERO;
-            _rotation = QUATF_ID;
-        }
+        inline void setXMag(const float p_xmag) { _xmag = glm::max<float>(1e-2f, p_xmag); }
+        inline void setYMag(const float p_ymag) { _ymag = glm::max<float>(1e-2f, p_ymag); }
 
     private:
-        // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
-        unsigned int _screenWidth = 1u;
-        unsigned int _screenHeight = 1u;
-        float _aspectRatio = 1.f;
-        float _near = 0.01f;
-        float _far = 1e4f;
+        // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+        CAMERA_TYPE _type;
+        
+        float _znear = 1e-2f;
+        float _zfar = 1e4f;
+      
+        // --- PERSPECTIVE ---
         float _fovy = 0.5f;
-
-        Vec3f _position = VEC3F_ZERO;
-        Quatf _rotation = QUATF_ID;
-
-        Vec3f _front = VEC3F_Z;
-        Vec3f _left = -VEC3F_X;
-        Vec3f _up = VEC3F_Y;
-
-        Mat4f _viewMatrix = MAT4F_ID;
-        Mat4f _projectionMatrix = MAT4F_ID;
-
-        // ----------------------------------------------------- FONCTIONS -------------------------------------------------------
-        void _updateViewMatrix() { _viewMatrix = glm::lookAt(_position, _position + _front, _up); } // to compute with scene graph
-        void _updateProjectionMatrix() { _projectionMatrix = glm::perspective( _fovy, _aspectRatio, _near, _far); }
-        void _updateRotation() {
-            Mat3f rotation = glm::mat3_cast(_rotation);
-            
-            // marche pas mal mais inverse controle quand on regarde en up ou down
-            _front = rotation * VEC3F_Z;
-            _left = glm::normalize(glm::cross(VEC3F_Y, _front));
-            _up = glm::normalize(glm::cross(_front, _left));
-
-            // marche pas mal mais tourne sur lui même
-            //_front = glm::normalize(rotation * VEC3F_Z);
-            //_left = glm::normalize(rotation * -VEC3F_X);
-            //_up = glm::normalize(rotation * VEC3F_Y);
-
-            _updateViewMatrix();
-        }
-
+        float _aspectRatio = 1.f;
+        
+        // --- ORTHOGRAPHIC ---
+        float _xmag = 1.f;
+        float _ymag = 1.f;
     };
 }
 }

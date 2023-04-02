@@ -29,12 +29,12 @@ namespace M3D
 
             // ----------------------------------------------------- SETTERS -------------------------------------------------------
             void setRotation(const Quatf& p_rotation) {
-                _rotation = p_rotation;
+                _rotation = p_rotation;             // CHECK normalize
                 _updateLocalTransformation();
             }
 
-            void setScale(const Vec3f& p_scale) {
-                _scale = p_scale;
+            void setScaling(const Vec3f& p_scale) {
+                _scale = p_scale;                   // CHECK negative
                 _updateLocalTransformation();
             }
 
@@ -44,7 +44,7 @@ namespace M3D
             }
 
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------        
-            Mat4f computeTransformation() const {
+            const Mat4f computeTransformation() const {
                 Mat4f result = _transformation;
                 SceneGraphNode* current = _parent;
 
@@ -53,12 +53,42 @@ namespace M3D
                 return result;
             }
 
+            void translate(const Vec3f& p_delta) {
+                _translation += p_delta;
+                _updateLocalTransformation();
+            }
+
+            void rotate(const Vec3f& p_delta) { 
+                _rotation *= Quatf(p_delta);    // CHECK normalize
+                _updateLocalTransformation(); 
+            }
+
+            void scale(const Vec3f& p_delta) {
+                _scale *= p_delta;              // CHECK negative
+                _updateLocalTransformation(); 
+            }
+
+            void rotateAround(const Vec3f& p_pivot, const Vec3f& p_delta) {
+                Vec3f position = computeTransformation()*Vec4f(VEC3F_ZERO,1.);
+                translate(p_pivot + Quatf(p_delta) * (position - p_pivot) - position);
+            }
+
+            void lookAt(const Vec3f& p_target) {
+                /*Vec3f forwardVector = glm::normalize(p_lookAt - _position);
+
+                _rotation *= glm::normalize(
+                    Quatf(glm::dot(_front, forwardVector) + 1.f, 
+                          glm::cross(_front, forwardVector)));*/
+            }
+
         private:
             // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
             SceneGraphNode* _parent = nullptr;
+            
             Quatf _rotation = QUATF_ID;
             Vec3f _scale = VEC3F_ONE;
             Vec3f _translation = VEC3F_ZERO;
+            
             Mat4f _transformation = MAT4F_ID;
 
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------

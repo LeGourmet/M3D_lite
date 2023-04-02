@@ -7,6 +7,7 @@
 #include "tinygltf/tiny_gltf.h"
 
 #include "utils/image.hpp"
+#include "utils/define.hpp"
 
 #include "controller/keyboard_controller.hpp"
 #include "controller/mouse_controller.hpp"
@@ -37,8 +38,12 @@ namespace Scene
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
         inline const std::vector<Mesh*>& getMeshes() const { return _meshes; }
         inline const std::vector<Light*>& getLights() const { return _lights; }
-        inline const Camera& getCamera() const { return *_cameras[_currentCamera]; }
-        // + getCamera(int i)
+        inline const std::vector<Camera*>& getCameras() const { return _cameras; }
+
+        const Mat4f getMainCameraTransformation() const;
+        const Mat4f getMainCameraViewMatrix() const;
+        const Mat4f getMainCameraProjectionMatrix() const;
+        // TODO add getViewMatrix(p_idCam, p_idInstance) / getProjectionMatrix(p_idCam, p_idInstance) if needed
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void loadNewScene(const std::string& p_path);
@@ -70,7 +75,7 @@ namespace Scene
         std::vector<Image*> _textures; // dessocier image / sampler / textures pour ne pas reload images
 
         std::vector<SceneGraphNode*> _sceneGraph;
-        unsigned int _currentCamera = 0;            // care instance camera => vec2(id,instance)
+        Vec2i _mainCamera;
         
         //fastgltf::Parser _parser = fastgltf::Parser(fastgltf::Extensions::KHR_lights_punctual);
 

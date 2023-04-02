@@ -5,12 +5,11 @@
 #include "application.hpp"
 #include "renderer/renderer.hpp"
 
-#include "scene_graph/scene_graph_node.hpp"
-#include "objects/cameras/camera.hpp"
 #include "objects/lights/light.hpp"
 #include "objects/meshes/mesh.hpp"
 #include "objects/meshes/material.hpp"
-#include "utils/define.hpp"
+#include "scene_graph/scene_graph_node.hpp"
+#include "objects/cameras/camera.hpp"
 
 //#include <variant>
 //#include <optional>
@@ -23,10 +22,11 @@ namespace Scene
     SceneManager::SceneManager(const int p_width, const int p_height) {
         addMaterial(new Material(VEC4F_ONE, VEC3F_ZERO, 0.f, 1.f, nullptr, nullptr, nullptr, nullptr, nullptr)); 
         
-        addCamera(new Camera(0.01f, 1000.f, PIf/3.f));
+        addCamera(new Camera(PIf/3.f, 1., 1e-2f, 1e3f ,CAMERA_TYPE::PERSPECTIVE));
         addNode(new SceneGraphNode(nullptr,VEC3F_ZERO,VEC3F_ONE,QUATF_ID));
         addInstance(_cameras[0], _sceneGraph[0]);
-        
+        _mainCamera = Vec2i(0, 0);
+
         resize(p_width, p_height);
     }
 
@@ -38,6 +38,10 @@ namespace Scene
         for (int i=0; i<_textures.size() ;i++) { Application::getInstance().getRenderer().deleteTexture(_textures[i]); delete _textures[i]; }
         for (int i=0; i<_lights.size() ;i++) delete _lights[i];
     }
+
+    const Mat4f SceneManager::getMainCameraTransformation() const { return _cameras[_mainCamera.x]->getInstance(_mainCamera.y)->computeTransformation(); }
+    const Mat4f SceneManager::getMainCameraViewMatrix() const { return _cameras[_mainCamera.x]->getViewMatrix(_mainCamera.y); }
+    const Mat4f SceneManager::getMainCameraProjectionMatrix() const { return _cameras[_mainCamera.x]->getProjectionMatrix(_mainCamera.y); }
 
     void SceneManager::loadNewScene(const std::string& p_path) { clearScene(); _loadFile(p_path); }
 
@@ -58,42 +62,63 @@ namespace Scene
     void SceneManager::resize(const int p_width, const int p_height) { for (int i=0; i<_cameras.size() ;i++) _cameras[i]->setScreenSize(p_width,p_height); }
 
     void SceneManager::update(unsigned long long p_deltaTime) {
-        if (_cameras.size() != 0) {
-            if (_mouseLeftPressed) {
-                _cameras[_currentCamera]->rotate(Vec3f(0.001 * _deltaMousePositionY, -0.001 * _deltaMousePositionX, 0.f));
-                _deltaMousePositionX = 0.;
-                _deltaMousePositionY = 0.;
-            }
-
-            Vec3f translation = VEC3F_ZERO;
-            if (_isKeyPressed(SDL_SCANCODE_W) || _isKeyPressed(SDL_SCANCODE_UP)) translation.z++;
-            if (_isKeyPressed(SDL_SCANCODE_S) || _isKeyPressed(SDL_SCANCODE_DOWN)) translation.z--;
-            if (_isKeyPressed(SDL_SCANCODE_A) || _isKeyPressed(SDL_SCANCODE_LEFT)) translation.x++;
-            if (_isKeyPressed(SDL_SCANCODE_D) || _isKeyPressed(SDL_SCANCODE_RIGHT)) translation.x--;
-            if (_isKeyPressed(SDL_SCANCODE_R)) translation.y++;
-            if (_isKeyPressed(SDL_SCANCODE_F)) translation.y--;
-            translation *= p_deltaTime * 0.01;
-
-            _cameras[_currentCamera]->move(translation);
-
-            /*Vec3f rotation = VEC3F_ZERO;
-            if (_isKeyPressed(SDL_SCANCODE_W) || _isKeyPressed(SDL_SCANCODE_UP)) rotation.x++;
-            if (_isKeyPressed(SDL_SCANCODE_S) || _isKeyPressed(SDL_SCANCODE_DOWN)) rotation.x--;
-            if (_isKeyPressed(SDL_SCANCODE_A) || _isKeyPressed(SDL_SCANCODE_LEFT)) rotation.y--;
-            if (_isKeyPressed(SDL_SCANCODE_D) || _isKeyPressed(SDL_SCANCODE_RIGHT)) rotation.y++;
-            rotation *= p_deltaTime * 0.0001;
-
-            if(rotation != VEC3F_ZERO) _camera.rotateArround(Vec3f(0., 0., 0.), rotation);*/
-
-            for (Mesh* mesh : _meshes)
-                for (unsigned int i=0; i<mesh->getSceneGraphNode().size() ;i++)
-                    Application::getInstance().getRenderer().updateInstanceMesh(
-                        mesh, i,
-                        mesh->getSceneGraphNode()[i]->computeTransformation(),
-                        _cameras[_currentCamera]->getViewMatrix(),
-                        _cameras[_currentCamera]->getProjectionMatrix()
-                    );
+        SceneGraphNode* cameraInstance  = _cameras[_mainCamera.x]->getInstance(_mainCamera.y);
+        
+        Vec3f rotation = VEC3F_ZERO;
+        Vec3f translation = VEC3F_ZERO;
+        
+        if (_mouseLeftPressed) {
+            rotation += Vec3f(_deltaMousePositionY, -_deltaMousePositionX, 0.f);
+            _deltaMousePositionX = 0.;
+            _deltaMousePositionY = 0.;
         }
+
+        /*
+        * TODO translate with _front, _up, _left
+        Mat4f transformation = computeTransformation();
+                Vec4f front = transformation * Vec4f(VEC3F_Z, 0.);   // CHECK if ==
+                Vec4f up = transformation * Vec4f(VEC3F_Y, 0.);      // CHECK if ==
+                Vec4f left = transformation * Vec4f(-VEC3F_X, 0.);   // CHECK if ==
+                _translation += -Vec3f(left.x,left.y,left.z)    *p_delta.x +
+                                 Vec3f(up.x,up.y,up.z)          *p_delta.y +
+                                 Vec3f(front.x,front.y,front.z) *p_delta.z;
+        */
+
+        if (_isKeyPressed(SDL_SCANCODE_W) || _isKeyPressed(SDL_SCANCODE_UP)) translation.z++;
+        if (_isKeyPressed(SDL_SCANCODE_S) || _isKeyPressed(SDL_SCANCODE_DOWN)) translation.z--;
+        if (_isKeyPressed(SDL_SCANCODE_A) || _isKeyPressed(SDL_SCANCODE_LEFT)) translation.x++;
+        if (_isKeyPressed(SDL_SCANCODE_D) || _isKeyPressed(SDL_SCANCODE_RIGHT)) translation.x--;
+        if (_isKeyPressed(SDL_SCANCODE_R)) translation.y++;
+        if (_isKeyPressed(SDL_SCANCODE_F)) translation.y--;
+
+        /*if (_isKeyPressed(SDL_SCANCODE_W) || _isKeyPressed(SDL_SCANCODE_UP)) rotation += _camera->getLeft();
+        if (_isKeyPressed(SDL_SCANCODE_S) || _isKeyPressed(SDL_SCANCODE_DOWN)) rotation -= _camera->getLeft();
+        if (_isKeyPressed(SDL_SCANCODE_A) || _isKeyPressed(SDL_SCANCODE_LEFT)) rotation -= _camera->getUp();
+        if (_isKeyPressed(SDL_SCANCODE_D) || _isKeyPressed(SDL_SCANCODE_RIGHT)) rotation += _camera->getUp();
+        if (_isKeyPressed(SDL_SCANCODE_R)) translation += _camera->getFront();
+        if (_isKeyPressed(SDL_SCANCODE_F)) translation -= _camera->getFront();*/
+        /*if (_isKeyPressed(SDL_SCANCODE_W) || _isKeyPressed(SDL_SCANCODE_UP)) rotation.z++;// left
+        if (_isKeyPressed(SDL_SCANCODE_S) || _isKeyPressed(SDL_SCANCODE_DOWN)) rotation.z--;
+        if (_isKeyPressed(SDL_SCANCODE_A) || _isKeyPressed(SDL_SCANCODE_LEFT)) rotation.x++;//up
+        if (_isKeyPressed(SDL_SCANCODE_D) || _isKeyPressed(SDL_SCANCODE_RIGHT)) rotation.x--;
+        if (_isKeyPressed(SDL_SCANCODE_R)) translation.y++; // front
+        if (_isKeyPressed(SDL_SCANCODE_F)) translation.y--;*/
+            
+        rotation *= p_deltaTime * 0.0001;
+        translation *= p_deltaTime * 0.01;
+
+        //cameraInstance->move(translation);
+        cameraInstance->translate(translation);
+        cameraInstance->rotate(rotation);
+
+        for (Mesh* mesh : _meshes)
+            for (unsigned int i=0; i<mesh->getNumberInstances() ;i++)
+                Application::getInstance().getRenderer().updateInstanceMesh(
+                    mesh, i,
+                    mesh->getInstance(i)->computeTransformation(),
+                    _cameras[_mainCamera.x]->getViewMatrix(_mainCamera.y),
+                    _cameras[_mainCamera.x]->getProjectionMatrix(_mainCamera.y)
+                );
     }
 
     bool SceneManager::captureEvent(const SDL_Event& p_event) { 
@@ -121,6 +146,8 @@ namespace Scene
         _meshes.clear();
         _textures.clear();
         _lights.clear();
+
+        _mainCamera = Vec2i(0, 0);
     }
 
     void SceneManager::addInstance(Camera* p_camera, SceneGraphNode* p_node) { p_camera->addInstance(p_node); }
@@ -133,8 +160,8 @@ namespace Scene
         Application::getInstance().getRenderer().addInstanceMesh(
             p_mesh,
             p_node->computeTransformation(),
-            _cameras[_currentCamera]->getViewMatrix(),
-            _cameras[_currentCamera]->getProjectionMatrix()
+            _cameras[_mainCamera.x]->getViewMatrix(_mainCamera.y),
+            _cameras[_mainCamera.x]->getProjectionMatrix(_mainCamera.y)
         );
     }
 
@@ -147,8 +174,11 @@ namespace Scene
 
         if (p_model.nodes[p_idCurrent].mesh != -1) { addInstance(_meshes[p_meshOffset + p_model.nodes[p_idCurrent].mesh], current); }
         else if (p_model.nodes[p_idCurrent].camera != -1) { addInstance(_cameras[p_camOffset + p_model.nodes[p_idCurrent].camera], current); }
-        // check better
-        else if (p_model.nodes[p_idCurrent].skin == -1) { addInstance(_lights[p_lightOffset + p_model.nodes[p_idCurrent].extensions.at("KHR_lights_punctual").Get("light").GetNumberAsInt()], current); }
+        else if (p_model.nodes[p_idCurrent].skin != -1) {}
+        else if (p_model.nodes[p_idCurrent].extensions.find("KHR_lights_punctual") != p_model.nodes[p_idCurrent].extensions.end() &&
+                 p_model.nodes[p_idCurrent].extensions.at("KHR_lights_punctual").Has("light")) {
+            addInstance(_lights[p_lightOffset + p_model.nodes[p_idCurrent].extensions.at("KHR_lights_punctual").Get("light").GetNumberAsInt()], current); 
+        }
 
         for (int id : p_model.nodes[p_idCurrent].children)
             _createSceneGraph(id, current, p_meshOffset, p_lightOffset, p_camOffset, p_model);
@@ -242,7 +272,7 @@ namespace Scene
                                         ._normal = glm::normalize(glm::make_vec3(&normalsBuffer[i * 3])),
                                         ._uv = glm::make_vec2(&texCoord0Buffer[i * 2])
                     };
-                    v._tangent = (isTangent) ? glm::normalize(glm::make_vec3(&tangentsBuffer[i * 3])) : VEC3F_X; // care shit
+                    v._tangent = (isTangent) ? glm::normalize(glm::make_vec3(&tangentsBuffer[i * 3])) : VEC3F_X; // TODO implement better
                     v._bitangent = glm::normalize(glm::cross(v._normal, v._tangent));
                     newPrimitive->addVertex(v);
                 }
@@ -277,13 +307,26 @@ namespace Scene
             }
         }
 
+        // ------------- CAMERAS
+        int idStartCameras = (int)_cameras.size();
+        _cameras.reserve(idStartCameras + (int)model.cameras.size());
+        for (tinygltf::Camera c : model.cameras) {
+            if (c.type == "perspective") {  // CHECK use aspect ratio ??
+                addCamera(new Camera((float)c.perspective.yfov, float(Application::getInstance().getWidth())/float(Application::getInstance().getHeight()), (float)c.perspective.znear, (float)c.perspective.zfar, CAMERA_TYPE::PERSPECTIVE));
+            }
+            else if (c.type == "orthographic") { // CHECK multiplu by real aspect ratio ?
+                addCamera(new Camera((float)c.orthographic.xmag, (float)c.orthographic.ymag, (float)c.orthographic.znear, (float)c.orthographic.zfar, CAMERA_TYPE::ORTHOGRAPHIC));
+            }
+        }
+        
         // ------------- SCENE GRAPH
         unsigned int startIdSceneGraph = (unsigned int)_sceneGraph.size();
         _sceneGraph.reserve(startIdSceneGraph + model.nodes.size());
         for (tinygltf::Scene s : model.scenes)
             for (int id : s.nodes)
-                _createSceneGraph(id, nullptr, startIdMeshes, startIdLights, 0, model);
+                _createSceneGraph(id, nullptr, startIdMeshes, startIdLights, idStartCameras, model);
 
+        // ============================= TODO virer
         if (_lights.size() == 0) {
             SceneGraphNode* node = new SceneGraphNode(nullptr, Vec3f(0., 0., 0.), Vec3f(1., 1., 1.), Quatf(0.378f, -0.444f, 0.805f, 0.101f));
             Light* light = new Light(LIGHT_TYPE::DIRECTIONAL, Vec4f(1., 1., 1., 1.), 1.);
@@ -291,6 +334,9 @@ namespace Scene
             addNode(node);
             addInstance(light, node);
         }
+
+        if (_cameras.size() > 1 && _cameras[1]->getNumberInstances() > 0) _mainCamera = Vec2i(1, 0);
+        // =============================
 
         std::cout << "Finished to load " << p_path << std::endl;
     }
@@ -469,7 +515,7 @@ namespace Scene
                 fastgltf::Camera::Perspective cam_p = std::get<0>(c.camera);
                 addCamera(new Camera(cam_p.znear, cam_p.zfar.has_value() ? cam_p.zfar.value() : FLOAT_MAX, cam_p.yfov));
             }
-        // _currentCamera = 0;
+        // _mainCamera = 0;
        
         int idStartSceneGraph = (int)_sceneGraph.size();
         _sceneGraph.reserve(idStartSceneGraph + (int)asset->nodes.size());

@@ -19,11 +19,16 @@ namespace Scene
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
         inline const std::vector<SceneGraphNode*>& getSceneGraphNode() const { return _instances; }
+        inline const unsigned int getNumberInstances() const { return (unsigned int)_instances.size(); }
+        SceneGraphNode* getInstance(unsigned int p_instanceId) {
+            if (p_instanceId < _instances.size()) return _instances[p_instanceId];
+            return nullptr;
+        }
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void addInstance(SceneGraphNode* p_node) { _instances.push_back(p_node); }
 
-    private:
+    protected:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
         std::vector<SceneGraphNode*> _instances;
     };

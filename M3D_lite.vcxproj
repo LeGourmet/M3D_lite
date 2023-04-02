@@ -554,10 +554,10 @@
     <None Include="lib\SDL3\src\hidapi\windows\ddk_build\hidapi.def" />
     <None Include="src\renderer\OpenGL\shaders\geometryPass.frag" />
     <None Include="src\renderer\OpenGL\shaders\geometryPass.vert" />
+    <None Include="src\renderer\OpenGL\shaders\quadScreen.vert" />
     <None Include="src\renderer\OpenGL\shaders\shadingPass.frag" />
-    <None Include="src\renderer\OpenGL\shaders\shadingPass.vert" />
+    <None Include="src\renderer\OpenGL\shaders\billboard.vert" />
     <None Include="src\renderer\OpenGL\shaders\finalPass.frag" />
-    <None Include="src\renderer\OpenGL\shaders\finalPass.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

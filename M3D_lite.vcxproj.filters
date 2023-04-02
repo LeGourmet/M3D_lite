@@ -1604,13 +1604,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="src\renderer\OpenGL\shaders\shadingPass.frag" />
-    <None Include="src\renderer\OpenGL\shaders\shadingPass.vert" />
+    <None Include="src\renderer\OpenGL\shaders\billboard.vert" />
     <None Include="src\renderer\OpenGL\shaders\finalPass.frag" />
-    <None Include="src\renderer\OpenGL\shaders\finalPass.vert" />
     <None Include="src\renderer\OpenGL\shaders\geometryPass.vert" />
     <None Include="src\renderer\OpenGL\shaders\geometryPass.frag" />
     <None Include="lib\SDL3\src\hidapi\windows\ddk_build\hidapi.def">
       <Filter>Fichiers sources</Filter>
     </None>
+    <None Include="src\renderer\OpenGL\shaders\quadScreen.vert" />
   </ItemGroup>
 </Project>

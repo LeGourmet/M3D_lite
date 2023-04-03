@@ -10,11 +10,15 @@ layout( location = 0 ) out vec4 fragColor;
 layout( binding = 0 ) uniform sampler2D uPositionMap;
 layout( binding = 1 ) uniform sampler2D uNormal_MetalnessMap;
 layout( binding = 2 ) uniform sampler2D uAlbedo_RoughnessMap;
+layout( binding = 3 ) uniform sampler2D uSimpleShadowMap;
+layout( binding = 4 ) uniform samplerCube uCubeShadowMap;
 
 uniform vec3 uCamPos;
 uniform vec4 uLightPositionType;	 // position  + type
 uniform vec4 uLightDirectionInner;	 // direction + cosInnerAngle
 uniform vec4 uLightEmissivityOuter;  // emission  + cosOuterAngle
+
+uniform float uZfar;
 
 in vec2 uv;
 
@@ -53,17 +57,23 @@ float getDiffuse(float a, float cosNV, float cosNL, vec3 N, vec3 V, vec3 L ){
 	return (A+( B * max(0.,PHI) * sin(max(Ti,To)) * tan(min(Ti,To)) ) ) / PI;
 }
 
-void getDirectional(inout vec3 p_lightDir, inout vec3 p_lightComponant){
+void getDirectional(inout vec3 p_lightDir, inout vec3 p_lightComponant, inout float p_shadow){
 	p_lightDir = normalize(-uLightDirectionInner.xyz);
 	p_lightComponant = uLightEmissivityOuter.xyz;
+	p_shadow = 0.; // TODO implement
 }
 
-void getPonctualLight(in vec3 fragPos, inout vec3 p_lightDir, inout vec3 p_lightComponant){
+void getPonctualLight(in vec3 fragPos, inout vec3 p_lightDir, inout vec3 p_lightComponant, inout float p_shadow){
 	p_lightDir = uLightPositionType.xyz-fragPos;
-	float attenuation = 1./max(dot(p_lightDir,p_lightDir),EPS); // or 1./(a*d*d + b*d + c)
+	float p_lightDepth = dot(p_lightDir,p_lightDir); 
+	float attenuation = 1./max(p_lightDepth,EPS); // or 1./(a*d*d + b*d + c)
 	p_lightDir = normalize(p_lightDir);
 	float intensity = clamp((dot(-p_lightDir, normalize(uLightDirectionInner.xyz))-uLightEmissivityOuter.w) / (uLightDirectionInner.w-uLightEmissivityOuter.w), 0., 1.);
 	p_lightComponant = uLightEmissivityOuter.xyz * intensity * attenuation; 
+
+	float bias = 0.05; 
+	//p_shadow = (p_lightDepth-bias > texture(uCubeShadowMap,-p_lightDir).x*uZfar) ? 1. : 0.; 
+	p_shadow = 0.;
 }
 
 void main()
@@ -80,8 +90,11 @@ void main()
 	if(cosNV<0.) { N *= -1.; cosNV=dot(N,V); }
 
 	vec3 L,Light_Componant;
-	if(uLightPositionType.w < 0.5){ getDirectional(L,Light_Componant); }
-	else{ getPonctualLight(position.xyz, L, Light_Componant); }
+	float shadow;
+	if(uLightPositionType.w < 0.5){ getDirectional(L,Light_Componant,shadow); }
+	else{ getPonctualLight(position.xyz, L, Light_Componant,shadow); }
+
+	if(shadow==1.) discard;
 
 	float cosNL = dot(N,L);
 	if(cosNL<0.) discard;

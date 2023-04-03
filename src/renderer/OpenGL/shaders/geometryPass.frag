@@ -11,7 +11,7 @@ layout( binding = 3 ) uniform sampler2D uNormalMap;
 layout( binding = 4 ) uniform sampler2D uEmissivityMap;
 // occlusion map
 
-uniform vec3 uAlbedo;
+uniform vec4 uAlbedo;
 uniform float uMetalness;
 uniform float uRoughness;
 uniform vec3 uEmissivity;
@@ -29,9 +29,12 @@ in mat3 TBN;
 void main(){
 	vec2 MetalnessRoughness = (uHasMetalnessRoughnessMap ? texture2D(uMetalnessRoughnessMap,uv).xy : vec2(uMetalness,uRoughness));
 	vec3 normal = normalize(uHasNormalMap ? (TBN*(texture2D(uNormalMap,uv).xyz*2.-1.)) : fragNormal);
+	vec4 albedo = (uHasAlbedoMap ? texture2D(uAlbedoMap,uv) : uAlbedo);
+
+	if(albedo.a<1.) discard;
 
 	position = vec4(fragPosition,1.);
 	normal_metalness = vec4(normal,MetalnessRoughness.x);
-	albedo_roughness = vec4((uHasAlbedoMap ? texture2D(uAlbedoMap,uv).xyz : uAlbedo),MetalnessRoughness.y);
+	albedo_roughness = vec4(albedo.xyz,MetalnessRoughness.y);
 	emissivity = vec4((uHasEmissivityMap ? texture2D(uEmissivityMap,uv).xyz : uEmissivity),1.);
 }

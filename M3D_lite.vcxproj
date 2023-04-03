@@ -527,6 +527,7 @@
     <ClInclude Include="src\application.hpp" />
     <ClInclude Include="src\renderer\OpenGL\pass\cube_shadow_pass.hpp" />
     <ClInclude Include="src\renderer\OpenGL\pass\shadow_pass.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\transparent_pass.hpp" />
     <ClInclude Include="src\renderer\OpenGL\texture_ogl.hpp" />
     <ClInclude Include="src\scene\objects\meshes\material.hpp" />
     <ClInclude Include="src\scene\objects\meshes\primitive.hpp" />
@@ -554,6 +555,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\SDL3\src\hidapi\windows\ddk_build\hidapi.def" />
+    <None Include="src\renderer\OpenGL\shaders\cubeShadowMapPass.frag" />
+    <None Include="src\renderer\OpenGL\shaders\cubeShadowMapPass.geom" />
+    <None Include="src\renderer\OpenGL\shaders\cubeShadowMapPass.vert" />
     <None Include="src\renderer\OpenGL\shaders\geometryPass.frag" />
     <None Include="src\renderer\OpenGL\shaders\geometryPass.vert" />
     <None Include="src\renderer\OpenGL\shaders\quadScreen.vert" />

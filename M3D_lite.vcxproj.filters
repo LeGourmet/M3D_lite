@@ -1607,6 +1607,9 @@
     <ClInclude Include="src\renderer\OpenGL\pass\cube_shadow_pass.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\pass\transparent_pass.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\renderer\OpenGL\shaders\shadingPass.frag" />
@@ -1618,5 +1621,8 @@
       <Filter>Fichiers sources</Filter>
     </None>
     <None Include="src\renderer\OpenGL\shaders\quadScreen.vert" />
+    <None Include="src\renderer\OpenGL\shaders\cubeShadowMapPass.geom" />
+    <None Include="src\renderer\OpenGL\shaders\cubeShadowMapPass.vert" />
+    <None Include="src\renderer\OpenGL\shaders\cubeShadowMapPass.frag" />
   </ItemGroup>
 </Project>

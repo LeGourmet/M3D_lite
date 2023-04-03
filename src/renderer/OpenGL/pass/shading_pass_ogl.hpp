@@ -21,8 +21,8 @@ namespace M3D
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 			ShadingPassOGL(std::string p_pathVert, std::string p_pathFrag) : PassOGL(p_pathVert, p_pathFrag) {
-				//_cubeShadowPass = new CubeShadowPassOGL("src/renderer/OpenGL/shaders/.vert", "src/renderer/OpenGL/shaders/.frag");
-				//_shadowPass = new ShadowPassOGL("src/renderer/OpenGL/shaders/.vert", "src/renderer/OpenGL/shaders/.frag");
+				_cubeShadowPass = new CubeShadowPassOGL("src/renderer/OpenGL/shaders/cubeShadowMapPass.vert", "src/renderer/OpenGL/shaders/cubeShadowMapPass.geom", "src/renderer/OpenGL/shaders/cubeShadowMapPass.frag");
+				_shadowPass = new ShadowPassOGL("src/renderer/OpenGL/shaders/quadScreen.vert", "src/renderer/OpenGL/shaders/finalPass.frag"); // TODO pas les bon shader (juste pour pas que ça crash)
 				
 				_uCamPosLoc					= glGetUniformLocation(_program, "uCamPos");
 				_uLightPositionTypeLoc		= glGetUniformLocation(_program, "uLightPositionType");
@@ -63,108 +63,73 @@ namespace M3D
 				glViewport(0, 0, p_width, p_height);
 			}
 
-			void execute(GLuint p_positionMap, GLuint p_normalMetalnessMap, GLuint p_albedoRoughnessMap) {
-				/*for (Scene::Light* l : Application::getInstance().getSceneManager().getLights()) {
-					for(unsigned int i=0; i<l->getNumberInstances(); i++){
-						switch (l->getType()) {
-							case LIGHT_TYPE::POINT:
-							case LIGHT_TYPE::SPOT: {
-								// compute shadow
-
-								// compute shading
-								glBindFramebuffer(GL_FRAMEBUFFER, _fboShading);
-
-								glEnable(GL_BLEND);
-								glBlendFunc(GL_ONE, GL_ONE);
-								glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-								glUseProgram(_program);
-
-								glBindTextureUnit(0, p_positionMap);
-								glBindTextureUnit(1, p_normalMetalnessMap);
-								glBindTextureUnit(2, p_albedoRoughnessMap);
-
-								break;
-							}
-							case LIGHT_TYPE::DIRECTIONAL: {
-								// compute shadow
-								
-								// compute shading
-
-								break;
-							}
-						}
-						
-
-
-
-					}
-				}*/
+			void execute(GLuint p_positionMap, GLuint p_normalMetalnessMap, GLuint p_albedoRoughnessMap, const std::map<Scene::Mesh*, MeshOGL*>& p_meshes_ogl) {
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboShading);
-
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_ONE, GL_ONE);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-				glUseProgram(_program);
-
-				glBindTextureUnit(0, p_positionMap);
-				glBindTextureUnit(1, p_normalMetalnessMap);
-				glBindTextureUnit(2, p_albedoRoughnessMap);
 
 				Vec3f postionCamera = Application::getInstance().getSceneManager().getMainCameraTransformation() * Vec4f(VEC3F_ZERO, 1.);
 				Mat4f VP = Application::getInstance().getSceneManager().getMainCameraProjectionMatrix() * Application::getInstance().getSceneManager().getMainCameraViewMatrix();
-				glProgramUniform3fv(_program, _uCamPosLoc, 1, glm::value_ptr(Vec3f(postionCamera.x, postionCamera.y, postionCamera.z)));
 				
+				std::vector<Vec2f> billBoardCoord;
+				billBoardCoord.reserve(6);
+				float type;
+
+				int i = -1;
 				for (Scene::Light* l : Application::getInstance().getSceneManager().getLights()) {
-					glProgramUniform4fv(_program, _uLightEmissivityOuterLoc, 1, glm::value_ptr(Vec4f(l->getEmissivity(), l->getCosOuterConeAngle())));
-					
+					i++;
+					//if (i != 3) continue;
 					for(unsigned int i=0; i<l->getNumberInstances(); i++){
 						Mat4f transformation = l->getInstance(i)->computeTransformation();
-						Vec3f pos = transformation * Vec4f(VEC3F_ZERO, 1.);
-						Vec3f dir = transformation * Vec4f(-VEC3F_Z, 0.);
-
-						Mat4f shadowProj = glm::perspective(PIf, 1.f, 1e-2f, 1000.f);
-						std::vector<Mat4f> shadowTransforms = {
-							(shadowProj * glm::lookAt(pos, pos+VEC3F_X, -VEC3F_Y)),
-							(shadowProj * glm::lookAt(pos, pos-VEC3F_X, -VEC3F_Y)),
-							(shadowProj * glm::lookAt(pos, pos+VEC3F_Y,  VEC3F_Z)), // sure ?
-							(shadowProj * glm::lookAt(pos, pos-VEC3F_Y, -VEC3F_Z)), // sure ?
-							(shadowProj * glm::lookAt(pos, pos+VEC3F_Z, -VEC3F_Y)),
-							(shadowProj * glm::lookAt(pos, pos-VEC3F_Z, -VEC3F_Y))
-						};
-
-						std::vector<Vec2f> billBoardCoord;
-						billBoardCoord.reserve(6);
-						float type;
+						Vec3f positionLight = transformation * Vec4f(VEC3F_ZERO, 1.);
+						Vec3f directionLight = transformation * Vec4f(-VEC3F_Z, 0.);
 
 						switch (l->getType()) {
 							case LIGHT_TYPE::POINT:
-							case LIGHT_TYPE::SPOT:
+							case LIGHT_TYPE::SPOT: {
+								_cubeShadowPass->execute(100.,positionLight,p_meshes_ogl);
+
 								// pos +/- l->getRange() * cam.left/front/up
 								// ======== projectOnBillboard ========
 								// Vec2f tmp = p_MVP * Vec4f(p_wpos, 0., 1.);
 								// return glm::clamp(tmp, -1.f, 1.f);
-								
+
 								billBoardCoord = { Vec2f(-1.,-1.),Vec2f(1.,-1.),Vec2f(1.,1.),Vec2f(1.,1.),Vec2f(-1.,1.),Vec2f(-1.,-1.) };
 								type = 1.;
 								break;
-							default:
+							}
+							case LIGHT_TYPE::DIRECTIONAL: {
 								billBoardCoord = { Vec2f(-1.,-1.),Vec2f(1.,-1.),Vec2f(1.,1.),Vec2f(1.,1.),Vec2f(-1.,1.),Vec2f(-1.,-1.) };
 								type = 0.;
+								break;
+							}
 						}
 						
-						glProgramUniform4fv(_program, _uLightPositionTypeLoc, 1, glm::value_ptr(Vec4f(pos, type)));
-						glProgramUniform4fv(_program, _uLightDirectionInnerLoc, 1, glm::value_ptr(Vec4f(glm::normalize(dir), l->getCosInnerConeAngle())));
+						glBindFramebuffer(GL_FRAMEBUFFER, _fboShading);
+
+						glEnable(GL_BLEND);
+						glBlendFunc(GL_ONE, GL_ONE);
+
+						glUseProgram(_program);
+
+						glBindTextureUnit(0, p_positionMap);
+						glBindTextureUnit(1, p_normalMetalnessMap);
+						glBindTextureUnit(2, p_albedoRoughnessMap);
+						glBindTextureUnit(3, _shadowPass->getShadowMap());
+						glBindTextureUnit(4, _cubeShadowPass->getCubeShadowMap());
+
+						glProgramUniform3fv(_program, _uCamPosLoc, 1, glm::value_ptr(postionCamera));
+						glProgramUniform4fv(_program, _uLightPositionTypeLoc, 1, glm::value_ptr(Vec4f(positionLight, type)));
+						glProgramUniform4fv(_program, _uLightEmissivityOuterLoc, 1, glm::value_ptr(Vec4f(l->getEmissivity(), l->getCosOuterConeAngle())));
+						glProgramUniform4fv(_program, _uLightDirectionInnerLoc, 1, glm::value_ptr(Vec4f(glm::normalize(directionLight), l->getCosInnerConeAngle())));
 						glNamedBufferSubData(_vboBillboard, 0, 6 * sizeof(Vec2f), billBoardCoord.data());
 
 						glBindVertexArray(_vaoBillboard);
 						glDrawArrays(GL_TRIANGLES, 0, 6);
 						glBindVertexArray(0);
+
+						glDisable(GL_BLEND);
 					}
 				}
-
-				glDisable(GL_BLEND);
 			}
 
 		private:
@@ -182,10 +147,8 @@ namespace M3D
 			GLuint _uLightDirectionInnerLoc = GL_INVALID_INDEX;
 			GLuint _uLightEmissivityOuterLoc = GL_INVALID_INDEX;
 
-			CubeShadowPassOGL* _cubeShadowPass = nullptr;
 			ShadowPassOGL* _shadowPass = nullptr;
-			GLuint _uHasCubeShadow = GL_INVALID_INDEX;
-			GLuint _uHasSimpleShadow = GL_INVALID_INDEX;
+			CubeShadowPassOGL* _cubeShadowPass = nullptr;
 		};
 	}
 }

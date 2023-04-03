@@ -85,15 +85,16 @@ namespace M3D
 				for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes_ogl) {
 					for (unsigned int i = 0; i < mesh.first->getPrimitives().size();i++) {
 						Scene::Primitive* primitive = mesh.first->getPrimitives()[i];
+						if (primitive->getMaterial().isTransparent()) continue;
 
 						glProgramUniform1i(_program, _uHasAlbedoMapLoc, primitive->getMaterial().getBaseColorMap() != nullptr);
-						glProgramUniform3fv(_program, _uAlbedoLoc, 1, glm::value_ptr(primitive->getMaterial().getBaseColor()));
+						glProgramUniform4fv(_program, _uAlbedoLoc, 1, glm::value_ptr(primitive->getMaterial().getBaseColor()));
 						if (primitive->getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures_ogl.at(primitive->getMaterial().getBaseColorMap())->getId());
 
 						glProgramUniform1i(_program, _uHasMetalnessRoughnessMapLoc, primitive->getMaterial().getMetalnessRoughnessMap() != nullptr);
 						glProgramUniform1f(_program, _uMetalnessLoc, primitive->getMaterial().getMetalness());
 						glProgramUniform1f(_program, _uRoughnessLoc, primitive->getMaterial().getRoughness());
-						if (primitive->getMaterial().getMetalnessRoughnessMap() != nullptr)  glBindTextureUnit(2, p_textures_ogl.at(primitive->getMaterial().getMetalnessRoughnessMap())->getId());
+						if (primitive->getMaterial().getMetalnessRoughnessMap() != nullptr) glBindTextureUnit(2, p_textures_ogl.at(primitive->getMaterial().getMetalnessRoughnessMap())->getId());
 
 						glProgramUniform1i(_program, _uHasNormalMapLoc, primitive->getMaterial().getNormalMap() != nullptr);
 						if (primitive->getMaterial().getNormalMap() != nullptr) glBindTextureUnit(3, p_textures_ogl.at(primitive->getMaterial().getNormalMap())->getId());

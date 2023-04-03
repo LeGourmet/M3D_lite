@@ -31,6 +31,29 @@ namespace M3D
 				glDeleteShader(vertexShader);
 				glDeleteShader(fragmentShader);
 			}
+
+			PassOGL(std::string p_pathVert, std::string p_pathGeom, std::string p_pathFrag) {
+				GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+				GLuint geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+				GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+
+				_readCompileShader(vertexShader, p_pathVert);
+				_readCompileShader(geometryShader, p_pathGeom);
+				_readCompileShader(fragmentShader, p_pathFrag);
+
+				_program = glCreateProgram();
+
+				glAttachShader(_program, vertexShader);
+				glAttachShader(_program, geometryShader);
+				glAttachShader(_program, fragmentShader);
+
+				glLinkProgram(_program);
+
+				glDeleteShader(vertexShader);
+				glDeleteShader(geometryShader);
+				glDeleteShader(fragmentShader);
+			}
+			
 			~PassOGL() { glDeleteProgram(_program); }
 
 			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------

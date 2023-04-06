@@ -22,7 +22,7 @@ namespace Scene
     SceneManager::SceneManager(const int p_width, const int p_height) {
         addMaterial(new Material(VEC4F_ONE, VEC3F_ZERO, 0.f, 0.f, 1.f, nullptr, nullptr, nullptr, nullptr, nullptr)); 
         
-        addCamera(new Camera(PIf/3.f, 1., 1e-2f, 1e3f ,CAMERA_TYPE::PERSPECTIVE));
+        addCamera(new Camera(PIf/2.f, 1., 1e-2f, 1e3f ,CAMERA_TYPE::PERSPECTIVE));
         addNode(new SceneGraphNode(nullptr,VEC3F_ZERO,VEC3F_ONE,QUATF_ID));
         addInstance(_cameras[0], _sceneGraph[0]);
         _mainCamera = Vec2i(0, 0);

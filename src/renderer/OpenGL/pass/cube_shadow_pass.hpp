@@ -32,9 +32,9 @@ namespace M3D
 
 				glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 				glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _cubeShadowMap, 0);
-				glViewport(0, 0, _swadowMapResolution, _swadowMapResolution);
 				glDrawBuffer(GL_NONE);
 				glReadBuffer(GL_NONE);
+				glViewport(0, 0, _swadowMapResolution, _swadowMapResolution);
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			}
 			~CubeShadowPassOGL() {

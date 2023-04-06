@@ -72,8 +72,9 @@ void getPonctualLight(in vec3 fragPos, inout vec3 p_lightDir, inout vec3 p_light
 	p_lightComponant = uLightEmissivityOuter.xyz * intensity * attenuation; 
 
 	float bias = 0.05; 
-	//p_shadow = (p_lightDepth-bias > texture(uCubeShadowMap,-p_lightDir).x*uZfar) ? 1. : 0.; 
-	p_shadow = 0.;
+	float shadowDepth = texture(uCubeShadowMap,-p_lightDir).x*uZfar;
+	p_shadow = (sqrt(p_lightDepth)-bias > shadowDepth) ? 1. : 0.; 
+	p_shadow = shadowDepth/uZfar;
 }
 
 void main()
@@ -94,7 +95,9 @@ void main()
 	if(uLightPositionType.w < 0.5){ getDirectional(L,Light_Componant,shadow); }
 	else{ getPonctualLight(position.xyz, L, Light_Componant,shadow); }
 
-	if(shadow==1.) discard;
+	//if(shadow==1.) discard;
+	fragColor = vec4(shadow);
+	return;
 
 	float cosNL = dot(N,L);
 	if(cosNL<0.) discard;

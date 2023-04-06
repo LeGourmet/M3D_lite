@@ -24,6 +24,7 @@ namespace M3D
 				_cubeShadowPass = new CubeShadowPassOGL("src/renderer/OpenGL/shaders/cubeShadowMapPass.vert", "src/renderer/OpenGL/shaders/cubeShadowMapPass.geom", "src/renderer/OpenGL/shaders/cubeShadowMapPass.frag");
 				_shadowPass = new ShadowPassOGL("src/renderer/OpenGL/shaders/quadScreen.vert", "src/renderer/OpenGL/shaders/finalPass.frag"); // TODO pas les bon shader (juste pour pas que ça crash)
 				
+				_uZfarLoc					= glGetUniformLocation(_program, "uZfar");
 				_uCamPosLoc					= glGetUniformLocation(_program, "uCamPos");
 				_uLightPositionTypeLoc		= glGetUniformLocation(_program, "uLightPositionType");
 				_uLightDirectionInnerLoc	= glGetUniformLocation(_program, "uLightDirectionInner");
@@ -69,7 +70,8 @@ namespace M3D
 
 				Vec3f postionCamera = Application::getInstance().getSceneManager().getMainCameraTransformation() * Vec4f(VEC3F_ZERO, 1.);
 				Mat4f VP = Application::getInstance().getSceneManager().getMainCameraProjectionMatrix() * Application::getInstance().getSceneManager().getMainCameraViewMatrix();
-				
+				float zfar = 100.;
+
 				std::vector<Vec2f> billBoardCoord;
 				billBoardCoord.reserve(6);
 				float type;
@@ -77,7 +79,7 @@ namespace M3D
 				int i = -1;
 				for (Scene::Light* l : Application::getInstance().getSceneManager().getLights()) {
 					i++;
-					//if (i != 3) continue;
+					if (i != 2) continue;
 					for(unsigned int i=0; i<l->getNumberInstances(); i++){
 						Mat4f transformation = l->getInstance(i)->computeTransformation();
 						Vec3f positionLight = transformation * Vec4f(VEC3F_ZERO, 1.);
@@ -86,7 +88,7 @@ namespace M3D
 						switch (l->getType()) {
 							case LIGHT_TYPE::POINT:
 							case LIGHT_TYPE::SPOT: {
-								_cubeShadowPass->execute(100.,positionLight,p_meshes_ogl);
+								_cubeShadowPass->execute(zfar,positionLight,p_meshes_ogl);
 
 								// pos +/- l->getRange() * cam.left/front/up
 								// ======== projectOnBillboard ========
@@ -117,6 +119,7 @@ namespace M3D
 						glBindTextureUnit(3, _shadowPass->getShadowMap());
 						glBindTextureUnit(4, _cubeShadowPass->getCubeShadowMap());
 
+						glProgramUniform1f(_program, _uZfarLoc, zfar);
 						glProgramUniform3fv(_program, _uCamPosLoc, 1, glm::value_ptr(postionCamera));
 						glProgramUniform4fv(_program, _uLightPositionTypeLoc, 1, glm::value_ptr(Vec4f(positionLight, type)));
 						glProgramUniform4fv(_program, _uLightEmissivityOuterLoc, 1, glm::value_ptr(Vec4f(l->getEmissivity(), l->getCosOuterConeAngle())));
@@ -142,6 +145,7 @@ namespace M3D
 
 			GLuint _shadingMap = GL_INVALID_INDEX;
 
+			GLuint _uZfarLoc = GL_INVALID_INDEX;
 			GLuint _uCamPosLoc = GL_INVALID_INDEX;
 			GLuint _uLightPositionTypeLoc = GL_INVALID_INDEX;
 			GLuint _uLightDirectionInnerLoc = GL_INVALID_INDEX;

@@ -10,5 +10,5 @@ layout(std430, binding = 0) buffer aTransformations { mat4 data_SSBO[]; };
 
 void main()
 {
-	gl_Position = data_SSBO[gl_InstanceID*3+1] * vec4(aVertexPosition, 1.);
+	gl_Position = data_SSBO[gl_InstanceID*3] * vec4(aVertexPosition, 1.);
 }

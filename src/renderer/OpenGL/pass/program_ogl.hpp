@@ -1,5 +1,5 @@
-#ifndef __PASS_OGL_HPP__
-#define __PASS_OGL_HPP__
+#ifndef __PROGRAM_OGL_HPP__
+#define __PROGRAM_OGL_HPP__
 
 #include "GL/gl3w.h"
 
@@ -11,10 +11,10 @@ namespace M3D
 {
 	namespace Renderer
 	{
-		class PassOGL {
+		class ProgramOGL {
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-			PassOGL(std::string p_pathVert, std::string p_pathFrag) {
+			ProgramOGL(std::string p_pathVert, std::string p_pathFrag) {
 				GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 				GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
@@ -32,7 +32,7 @@ namespace M3D
 				glDeleteShader(fragmentShader);
 			}
 
-			PassOGL(std::string p_pathVert, std::string p_pathGeom, std::string p_pathFrag) {
+			ProgramOGL(std::string p_pathVert, std::string p_pathGeom, std::string p_pathFrag) {
 				GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 				GLuint geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
 				GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -54,7 +54,7 @@ namespace M3D
 				glDeleteShader(fragmentShader);
 			}
 			
-			~PassOGL() { glDeleteProgram(_program); }
+			~ProgramOGL() { glDeleteProgram(_program); }
 
 			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 			virtual void resize(int p_width, int p_height) = 0;
@@ -84,7 +84,6 @@ namespace M3D
 				glCreateTextures(GL_TEXTURE_2D, 1, p_texture);
 				glTextureParameteri(*p_texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 				glTextureParameteri(*p_texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				//glTextureStorage2D(*p_texture, 0, GL_RGBA32F, 1, 1); // pas bon car imuable => need resize justjust after
 				glNamedFramebufferTexture(p_framebuffer, GL_COLOR_ATTACHMENT0 + p_id, *p_texture, 0);
 			}
 		};

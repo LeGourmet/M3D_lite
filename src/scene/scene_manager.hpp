@@ -40,10 +40,11 @@ namespace Scene
         inline const std::vector<Light*>& getLights() const { return _lights; }
         inline const std::vector<Camera*>& getCameras() const { return _cameras; }
 
+        const Camera* getMainCamera() const;
+        const SceneGraphNode* getMainCameraSceneGraphNode() const;
         const Mat4f getMainCameraTransformation() const;
         const Mat4f getMainCameraViewMatrix() const;
         const Mat4f getMainCameraProjectionMatrix() const;
-        // TODO add getViewMatrix(p_idCam, p_idInstance) / getProjectionMatrix(p_idCam, p_idInstance) if needed
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void loadNewScene(const std::string& p_path);
@@ -72,7 +73,7 @@ namespace Scene
         std::vector<Light*> _lights;
         std::vector<Mesh*> _meshes;
         std::vector<Material*> _materials;
-        std::vector<Image*> _textures; // dessocier image / sampler / textures pour ne pas reload images
+        std::vector<Image*> _textures; // dissocier image / sampler / textures pour ne pas reload images
 
         std::vector<SceneGraphNode*> _sceneGraph;
         Vec2i _mainCamera;

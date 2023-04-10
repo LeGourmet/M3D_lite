@@ -70,6 +70,8 @@ namespace M3D
             }
         }
 
+        void Window::setTargetFPS(unsigned int p_targetFPS) { _targetFPS = p_targetFPS; }
+
         void Window::captureEvents() {
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
@@ -111,32 +113,14 @@ namespace M3D
             return _time - previousTime;
         }
 
-        void Window::capFPS() {
+        void Window::capFPS(unsigned long long p_elapsedTime) {
             switch (_rendererType) {
-            case SDL_WINDOW_OPENGL: SDL_GL_SwapWindow(_window); break;
-            case SDL_WINDOW_VULKAN: break;
+                case SDL_WINDOW_OPENGL: SDL_GL_SwapWindow(_window); break;
+                case SDL_WINDOW_VULKAN: break;
             }
-            // ===> if (1000/fps > frameStop - frameStart) SDL_Delay(1000/fps - (frameStop - frameStart));
-            // screen refresh rate (warning plusieur écrans)
-            // respect targetFPS if no vsync (0=infini)
-            /*
-            SDLGetWindowRefreshRate(SDL_Window *Window)
-            {
-                SDL_DisplayMode Mode;
-                int DisplayIndex = SDL_GetWindowDisplayIndex(Window);
-                // If we can't find the refresh rate, we'll return this:
-                int DefaultRefreshRate = 60;
-                if (SDL_GetDesktopDisplayMode(DisplayIndex, &Mode) != 0)
-                {
-                    return DefaultRefreshRate;
-                }
-                if (Mode.refresh_rate == 0)
-                {
-                    return DefaultRefreshRate;
-                }
-                return Mode.refresh_rate;
-            }
-            */
+
+            if(!_vSync && _targetFPS != 0) SDL_Delay(glm::max<unsigned int>(0,(unsigned int)(1000./_targetFPS - p_elapsedTime)));
+            // if vsync what are we supossed to do ??
         }
 
         bool Window::_captureEvent(const SDL_Event& p_event) {

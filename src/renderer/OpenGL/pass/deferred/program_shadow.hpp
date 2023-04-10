@@ -1,16 +1,25 @@
-#ifndef __SHADOW_PASS_OGL_HPP__
-#define __SHADOW_PASS_OGL_HPP__
+#ifndef __PROGRAM_SHADOW_OGL_HPP__
+#define __PROGRAM_SHADOW_OGL_HPP__
 
-#include "pass_ogl.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
+#include "../program_ogl.hpp"
+
+#include "utils/define.hpp"
+#include "scene/objects/meshes/mesh.hpp"
+#include "renderer/OpenGL/mesh_ogl.hpp"
 
 namespace M3D
 {
 	namespace Renderer
 	{
-		class ShadowPassOGL : public PassOGL {
+		class ProgramShadowOGL : public ProgramOGL {
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-			ShadowPassOGL(std::string p_pathVert, std::string p_pathFrag) : PassOGL(p_pathVert, p_pathFrag) {
+			ProgramShadowOGL() : ProgramOGL("src/renderer/OpenGL/shaders/shading/shadowMapPass.vert", "src/renderer/OpenGL/shaders/shading/shadowMap.frag") {
+				_uLightPosLoc	= glGetUniformLocation(_program, "uLightPos");
+				_uZfarLoc		= glGetUniformLocation(_program, "uZfar");
+				
 				glCreateFramebuffers(1, &_fbo);
 
 				glGenTextures(1, &_shadowMap);
@@ -28,7 +37,7 @@ namespace M3D
 				glReadBuffer(GL_NONE);
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			}
-			~ShadowPassOGL() {
+			~ProgramShadowOGL() {
 				glDeleteTextures(1, &_shadowMap);
 				glDeleteFramebuffers(1, &_fbo);
 			}
@@ -39,32 +48,40 @@ namespace M3D
 			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 			void resize(int p_width, int p_height) override { }
 
-			void execute() {
+			void execute(const Vec3f& p_lightPos, float p_zfar, const std::map<Scene::Mesh*, MeshOGL*>& p_meshes_ogl) {
 				glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 				
+				glEnable(GL_DEPTH_TEST);
 				glClear(GL_DEPTH_BUFFER_BIT);
 
 				glUseProgram(_program);
 
-				/*
-					float near_plane = 1.0f, far_plane = 7.5f;
-					glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-					glm::mat4 lightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f),
-								  glm::vec3( 0.0f, 0.0f,  0.0f),
-								  glm::vec3( 0.0f, 1.0f,  0.0f));
-					glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-					glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
-					
-					render all the scene
-				*/
+				glProgramUniform3fv(_program, _uLightPosLoc, 1, glm::value_ptr(p_lightPos));
+				glProgramUniform1f(_program, _uZfarLoc, p_zfar);
+
+				for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes_ogl) {
+					for (unsigned int i=0; i<mesh.first->getPrimitives().size() ;i++) {
+						Scene::Primitive* primitive = mesh.first->getPrimitives()[i];
+						if (primitive->getMaterial().isTransparent()) continue;
+
+						mesh.second->bind(i);
+						glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)primitive->getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
+						glBindVertexArray(0);
+					}
+				}
+
+				glDisable(GL_DEPTH_TEST);
 			}
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-			GLuint _fbo = GL_INVALID_INDEX;
+			GLuint _fbo				= GL_INVALID_INDEX;
 
+			GLuint _uLightPosLoc	= GL_INVALID_INDEX;
+			GLuint _uZfarLoc		= GL_INVALID_INDEX;
+
+			GLuint _shadowMap		= GL_INVALID_INDEX;
 			unsigned int _swadowMapResolution = 1024;
-			GLuint _shadowMap = GL_INVALID_INDEX;
 		};
 	}
 }

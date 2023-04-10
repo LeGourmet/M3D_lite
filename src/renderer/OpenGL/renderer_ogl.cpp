@@ -6,9 +6,9 @@
 
 #include "renderer/OpenGL/mesh_ogl.hpp"
 #include "renderer/OpenGL/texture_ogl.hpp"
-#include "renderer/OpenGL/pass/geometry_pass_ogl.hpp"
-#include "renderer/OpenGL/pass/shading_pass_ogl.hpp"
-#include "renderer/OpenGL/pass/final_pass_ogl.hpp"
+#include "renderer/OpenGL/pass/deferred/deferred_shading_pass_ogl.hpp"
+#include "renderer/OpenGL/pass/forward/forward_shading_pass_ogl.hpp"
+#include "renderer/OpenGL/pass/post_processing/post_processing_pass_ogl.hpp"
 
 #include <iostream>
 
@@ -20,9 +20,9 @@ namespace Renderer
 		if (gl3wInit()) throw std::exception("gl3wInit() failed");
 		if (!gl3wIsSupported(4, 5)) throw std::exception("OpenGL version not supported");
 
-		_geometryPass = new GeometryPassOGL("src/renderer/OpenGL/shaders/geometryPass.vert", "src/renderer/OpenGL/shaders/geometryPass.frag");
-		_shadingPass = new ShadingPassOGL("src/renderer/OpenGL/shaders/billboard.vert", "src/renderer/OpenGL/shaders/shadingPass.frag");
-		_finalPass = new FinalPassOGL("src/renderer/OpenGL/shaders/quadScreen.vert", "src/renderer/OpenGL/shaders/finalPass.frag");
+		_deferredShadingPass = new DeferredShadingPassOGL();
+		_forwardShadingPass = new ForwardShadingPassOGL();
+		_postProcessingPass = new PostProcessingPassOGL();
 
 		resize(Application::getInstance().getWidth(), Application::getInstance().getHeight());
 
@@ -30,23 +30,24 @@ namespace Renderer
 	}
 
 	RendererOGL::~RendererOGL() {
-		delete _geometryPass;
-		delete _shadingPass;
-		delete _finalPass;
+		delete _deferredShadingPass;
+		delete _forwardShadingPass;
+		delete _postProcessingPass;
 		for (std::pair<Scene::Mesh*, MeshOGL*> pair : _meshes) delete pair.second;
 		for (std::pair<Image*, TextureOGL*> pair : _textures) delete pair.second;
 	}
 
 	void RendererOGL::resize(const int p_width, const int p_height) {
-		_geometryPass->resize(p_width, p_height);
-		_shadingPass->resize(p_width, p_height);
-		_finalPass->resize(p_width, p_height);
+		_deferredShadingPass->resize(p_width, p_height);
+		_forwardShadingPass->resize(p_width, p_height);
+		_postProcessingPass->resize(p_width, p_height);
 	}
 
 	void RendererOGL::drawFrame() {
-		_geometryPass->execute(_meshes,_textures);
-		_shadingPass->execute(_geometryPass->getPositionMap(),_geometryPass->getNormalMetalnessMap(),_geometryPass->getAlbedoRoughnessMap(),_meshes);
-		_finalPass->execute(_gamma,_shadingPass->getShadingMap());
+		// precompute frostrum ??
+		_deferredShadingPass->execute(_meshes, _textures);   // opaque		(color+shadow)
+		_forwardShadingPass->execute(_meshes, _textures);	 // transparent (mask +shadow) (need depth map/postition map)
+		_postProcessingPass->execute(_gamma, _deferredShadingPass->getShadingMap(), _forwardShadingPass->getShadingMap());
 
 		GLenum err;
 		while ((err = glGetError()) != GL_NO_ERROR)

@@ -95,16 +95,13 @@
     <ClInclude Include="src\renderer\OpenGL\mesh_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\pass_ogl.hpp">
+    <ClInclude Include="src\renderer\OpenGL\pass\program_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\geometry_pass_ogl.hpp">
+    <ClInclude Include="src\renderer\OpenGL\pass\deferred\program_geometry_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\shading_pass_ogl.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\final_pass_ogl.hpp">
+    <ClInclude Include="src\renderer\OpenGL\pass\post_processing\program_tone_mapping_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\scene\objects\lights\light.hpp">
@@ -1601,28 +1598,31 @@
     <ClInclude Include="lib\tinygltf\tiny_gltf.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\shadow_pass.hpp">
+    <ClInclude Include="src\renderer\OpenGL\pass\deferred\program_shadow.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\cube_shadow_pass.hpp">
+    <ClInclude Include="src\renderer\OpenGL\pass\deferred\program_shadow_cube.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\transparent_pass.hpp">
+    <ClInclude Include="src\renderer\OpenGL\pass\deferred\program_lighting_directional.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\pass\deferred\program_lighting_ponctual.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\pass\deferred\pass_deferred_shading_ogl.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\pass\post_processing\pass_post_processing_ogl.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\pass\forward\pass_forward_shading_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\renderer\OpenGL\shaders\shadingPass.frag" />
-    <None Include="src\renderer\OpenGL\shaders\billboard.vert" />
-    <None Include="src\renderer\OpenGL\shaders\finalPass.frag" />
-    <None Include="src\renderer\OpenGL\shaders\geometryPass.vert" />
-    <None Include="src\renderer\OpenGL\shaders\geometryPass.frag" />
     <None Include="lib\SDL3\src\hidapi\windows\ddk_build\hidapi.def">
       <Filter>Fichiers sources</Filter>
     </None>
-    <None Include="src\renderer\OpenGL\shaders\quadScreen.vert" />
-    <None Include="src\renderer\OpenGL\shaders\cubeShadowMapPass.geom" />
-    <None Include="src\renderer\OpenGL\shaders\cubeShadowMapPass.vert" />
-    <None Include="src\renderer\OpenGL\shaders\cubeShadowMapPass.frag" />
   </ItemGroup>
 </Project>

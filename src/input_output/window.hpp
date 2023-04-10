@@ -17,10 +17,13 @@ namespace M3D
 
             // ----------------------------------------------------- GETTERS -------------------------------------------------------
             inline SDL_Window& get() const { return *_window; }
+            inline unsigned long long getTime() { return _time; }
             inline bool getVSync() { return _vSync; }
+            inline unsigned int getTargetFps() { return _targetFPS; }
 
             // ----------------------------------------------------- SETTERS -------------------------------------------------------
             void setVSync(bool p_vSync);
+            void setTargetFPS(unsigned int p_targetFPS);
 
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
             void captureEvents();
@@ -28,10 +31,11 @@ namespace M3D
             void chronoUpdate();
             unsigned long long getDeltaTime();
 
-            void capFPS();
+            void capFPS(unsigned long long p_elapsedTime);
             // add loader d'audio 
             // add fonction qui permettent de supprimer des pistes
             // add fonction qui lis une piste / qui stop 
+            // add swap renderer type
 
         private:
             // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
@@ -42,7 +46,7 @@ namespace M3D
             unsigned long long _time = 0;
             
             bool _vSync = true;
-            int targetFPS = 120;
+            unsigned int _targetFPS = 120;
 
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
             bool _captureEvent(const SDL_Event& p_event);

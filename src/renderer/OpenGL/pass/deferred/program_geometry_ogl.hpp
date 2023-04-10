@@ -1,9 +1,9 @@
-#ifndef __GEOMETRY_PASS_OGL_HPP__
-#define __GEOMETRY_PASS_OGL_HPP__
+#ifndef __PROGRAM_GEOMETRY_OGL_HPP__
+#define __PROGRAM_GEOMETRY_OGL_HPP__
 
 #include "glm/gtc/type_ptr.hpp"
 
-#include "pass_ogl.hpp"
+#include "../program_ogl.hpp"
 
 #include "scene/objects/meshes/mesh.hpp"
 #include "scene/objects/meshes/primitive.hpp"
@@ -16,10 +16,10 @@ namespace M3D
 {
 	namespace Renderer
 	{
-		class GeometryPassOGL : public PassOGL {
+		class ProgramGeometryOGL : public ProgramOGL {
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-			GeometryPassOGL(std::string p_pathVert, std::string p_pathFrag) : PassOGL(p_pathVert, p_pathFrag) {
+			ProgramGeometryOGL() : ProgramOGL("src/renderer/OpenGL/shaders/geometryPass.vert", "src/renderer/OpenGL/shaders/geometryPass.frag") {
 				_uAlbedoLoc						= glGetUniformLocation(_program, "uAlbedo");
 				_uMetalnessLoc					= glGetUniformLocation(_program, "uMetalness");
 				_uRoughnessLoc					= glGetUniformLocation(_program, "uRoughness");
@@ -42,7 +42,7 @@ namespace M3D
 				glNamedRenderbufferStorage(_rbo, GL_DEPTH_COMPONENT, 1, 1);
 				glNamedFramebufferRenderbuffer(_fbo, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _rbo);
 			}
-			~GeometryPassOGL() {
+			~ProgramGeometryOGL() {
 				glDeleteTextures(1, &_positionMap);
 				glDeleteTextures(1, &_normalMetalnessMap);
 				glDeleteTextures(1, &_albedoRoughnessMap);
@@ -114,23 +114,23 @@ namespace M3D
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-			GLuint _fbo = GL_INVALID_INDEX;
-			GLuint _rbo = GL_INVALID_INDEX;
+			GLuint _fbo								= GL_INVALID_INDEX;
+			GLuint _rbo								= GL_INVALID_INDEX;
 
-			GLuint _positionMap = GL_INVALID_INDEX;
-			GLuint _normalMetalnessMap = GL_INVALID_INDEX;
-			GLuint _albedoRoughnessMap = GL_INVALID_INDEX;
-			GLuint _emissivityMap = GL_INVALID_INDEX;
+			GLuint _positionMap						= GL_INVALID_INDEX;
+			GLuint _normalMetalnessMap				= GL_INVALID_INDEX;
+			GLuint _albedoRoughnessMap				= GL_INVALID_INDEX;
+			GLuint _emissivityMap					= GL_INVALID_INDEX;
 
-			GLint  _uAlbedoLoc = GL_INVALID_INDEX;
-			GLint  _uMetalnessLoc = GL_INVALID_INDEX;
-			GLint  _uRoughnessLoc = GL_INVALID_INDEX;
-			GLint  _uEmissivityLoc = GL_INVALID_INDEX;
+			GLint  _uAlbedoLoc						= GL_INVALID_INDEX;
+			GLint  _uMetalnessLoc					= GL_INVALID_INDEX;
+			GLint  _uRoughnessLoc					= GL_INVALID_INDEX;
+			GLint  _uEmissivityLoc					= GL_INVALID_INDEX;
 
-			GLint  _uHasAlbedoMapLoc = GL_INVALID_INDEX;
-			GLint  _uHasMetalnessRoughnessMapLoc = GL_INVALID_INDEX;
-			GLint  _uHasNormalMapLoc = GL_INVALID_INDEX;
-			GLint  _uHasEmissivityMapLoc = GL_INVALID_INDEX;
+			GLint  _uHasAlbedoMapLoc				= GL_INVALID_INDEX;
+			GLint  _uHasMetalnessRoughnessMapLoc	= GL_INVALID_INDEX;
+			GLint  _uHasNormalMapLoc				= GL_INVALID_INDEX;
+			GLint  _uHasEmissivityMapLoc			= GL_INVALID_INDEX;
 		};
 	}
 }

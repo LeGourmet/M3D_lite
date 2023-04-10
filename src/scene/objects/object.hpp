@@ -18,7 +18,7 @@ namespace Scene
         ~Object() {}
 
         // ----------------------------------------------------- GETTERS -------------------------------------------------------
-        inline const std::vector<SceneGraphNode*>& getSceneGraphNode() const { return _instances; }
+        inline const std::vector<SceneGraphNode*>& getInstances() const { return _instances; }
         inline const unsigned int getNumberInstances() const { return (unsigned int)_instances.size(); }
         SceneGraphNode* getInstance(unsigned int p_instanceId) {
             if (p_instanceId < _instances.size()) return _instances[p_instanceId];

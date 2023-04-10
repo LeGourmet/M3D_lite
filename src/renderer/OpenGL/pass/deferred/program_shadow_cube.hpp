@@ -1,22 +1,25 @@
-#ifndef __CUBE_SHADOW_PASS_OGL_HPP__
-#define __CUBE_SHADOW_PASS_OGL_HPP__
+#ifndef __PROGRAM_SHADOW_CUBE_OGL_HPP__
+#define __PROGRAM_SHADOW_CUBE_OGL_HPP__
 
-#include "pass_ogl.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
+#include "../program_ogl.hpp"
 
 #include "utils/define.hpp"
-#include "scene/objects/lights/light.hpp"
+#include "scene/objects/meshes/mesh.hpp"
+#include "renderer/OpenGL/mesh_ogl.hpp"
 
 namespace M3D
 {
 	namespace Renderer
 	{
-		class CubeShadowPassOGL : public PassOGL {
+		class ProgramShadowCubeOGL : public ProgramOGL {
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-			CubeShadowPassOGL(std::string p_pathVert, std::string p_pathGeom, std::string p_pathFrag) : PassOGL(p_pathVert, p_pathGeom, p_pathFrag) {
-				_uShadowTransformLoc = glGetUniformLocation(_program, "uShadowTransform");
-				_uLightPosLoc = glGetUniformLocation(_program, "uLightPos");
-				_uZfarLoc = glGetUniformLocation(_program, "uZfar");
+			ProgramShadowCubeOGL() : ProgramOGL("src/renderer/OpenGL/shaders/shading/shadowMapPass.vert", "src/renderer/OpenGL/shaders/shading/cubeShadowMapPass.geom", "src/renderer/OpenGL/shaders/shading/shadowMapPass.frag") {
+				_uShadowTransformLoc	= glGetUniformLocation(_program, "uShadowTransform");
+				_uLightPosLoc			= glGetUniformLocation(_program, "uLightPos");
+				_uZfarLoc				= glGetUniformLocation(_program, "uZfar");
 
 				glCreateFramebuffers(1, &_fbo);
 
@@ -37,7 +40,7 @@ namespace M3D
 				glViewport(0, 0, _swadowMapResolution, _swadowMapResolution);
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			}
-			~CubeShadowPassOGL() {
+			~ProgramShadowCubeOGL() {
 				glDeleteTextures(1, &_cubeShadowMap);
 				glDeleteFramebuffers(1, &_fbo);
 			}
@@ -48,7 +51,7 @@ namespace M3D
 			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 			void resize(int p_width, int p_height) override { }
 
-			void execute(float p_zfar, const Vec3f& p_lightPos, const std::map<Scene::Mesh*, MeshOGL*>& p_meshes_ogl) {
+			void execute(const Vec3f& p_lightPos, float p_zfar, const std::map<Scene::Mesh*, MeshOGL*>& p_meshes_ogl) {
 				glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 
 				glEnable(GL_DEPTH_TEST);
@@ -67,14 +70,13 @@ namespace M3D
 				};
 				
 				glProgramUniformMatrix4fv(_program, _uShadowTransformLoc, 6, false, glm::value_ptr(shadowTransforms[0]));
-				glProgramUniform1f(_program, _uZfarLoc, p_zfar);
 				glProgramUniform3fv(_program, _uLightPosLoc, 1, glm::value_ptr(p_lightPos));
+				glProgramUniform1f(_program, _uZfarLoc, p_zfar);
 
 				for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes_ogl) {
 					for (unsigned int i = 0; i < mesh.first->getPrimitives().size();i++) {
 						Scene::Primitive* primitive = mesh.first->getPrimitives()[i];
-						//if (primitive->getMaterial().isTransparent()) continue;
-						//if (outside frostrum) continue;
+						if (primitive->getMaterial().isTransparent()) continue;
 
 						mesh.second->bind(i);
 						glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)primitive->getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
@@ -87,14 +89,14 @@ namespace M3D
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-			GLuint _fbo = GL_INVALID_INDEX;
+			GLuint _fbo					= GL_INVALID_INDEX;
 
 			GLuint _uShadowTransformLoc = GL_INVALID_INDEX;
-			GLuint _uLightPosLoc = GL_INVALID_INDEX;
-			GLuint _uZfarLoc = GL_INVALID_INDEX;
+			GLuint _uLightPosLoc		= GL_INVALID_INDEX;
+			GLuint _uZfarLoc			= GL_INVALID_INDEX;
 
+			GLuint _cubeShadowMap		= GL_INVALID_INDEX;
 			unsigned int _swadowMapResolution = 1024;
-			GLuint _cubeShadowMap = GL_INVALID_INDEX;
 		};
 	}
 }

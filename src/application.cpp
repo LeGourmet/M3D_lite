@@ -59,6 +59,6 @@ namespace M3D
 		_renderer->drawFrame();			// &_window->get() / context ?
 		_gui->drawFrame();				// &_window->get() / context ?
 
-		_window->capFPS();
+		_window->capFPS(deltaTime);
 	}
 }

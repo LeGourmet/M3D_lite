@@ -11,9 +11,9 @@ namespace M3D
 	{
 		class MeshOGL;
 		class TextureOGL;
-		class GeometryPassOGL;
-		class ShadingPassOGL;
-		class FinalPassOGL;
+		class DeferredShadingPassOGL;
+		class ForwardShadingPassOGL;
+		class PostProcessingPassOGL;
 	}
 
 	namespace Renderer
@@ -40,10 +40,9 @@ namespace M3D
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-			// mieux abstraire + renderGraph
-			GeometryPassOGL* _geometryPass;
-			ShadingPassOGL* _shadingPass;
-			FinalPassOGL* _finalPass;
+			DeferredShadingPassOGL* _deferredShadingPass;
+			ForwardShadingPassOGL*  _forwardShadingPass;
+			PostProcessingPassOGL*  _postProcessingPass;
 
 			std::map<Scene::Mesh*, MeshOGL*> _meshes;
 			std::map<Image*, TextureOGL*> _textures;

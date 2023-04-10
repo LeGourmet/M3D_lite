@@ -525,9 +525,13 @@
     <ClInclude Include="lib\tinygltf\stb_image_write.h" />
     <ClInclude Include="lib\tinygltf\tiny_gltf.h" />
     <ClInclude Include="src\application.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\pass\cube_shadow_pass.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\pass\shadow_pass.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\pass\transparent_pass.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\deferred\pass_deferred_shading_ogl.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\deferred\program_shadow_cube.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\deferred\program_lighting_directional.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\deferred\program_lighting_ponctual.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\deferred\program_shadow.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\forward\pass_forward_shading_ogl.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\post_processing\pass_post_processing_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\texture_ogl.hpp" />
     <ClInclude Include="src\scene\objects\meshes\material.hpp" />
     <ClInclude Include="src\scene\objects\meshes\primitive.hpp" />
@@ -535,10 +539,9 @@
     <ClInclude Include="src\scene\objects\object.hpp" />
     <ClInclude Include="src\scene\scene_graph\scene_graph_node.hpp" />
     <ClInclude Include="src\renderer\OpenGL\mesh_ogl.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\pass\geometry_pass_ogl.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\pass\final_pass_ogl.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\pass\pass_ogl.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\pass\shading_pass_ogl.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\deferred\program_geometry_ogl.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\post_processing\program_tone_mapping_ogl.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\pass\program_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\renderer_ogl.hpp" />
     <ClInclude Include="src\renderer\renderer.hpp" />
     <ClInclude Include="src\scene\objects\cameras\camera.hpp" />
@@ -555,15 +558,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\SDL3\src\hidapi\windows\ddk_build\hidapi.def" />
-    <None Include="src\renderer\OpenGL\shaders\cubeShadowMapPass.frag" />
-    <None Include="src\renderer\OpenGL\shaders\cubeShadowMapPass.geom" />
-    <None Include="src\renderer\OpenGL\shaders\cubeShadowMapPass.vert" />
-    <None Include="src\renderer\OpenGL\shaders\geometryPass.frag" />
-    <None Include="src\renderer\OpenGL\shaders\geometryPass.vert" />
-    <None Include="src\renderer\OpenGL\shaders\quadScreen.vert" />
-    <None Include="src\renderer\OpenGL\shaders\shadingPass.frag" />
-    <None Include="src\renderer\OpenGL\shaders\billboard.vert" />
-    <None Include="src\renderer\OpenGL\shaders\finalPass.frag" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

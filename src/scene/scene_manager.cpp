@@ -39,9 +39,11 @@ namespace Scene
         for (int i=0; i<_lights.size() ;i++) delete _lights[i];
     }
 
-    const Mat4f SceneManager::getMainCameraTransformation() const { return _cameras[_mainCamera.x]->getInstance(_mainCamera.y)->computeTransformation(); }
+    const Camera* SceneManager::getMainCamera() const { return _cameras[_mainCamera.x]; }
+    const SceneGraphNode* SceneManager::getMainCameraSceneGraphNode() const { return _cameras[_mainCamera.x]->getInstance(_mainCamera.y); }
+    const Mat4f SceneManager::getMainCameraTransformation() const { return _cameras[_mainCamera.x]->getInstance(_mainCamera.y)->getTransformation(); }
     const Mat4f SceneManager::getMainCameraViewMatrix() const { return _cameras[_mainCamera.x]->getViewMatrix(_mainCamera.y); }
-    const Mat4f SceneManager::getMainCameraProjectionMatrix() const { return _cameras[_mainCamera.x]->getProjectionMatrix(_mainCamera.y); }
+    const Mat4f SceneManager::getMainCameraProjectionMatrix() const { return _cameras[_mainCamera.x]->getProjectionMatrix(); }
 
     void SceneManager::loadNewScene(const std::string& p_path) { clearScene(); _loadFile(p_path); }
 
@@ -73,30 +75,12 @@ namespace Scene
             _deltaMousePositionY = 0.;
         }
 
-        /*
-        * TODO translate with _front, _up, _left
-        Mat4f transformation = computeTransformation();
-                Vec4f front = transformation * Vec4f(VEC3F_Z, 0.);   // CHECK if ==
-                Vec4f up = transformation * Vec4f(VEC3F_Y, 0.);      // CHECK if ==
-                Vec4f left = transformation * Vec4f(-VEC3F_X, 0.);   // CHECK if ==
-                _translation += -Vec3f(left.x,left.y,left.z)    *p_delta.x +
-                                 Vec3f(up.x,up.y,up.z)          *p_delta.y +
-                                 Vec3f(front.x,front.y,front.z) *p_delta.z;
-        */
-
-        if (_isKeyPressed(SDL_SCANCODE_W) || _isKeyPressed(SDL_SCANCODE_UP)) translation.z++;
-        if (_isKeyPressed(SDL_SCANCODE_S) || _isKeyPressed(SDL_SCANCODE_DOWN)) translation.z--;
-        if (_isKeyPressed(SDL_SCANCODE_A) || _isKeyPressed(SDL_SCANCODE_LEFT)) translation.x++;
-        if (_isKeyPressed(SDL_SCANCODE_D) || _isKeyPressed(SDL_SCANCODE_RIGHT)) translation.x--;
-        if (_isKeyPressed(SDL_SCANCODE_R)) translation.y++;
-        if (_isKeyPressed(SDL_SCANCODE_F)) translation.y--;
-
-        /*if (_isKeyPressed(SDL_SCANCODE_W) || _isKeyPressed(SDL_SCANCODE_UP)) rotation += _camera->getLeft();
-        if (_isKeyPressed(SDL_SCANCODE_S) || _isKeyPressed(SDL_SCANCODE_DOWN)) rotation -= _camera->getLeft();
-        if (_isKeyPressed(SDL_SCANCODE_A) || _isKeyPressed(SDL_SCANCODE_LEFT)) rotation -= _camera->getUp();
-        if (_isKeyPressed(SDL_SCANCODE_D) || _isKeyPressed(SDL_SCANCODE_RIGHT)) rotation += _camera->getUp();
-        if (_isKeyPressed(SDL_SCANCODE_R)) translation += _camera->getFront();
-        if (_isKeyPressed(SDL_SCANCODE_F)) translation -= _camera->getFront();*/
+        if (_isKeyPressed(SDL_SCANCODE_W) || _isKeyPressed(SDL_SCANCODE_UP)) translation += cameraInstance->getFront();
+        if (_isKeyPressed(SDL_SCANCODE_S) || _isKeyPressed(SDL_SCANCODE_DOWN)) translation += cameraInstance->getBack();
+        if (_isKeyPressed(SDL_SCANCODE_A) || _isKeyPressed(SDL_SCANCODE_LEFT)) translation += cameraInstance->getLeft();
+        if (_isKeyPressed(SDL_SCANCODE_D) || _isKeyPressed(SDL_SCANCODE_RIGHT)) translation += cameraInstance->getRight();
+        if (_isKeyPressed(SDL_SCANCODE_R)) translation += cameraInstance->getUp();
+        if (_isKeyPressed(SDL_SCANCODE_F)) translation += cameraInstance->getDown();
         /*if (_isKeyPressed(SDL_SCANCODE_W) || _isKeyPressed(SDL_SCANCODE_UP)) rotation.z++;// left
         if (_isKeyPressed(SDL_SCANCODE_S) || _isKeyPressed(SDL_SCANCODE_DOWN)) rotation.z--;
         if (_isKeyPressed(SDL_SCANCODE_A) || _isKeyPressed(SDL_SCANCODE_LEFT)) rotation.x++;//up
@@ -105,9 +89,8 @@ namespace Scene
         if (_isKeyPressed(SDL_SCANCODE_F)) translation.y--;*/
             
         rotation *= p_deltaTime * 0.0001;
-        translation *= p_deltaTime * 0.01;
+        translation *= p_deltaTime * 0.001;
 
-        //cameraInstance->move(translation);
         cameraInstance->translate(translation);
         cameraInstance->rotate(rotation);
 
@@ -115,9 +98,9 @@ namespace Scene
             for (unsigned int i=0; i<mesh->getNumberInstances() ;i++)
                 Application::getInstance().getRenderer().updateInstanceMesh(
                     mesh, i,
-                    mesh->getInstance(i)->computeTransformation(),
+                    mesh->getInstance(i)->getTransformation(),
                     _cameras[_mainCamera.x]->getViewMatrix(_mainCamera.y),
-                    _cameras[_mainCamera.x]->getProjectionMatrix(_mainCamera.y)
+                    _cameras[_mainCamera.x]->getProjectionMatrix()
                 );
     }
 
@@ -159,9 +142,9 @@ namespace Scene
 
         Application::getInstance().getRenderer().addInstanceMesh(
             p_mesh,
-            p_node->computeTransformation(),
+            p_node->getTransformation(),
             _cameras[_mainCamera.x]->getViewMatrix(_mainCamera.y),
-            _cameras[_mainCamera.x]->getProjectionMatrix(_mainCamera.y)
+            _cameras[_mainCamera.x]->getProjectionMatrix()
         );
     }
 
@@ -315,7 +298,7 @@ namespace Scene
             if (c.type == "perspective") {  // CHECK use aspect ratio ??
                 addCamera(new Camera((float)c.perspective.yfov, float(Application::getInstance().getWidth())/float(Application::getInstance().getHeight()), (float)c.perspective.znear, (float)c.perspective.zfar, CAMERA_TYPE::PERSPECTIVE));
             }
-            else if (c.type == "orthographic") { // CHECK multiplu by real aspect ratio ?
+            else if (c.type == "orthographic") { // CHECK multiply by real aspect ratio ?
                 addCamera(new Camera((float)c.orthographic.xmag, (float)c.orthographic.ymag, (float)c.orthographic.znear, (float)c.orthographic.zfar, CAMERA_TYPE::ORTHOGRAPHIC));
             }
         }

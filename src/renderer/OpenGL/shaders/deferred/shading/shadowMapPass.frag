@@ -7,5 +7,5 @@ in vec4 fragPos;
 
 void main()
 {
-    gl_FragDepth = length(fragPos.xyz - uLightPos)/uZfar;
+    gl_FragDepth = distance(fragPos.xyz,uLightPos)/uZfar;
 }  

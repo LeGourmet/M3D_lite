@@ -10,15 +10,13 @@ layout( location = 0 ) out vec4 fragColor;
 layout( binding = 0 ) uniform sampler2D uPositionMap;
 layout( binding = 1 ) uniform sampler2D uNormal_MetalnessMap;
 layout( binding = 2 ) uniform sampler2D uAlbedo_RoughnessMap;
-layout( binding = 3 ) uniform sampler2D uSimpleShadowMap;
-layout( binding = 4 ) uniform samplerCube uCubeShadowMap;
+layout( binding = 3 ) uniform samplerCube uCubeShadowMap;
 
-uniform vec3 uCamPos;
-uniform vec4 uLightPositionType;	 // position  + type
-uniform vec4 uLightDirectionInner;	 // direction + cosInnerAngle
-uniform vec4 uLightEmissivityOuter;  // emission  + cosOuterAngle
-
-uniform float uZfar;
+uniform vec4 uCamData;
+uniform vec3 uLightPosition;
+uniform vec3 uLightDirection;
+uniform vec3 uLightEmissivity;
+uniform vec2 uLightCosAngles;
 
 in vec2 uv;
 
@@ -57,26 +55,6 @@ float getDiffuse(float a, float cosNV, float cosNL, vec3 N, vec3 V, vec3 L ){
 	return (A+( B * max(0.,PHI) * sin(max(Ti,To)) * tan(min(Ti,To)) ) ) / PI;
 }
 
-void getDirectional(inout vec3 p_lightDir, inout vec3 p_lightComponant, inout float p_shadow){
-	p_lightDir = normalize(-uLightDirectionInner.xyz);
-	p_lightComponant = uLightEmissivityOuter.xyz;
-	p_shadow = 0.; // TODO implement
-}
-
-void getPonctualLight(in vec3 fragPos, inout vec3 p_lightDir, inout vec3 p_lightComponant, inout float p_shadow){
-	p_lightDir = uLightPositionType.xyz-fragPos;
-	float p_lightDepth = dot(p_lightDir,p_lightDir); 
-	float attenuation = 1./max(p_lightDepth,EPS); // or 1./(a*d*d + b*d + c)
-	p_lightDir = normalize(p_lightDir);
-	float intensity = clamp((dot(-p_lightDir, normalize(uLightDirectionInner.xyz))-uLightEmissivityOuter.w) / (uLightDirectionInner.w-uLightEmissivityOuter.w), 0., 1.);
-	p_lightComponant = uLightEmissivityOuter.xyz * intensity * attenuation; 
-
-	float bias = 0.05; 
-	float shadowDepth = texture(uCubeShadowMap,-p_lightDir).x*uZfar;
-	p_shadow = (sqrt(p_lightDepth)-bias > shadowDepth) ? 1. : 0.; 
-	p_shadow = shadowDepth/uZfar;
-}
-
 void main()
 {
 	vec4 position = texture2D(uPositionMap,uv);
@@ -86,19 +64,30 @@ void main()
 	vec4 normal_metalness = texture2D(uNormal_MetalnessMap,uv);
 
 	vec3 N = normal_metalness.xyz;
-	vec3 V = normalize(uCamPos-position.xyz);
+	vec3 V = normalize(uCamData.xyz-position.xyz);
 	float cosNV = dot(N,V);
-	if(cosNV<0.) { N *= -1.; cosNV=dot(N,V); }
+	if(cosNV<0.) { N *= -1.; cosNV *= -1.; }
 
-	vec3 L,Light_Componant;
-	float shadow;
-	if(uLightPositionType.w < 0.5){ getDirectional(L,Light_Componant,shadow); }
-	else{ getPonctualLight(position.xyz, L, Light_Componant,shadow); }
+	// ---------- LIGHT ----------
+	vec3 L = uLightPosition-position.xyz;
+	float p_lightDepth = dot(L,L); 
+	L = normalize(L);
+	vec3 Light_Componant = uLightEmissivity * 
+						   clamp((dot(-L,uLightDirection)-uLightCosAngles.y) / (uLightCosAngles.x-uLightCosAngles.y), 0., 1.) /
+						   max(p_lightDepth,EPS); 
 
-	//if(shadow==1.) discard;
-	fragColor = vec4(shadow);
-	return;
+	// --- SHADOW ---
+	float bias = 0.05; 
+	//float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
+	float shadowDepth = texture(uCubeShadowMap,-L).x*uCamData.a;
+	float shadow = ((sqrt(p_lightDepth)-bias > shadowDepth) ? 1. : 0.); 
+	//float shadow = shadowDepth/uZfar;
 
+	if(shadow==1.) discard;
+	//fragColor = vec4(shadow);
+	//return;
+
+	// ---------- SHADING ----------
 	float cosNL = dot(N,L);
 	if(cosNL<0.) discard;
 	

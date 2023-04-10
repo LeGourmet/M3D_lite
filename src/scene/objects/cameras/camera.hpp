@@ -34,23 +34,18 @@ namespace Scene
 
         // ------------------------------------------------------ GETTERS ------------------------------------------------------
         const Mat4f getViewMatrix(const unsigned int p_instanceId) const {
-            if (p_instanceId < _instances.size()) {
-                Mat4f transformation = _instances[p_instanceId]->computeTransformation();
-                Vec3f position  = transformation * Vec4f(VEC3F_ZERO, 1.);
-                Vec3f front     = transformation * Vec4f(-VEC3F_Z, 0.);     // CHECK if == and why need -
-                Vec3f up        = transformation * Vec4f(VEC3F_Y, 0.);      // CHECK if ==
-                return glm::lookAt( position, position+front, up );
-            }
+            if (p_instanceId < _instances.size())
+                return glm::lookAt(_instances[p_instanceId]->getPosition(),
+                                   _instances[p_instanceId]->getPosition() + _instances[p_instanceId]->getFront(), 
+                                   _instances[p_instanceId]->getUp());
             return MAT4F_ID;
         }
 
-        const Mat4f getProjectionMatrix(const unsigned int p_instanceId) const {
-            if(p_instanceId < _instances.size())
-                switch (_type) {
-                    case CAMERA_TYPE::PERSPECTIVE:  return glm::perspective(_fovy, _aspectRatio, _znear, _zfar);
-                    case CAMERA_TYPE::ORTHOGRAPHIC: return glm::ortho(-0.5f*_xmag, 0.5f*_xmag, -0.5f*_ymag, 0.5f*_ymag, _znear, _zfar);
-                }
-            return MAT4F_ID;
+        const Mat4f getProjectionMatrix() const {
+            switch (_type) {
+                case CAMERA_TYPE::PERSPECTIVE:  return glm::perspective(_fovy, _aspectRatio, _znear, _zfar);
+                case CAMERA_TYPE::ORTHOGRAPHIC: return glm::ortho(-0.5f*_xmag, 0.5f*_xmag, -0.5f*_ymag, 0.5f*_ymag, _znear, _zfar);
+            }
         }
 
         // ------------------------------------------------------ SETTERS ------------------------------------------------------

@@ -18,9 +18,9 @@ namespace M3D
 			MeshOGL(Scene::Mesh* p_mesh) {
 				glCreateBuffers(1, &_ssbo_transform_matrix);
 
-				_vaoPrimitives.reserve(p_mesh->getPrimitives().size());
-				_vboPrimitives.reserve(p_mesh->getPrimitives().size());
-				_eboPrimitives.reserve(p_mesh->getPrimitives().size());
+				_vaoPrimitives.resize(p_mesh->getPrimitives().size());
+				_vboPrimitives.resize(p_mesh->getPrimitives().size());
+				_eboPrimitives.resize(p_mesh->getPrimitives().size());
 
 				glCreateVertexArrays((GLsizei)p_mesh->getPrimitives().size(), _vaoPrimitives.data());
 				glCreateBuffers((GLsizei)p_mesh->getPrimitives().size(), _vboPrimitives.data());

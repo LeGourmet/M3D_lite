@@ -10,7 +10,7 @@ namespace M3D
 		class ProgramToneMappingOGL : public ProgramOGL {
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-			ProgramToneMappingOGL() : ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert", "src/renderer/OpenGL/shaders/toneMappingPass.frag") {
+			ProgramToneMappingOGL() : ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert","","src/renderer/OpenGL/shaders/toneMappingPass.frag") {
 				_uGammaLoc = glGetUniformLocation(_program, "uGamma");
 
 				glCreateVertexArrays(1, &_emptyVAO);

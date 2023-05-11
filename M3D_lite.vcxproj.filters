@@ -95,13 +95,7 @@
     <ClInclude Include="src\renderer\OpenGL\mesh_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\program_ogl.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\deferred\program_geometry_ogl.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\post_processing\program_tone_mapping_ogl.hpp">
+    <ClInclude Include="src\renderer\OpenGL\program_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\scene\objects\lights\light.hpp">
@@ -1598,25 +1592,34 @@
     <ClInclude Include="lib\tinygltf\tiny_gltf.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\deferred\program_shadow.hpp">
+    <ClInclude Include="src\renderer\OpenGL\stage\lighting\program_shadow.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\deferred\program_shadow_cube.hpp">
+    <ClInclude Include="src\renderer\OpenGL\stage\lighting\program_shadow_cube.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\deferred\program_lighting_directional.hpp">
+    <ClInclude Include="src\renderer\OpenGL\stage\lighting\program_lighting_directional.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\deferred\program_lighting_ponctual.hpp">
+    <ClInclude Include="src\renderer\OpenGL\stage\lighting\program_lighting_ponctual.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\deferred\pass_deferred_shading_ogl.hpp">
+    <ClInclude Include="src\renderer\OpenGL\stage\mesh_opaque\stage_mesh_opaque_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\post_processing\pass_post_processing_ogl.hpp">
+    <ClInclude Include="src\renderer\OpenGL\stage\post_processing\stage_post_processing_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\pass\forward\pass_forward_shading_ogl.hpp">
+    <ClInclude Include="src\renderer\OpenGL\stage\mesh_transparent\stage_mesh_transparent_ogl.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\stage\mesh_emissive\stage_mesh_emissive.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\stage\lighting\stage_lighting.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\OpenGL\stage\stage_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
   </ItemGroup>

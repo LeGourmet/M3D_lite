@@ -4,7 +4,7 @@
 #include "GL/gl3w.h"
 #include "glm/gtc/type_ptr.hpp"
 
-#include "../stage_ogl.hpp"
+#include "stage_ogl.hpp"
 
 #include "scene/objects/meshes/mesh.hpp"
 #include "renderer/OpenGL/mesh_ogl.hpp"
@@ -28,9 +28,12 @@ namespace M3D
 				_geometryPass.addUniform("uHasNormalMap");
 
 				glCreateFramebuffers(1, &_fbo);
-				generateAndAttachColorMap(_fbo, &_positionMap, 0);
-				generateAndAttachColorMap(_fbo, &_normalMetalnessMap, 1);
-				generateAndAttachColorMap(_fbo, &_albedoRoughnessMap, 2);
+				generateMap(&_positionMap);
+				attachColorMap(_fbo, _positionMap, 0);
+				generateMap(&_normalMetalnessMap);
+				attachColorMap(_fbo, _normalMetalnessMap, 1);
+				generateMap(&_albedoRoughnessMap);
+				attachColorMap(_fbo, _albedoRoughnessMap, 2);
 				GLenum DrawBuffers[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 				glNamedFramebufferDrawBuffers(_fbo, 3, DrawBuffers);
 
@@ -43,6 +46,8 @@ namespace M3D
 				glDeleteTextures(1, &_positionMap);
 				glDeleteTextures(1, &_normalMetalnessMap);
 				glDeleteTextures(1, &_albedoRoughnessMap);
+				glDeleteRenderbuffers(1, &_rbo);
+				glDeleteFramebuffers(1, &_fbo);
 			}
 
 			// ----------------------------------------------------- GETTERS -------------------------------------------------------
@@ -56,11 +61,12 @@ namespace M3D
 				resizeColorMap(p_width, p_height, _normalMetalnessMap);
 				resizeColorMap(p_width, p_height, _albedoRoughnessMap);
 
-				resizeFbo(p_width, p_height);
-				resizeRbo(p_width, p_height);
+				resizeRbo(p_width, p_height, _rbo);
 			}
 
-			void execute(std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Image*, TextureOGL*> p_textures) {
+			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Image*, TextureOGL*> p_textures) {
+				glViewport(0, 0, p_width, p_height);
+				
 				glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 
 				glEnable(GL_DEPTH_TEST);
@@ -97,11 +103,14 @@ namespace M3D
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+			GLuint _fbo					= GL_INVALID_INDEX;
+			GLuint _rbo					= GL_INVALID_INDEX;
+
 			GLuint _positionMap			= GL_INVALID_INDEX;
 			GLuint _normalMetalnessMap	= GL_INVALID_INDEX;
 			GLuint _albedoRoughnessMap	= GL_INVALID_INDEX;
 
-			ProgramOGL _geometryPass = ProgramOGL("src/renderer/shaders/geometryPass.vert", "", "src/renderer/shaders/geometryPass.frag");
+			ProgramOGL _geometryPass = ProgramOGL("src/renderer/OpenGL/shaders/geometryPass.vert", "", "src/renderer/OpenGL/shaders/geometryPass.frag");
 		};
 	}
 }

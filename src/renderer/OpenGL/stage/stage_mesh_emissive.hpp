@@ -4,7 +4,7 @@
 #include "GL/gl3w.h"
 #include "glm/gtc/type_ptr.hpp"
 
-#include "../stage_ogl.hpp"
+#include "stage_ogl.hpp"
 
 #include "scene/objects/meshes/mesh.hpp"
 #include "renderer/OpenGL/mesh_ogl.hpp"

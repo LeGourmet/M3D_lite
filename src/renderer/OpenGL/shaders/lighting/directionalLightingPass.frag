@@ -12,8 +12,8 @@ layout( binding = 1 ) uniform sampler2D uNormal_MetalnessMap;
 layout( binding = 2 ) uniform sampler2D uAlbedo_RoughnessMap;
 layout( binding = 3 ) uniform sampler2D uShadowMap;
 
-uniform vec4 uCamData;
-uniform vec3 uLightPosition;
+uniform vec3 uCamPos;
+uniform mat4 uLightMatrix_VP;
 uniform vec3 uLightDirection;
 uniform vec3 uLightEmissivity;
 
@@ -63,24 +63,24 @@ void main()
 	vec4 normal_metalness = texture2D(uNormal_MetalnessMap,uv);
 
 	vec3 N = normal_metalness.xyz;
-	vec3 V = normalize(uCamData.xyz-position.xyz);
+	vec3 V = normalize(uCamPos-position.xyz);
 	float cosNV = dot(N,V);
 	if(cosNV<0.) { N *= -1.; cosNV *= -1.; }
 
 	// ---------- LIGHT ----------
 	vec3 L = -uLightDirection;
-	float p_lightDepth = distance(uLightPosition,position.xyz); 
-	vec3 Light_Componant = uLightEmissivity;
-
-	// --- SHADOW ---
-	float shadowDepth = texture(uShadowMap,uv).x*uCamData.a;
-	float shadow = 0.;//((sqrt(p_lightDepth)-bias > shadowDepth) ? 1. : 0.); 
-	if(shadow==1.) discard;
-
-	// ---------- SHADING ----------
 	float cosNL = dot(N,L);
 	if(cosNL<0.) discard;
+
+	// ---
+	vec3 fragPosLightSpace = (uLightMatrix_VP * vec4(position.xyz,1.)).xyz;
+	float shadowDepth = texture(uShadowMap,fragPosLightSpace.xy).x; // care if data isn't inside map
 	
+	float bias = clamp(0.005*(1.-cosNL),0.0005,0.01);
+
+	if(fragPosLightSpace.z-bias > shadowDepth) discard;
+
+	// ---------- SHADING ----------
 	vec3 H = normalize(V+L);
 	float cosNH = dot(N,H);
 	float cosHV = dot(H,V);
@@ -91,5 +91,5 @@ void main()
 	vec3 dielectricComponent = albedo_roughness.xyz * mix(diffuse,specular,getFresnel(0.04,cosHV)); //we can use ior with ((1-ior)/(1+ior))^2 that emplace 0.04
 	vec3 MetalComponent = getFresnel(albedo_roughness.xyz,cosHV) * specular;
 
-	fragColor = vec4(mix(dielectricComponent,MetalComponent,normal_metalness.a) * Light_Componant * cosNL, 1.); 
+	fragColor = vec4(mix(dielectricComponent,MetalComponent,normal_metalness.a) * uLightEmissivity * cosNL, 1.); 
 }

@@ -1,10 +1,12 @@
-#ifndef __PASS_POST_PROCESSING_OGL_HPP__
-#define __PASS_POST_PROCESSING_OGL_HPP__
+#ifndef __STAGE_POST_PROCESSING_OGL_HPP__
+#define __STAGE_POST_PROCESSING_OGL_HPP__
 
 #include "GL/gl3w.h"
 
-#include "../stage_ogl.hpp"
+#include "stage_ogl.hpp"
 
+#include "application.hpp"
+#include "renderer/renderer.hpp"
 #include "scene/objects/meshes/mesh.hpp"
 #include "renderer/OpenGL/mesh_ogl.hpp"
 #include "renderer/OpenGL/texture_ogl.hpp"
@@ -14,14 +16,18 @@ namespace M3D
 {
 	namespace Renderer
 	{
-		class PassPostProcessingOGL : public StageOGL{
+		class StagePostProcessingOGL : public StageOGL {
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-			PassPostProcessingOGL() { 
-				_toneMappingPass.addUniform("uGama");
+			StagePostProcessingOGL() { 
+				_toneMappingPass.addUniform("uGamma");
+
+				glCreateVertexArrays(1, &_emptyVAO);
 			}
 
-			~PassPostProcessingOGL() { }
+			~StagePostProcessingOGL() { 
+				glDeleteVertexArrays(1, &_emptyVAO);
+			}
 
 			// ----------------------------------------------------- GETTERS -------------------------------------------------------
 			GLuint getShadingMap() { return _shadingMap; }
@@ -29,14 +35,16 @@ namespace M3D
 			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
 			void resize(int p_width, int p_height) { }
 
-			void execute(float p_gamma, GLuint p_HDRMap) {
+			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Image*, TextureOGL*> p_textures, GLuint p_HDRMap) {
+				glViewport(0, 0, p_width, p_height);
+
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 				glUseProgram(_toneMappingPass.getProgram());
 
-				glProgramUniform1f(_toneMappingPass.getProgram(), _toneMappingPass.getUniform("uGamma"), p_gamma);
+				glProgramUniform1f(_toneMappingPass.getProgram(), _toneMappingPass.getUniform("uGamma"), Application::getInstance().getRenderer().getGamma());
 				glBindTextureUnit(0, p_HDRMap);
 
 				glBindVertexArray(_emptyVAO);
@@ -47,7 +55,9 @@ namespace M3D
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 			GLuint _shadingMap	= GL_INVALID_INDEX;
 
-			ProgramOGL _toneMappingPass = ProgramOGL("src/renderer/shaders/utils/quadScreen.vert", "", "src/renderer/shaders/post_processing/toneMapping.frag");
+			GLuint _emptyVAO	= GL_INVALID_INDEX;
+
+			ProgramOGL _toneMappingPass = ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/toneMappingPass.frag");
 		};
 	}
 }

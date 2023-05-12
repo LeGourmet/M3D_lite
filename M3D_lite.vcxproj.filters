@@ -1592,31 +1592,22 @@
     <ClInclude Include="lib\tinygltf\tiny_gltf.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\stage\lighting\program_shadow.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\stage\lighting\program_shadow_cube.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\stage\lighting\program_lighting_directional.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="src\renderer\OpenGL\stage\lighting\program_lighting_ponctual.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\stage\mesh_opaque\stage_mesh_opaque_ogl.hpp">
+    <ClInclude Include="src\renderer\OpenGL\stage\stage_mesh_opaque_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\stage\post_processing\stage_post_processing_ogl.hpp">
+    <ClInclude Include="src\renderer\OpenGL\stage\stage_post_processing_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\stage\mesh_transparent\stage_mesh_transparent_ogl.hpp">
+    <ClInclude Include="src\renderer\OpenGL\stage\stage_mesh_transparent_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\stage\mesh_emissive\stage_mesh_emissive.hpp">
+    <ClInclude Include="src\renderer\OpenGL\stage\stage_mesh_emissive.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\stage\lighting\stage_lighting.hpp">
+    <ClInclude Include="src\renderer\OpenGL\stage\stage_lighting_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\OpenGL\stage\stage_ogl.hpp">

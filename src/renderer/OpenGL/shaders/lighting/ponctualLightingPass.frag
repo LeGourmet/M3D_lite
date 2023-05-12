@@ -10,7 +10,7 @@ layout( location = 0 ) out vec4 fragColor;
 layout( binding = 0 ) uniform sampler2D uPositionMap;
 layout( binding = 1 ) uniform sampler2D uNormal_MetalnessMap;
 layout( binding = 2 ) uniform sampler2D uAlbedo_RoughnessMap;
-layout( binding = 3 ) uniform samplerCube uCubeShadowMap;
+layout( binding = 3 ) uniform samplerCube uShadowCubeMap;
 
 uniform vec4 uCamData;
 uniform vec3 uLightPosition;
@@ -77,16 +77,10 @@ void main()
 						   max(p_lightDepth,EPS); 
 
 	// --- SHADOW ---
-	float bias = 0.05; 
-	//float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
-	float shadowDepth = texture(uCubeShadowMap,-L).x*uCamData.a;
-	float shadow = ((sqrt(p_lightDepth)-bias > shadowDepth) ? 1. : 0.); 
-	//float shadow = shadowDepth/uZfar;
-
-	if(shadow==1.) discard;
-	//fragColor = vec4(shadow);
-	//return;
-
+	/*float shadowDepth = texture(uShadowCubeMap,-L).x*uCamData.a;
+	float shadow = ((sqrt(p_lightDepth) > shadowDepth) ? 1. : 0.); 
+	if(shadow==1.) discard;*/
+	
 	// ---------- SHADING ----------
 	float cosNL = dot(N,L);
 	if(cosNL<0.) discard;

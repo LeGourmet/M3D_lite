@@ -20,6 +20,10 @@ namespace M3D
             //virtual Renderer(SDL_Window* p_window) = 0;
             virtual ~Renderer() = default;
 
+            // ----------------------------------------------------- GETTERS -------------------------------------------------------
+            inline float getGamma() { return _gamma; }
+            inline Vec4f& getClearColor() { return _clearColor; }
+
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
             virtual void resize(const int p_width, const int p_height) = 0;
             virtual void drawFrame() = 0;

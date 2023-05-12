@@ -6,9 +6,9 @@
 
 #include "renderer/OpenGL/mesh_ogl.hpp"
 #include "renderer/OpenGL/texture_ogl.hpp"
-#include "renderer/OpenGL/pass/deferred/deferred_shading_pass_ogl.hpp"
-#include "renderer/OpenGL/pass/forward/forward_shading_pass_ogl.hpp"
-#include "renderer/OpenGL/pass/post_processing/post_processing_pass_ogl.hpp"
+#include "renderer/OpenGL/stage/stage_mesh_opaque_ogl.hpp"
+#include "renderer/OpenGL/stage/stage_lighting_ogl.hpp"
+#include "renderer/OpenGL/stage/stage_post_processing_ogl.hpp"
 
 #include <iostream>
 
@@ -20,9 +20,9 @@ namespace Renderer
 		if (gl3wInit()) throw std::exception("gl3wInit() failed");
 		if (!gl3wIsSupported(4, 5)) throw std::exception("OpenGL version not supported");
 
-		_deferredShadingPass = new DeferredShadingPassOGL();
-		_forwardShadingPass = new ForwardShadingPassOGL();
-		_postProcessingPass = new PostProcessingPassOGL();
+		_stageMeshOpaqueOGL = new StageMeshOpaqueOGL();
+		_stageLightingOGL = new StageLightingOGL();
+		_stagePostProcessingOGL = new StagePostProcessingOGL();
 
 		resize(Application::getInstance().getWidth(), Application::getInstance().getHeight());
 
@@ -30,24 +30,23 @@ namespace Renderer
 	}
 
 	RendererOGL::~RendererOGL() {
-		delete _deferredShadingPass;
-		delete _forwardShadingPass;
-		delete _postProcessingPass;
+		delete _stageMeshOpaqueOGL;
+		delete _stageLightingOGL;
+		delete _stagePostProcessingOGL;
 		for (std::pair<Scene::Mesh*, MeshOGL*> pair : _meshes) delete pair.second;
 		for (std::pair<Image*, TextureOGL*> pair : _textures) delete pair.second;
 	}
 
 	void RendererOGL::resize(const int p_width, const int p_height) {
-		_deferredShadingPass->resize(p_width, p_height);
-		_forwardShadingPass->resize(p_width, p_height);
-		_postProcessingPass->resize(p_width, p_height);
+		_stageMeshOpaqueOGL->resize(p_width, p_height);
+		_stageLightingOGL->resize(p_width, p_height);
+		_stagePostProcessingOGL->resize(p_width, p_height);
 	}
 
 	void RendererOGL::drawFrame() {
-		// precompute frostrum ??
-		_deferredShadingPass->execute(_meshes, _textures);   // opaque		(color+shadow)
-		_forwardShadingPass->execute(_meshes, _textures);	 // transparent (mask +shadow) (need depth map/postition map)
-		_postProcessingPass->execute(_gamma, _deferredShadingPass->getShadingMap(), _forwardShadingPass->getShadingMap());
+		_stageMeshOpaqueOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures);
+		_stageLightingOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageMeshOpaqueOGL->getPositionMap(), _stageMeshOpaqueOGL->getNormalMetalnessMap(), _stageMeshOpaqueOGL->getAlbedoRoughnessMap());
+		_stagePostProcessingOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageLightingOGL->getLightingMap());
 
 		GLenum err;
 		while ((err = glGetError()) != GL_NO_ERROR)

@@ -149,9 +149,10 @@ namespace M3D
 
 									// TODO gerer les objets full transparent => gerer les niveaux de transparence
 									for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes)
-										for (unsigned int i = 0; i < mesh.first->getPrimitives().size();i++) {
-											mesh.second->bind(i);
-											glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)mesh.first->getPrimitives()[i]->getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
+										for (unsigned int j=0; j < mesh.first->getPrimitives().size(); j++) {
+											//if (mesh.first->getPrimitives()[j]->getMaterial().isTransparent()) continue;
+											mesh.second->bind(j);
+											glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)mesh.first->getPrimitives()[j]->getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
 											glBindVertexArray(0);
 										}
 
@@ -168,7 +169,37 @@ namespace M3D
 
 									glUseProgram(_ponctualLightingPass.getProgram());
 
-									// do some stuff
+									glBindTextureUnit(0, p_positionMap);
+									glBindTextureUnit(1, p_normalMetalnessMap);
+									glBindTextureUnit(2, p_albedoRoughnessMap);
+									glBindTextureUnit(3, _shadowCubeMap);
+
+									glProgramUniform4fv(_ponctualLightingPass.getProgram(), _ponctualLightingPass.getUniform("uCamData"), 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition(), zfar)));
+									glProgramUniform3fv(_ponctualLightingPass.getProgram(), _ponctualLightingPass.getUniform("uLightPosition"), 1, glm::value_ptr(l->getInstance(i)->getPosition()));
+									glProgramUniform3fv(_ponctualLightingPass.getProgram(), _ponctualLightingPass.getUniform("uLightDirection"), 1, glm::value_ptr(l->getInstance(i)->getFront()));
+									glProgramUniform3fv(_ponctualLightingPass.getProgram(), _ponctualLightingPass.getUniform("uLightEmissivity"), 1, glm::value_ptr(l->getEmissivity()));
+									glProgramUniform2fv(_ponctualLightingPass.getProgram(), _ponctualLightingPass.getUniform("uLightCosAngles"), 1, glm::value_ptr(Vec2f(l->getCosInnerConeAngle(), l->getCosOuterConeAngle())));
+									
+									/*Mat4f p_matrixVP = Application::getInstance().getSceneManager().getMainCameraViewMatrix() * Application::getInstance().getSceneManager().getMainCameraProjectionMatrix();
+									Vec4f minBillboard = p_matrixVP * Vec4f(p_instanceLight->getLeft() * p_light->getRange() + p_instanceLight->getDown() * p_light->getRange(), 1.);
+									minBillboard /= minBillboard.a;
+									Vec4f maxBillboard = p_matrixVP * Vec4f(p_instanceLight->getRight() * p_light->getRange() + p_instanceLight->getUp() * p_light->getRange(), 1.);
+									maxBillboard /= maxBillboard.a;
+
+									_billBoardCoord[0] = glm::clamp(Vec3f(minBillboard.x, minBillboard.y, minBillboard.z), -VEC3F_ONE, VEC3F_ONE);
+									_billBoardCoord[1] = glm::clamp(Vec3f(maxBillboard.x, minBillboard.y, (minBillboard.z + maxBillboard.z) * 0.5), -VEC3F_ONE, VEC3F_ONE);
+									_billBoardCoord[2] = glm::clamp(Vec3f(maxBillboard.x, maxBillboard.y, maxBillboard.z), -VEC3F_ONE, VEC3F_ONE);
+									_billBoardCoord[3] = glm::clamp(Vec3f(minBillboard.x, maxBillboard.y, (minBillboard.z + maxBillboard.z) * 0.5), -VEC3F_ONE, VEC3F_ONE);*/
+
+									/*glNamedBufferSubData(_vbo, 0, 4 * sizeof(Vec3f), _billBoardCoord);
+
+									glBindVertexArray(_vao);
+									glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+									glBindVertexArray(0);*/
+
+									glBindVertexArray(_emptyVAO);
+									glDrawArrays(GL_TRIANGLES, 0, 3);
+									glBindVertexArray(0);
 
 									glDisable(GL_BLEND);
 									glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -196,9 +227,10 @@ namespace M3D
 									
 									// TODO gerer les objets full transparent => gerer les niveaux de transparence
 									for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes)
-										for (unsigned int i = 0; i < mesh.first->getPrimitives().size();i++) {
-											mesh.second->bind(i);
-											glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)mesh.first->getPrimitives()[i]->getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
+										for (unsigned int j=0; j<mesh.first->getPrimitives().size(); j++) {
+											//if (mesh.first->getPrimitives()[j]->getMaterial().isTransparent()) continue;
+											mesh.second->bind(j);
+											glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)mesh.first->getPrimitives()[j]->getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
 											glBindVertexArray(0);
 										}
 
@@ -257,9 +289,10 @@ namespace M3D
 			unsigned int _sadowMapResolution = 1024;
 
 			ProgramOGL _directionalLightingPass = ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/directionalLightingPass.frag");
-			ProgramOGL _ponctualLightingPass	= ProgramOGL("src/renderer/OpenGL/shaders/utils/billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/ponctualLightingPass.frag");
+			//ProgramOGL _ponctualLightingPass	= ProgramOGL("src/renderer/OpenGL/shaders/utils/billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/ponctualLightingPass.frag");
+			ProgramOGL _ponctualLightingPass	= ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/ponctualLightingPass.frag");
 			ProgramOGL _shadowPass				= ProgramOGL("src/renderer/OpenGL/shaders/shadow/shadow.vert", "", "");
-			ProgramOGL _shadowCubePass			= ProgramOGL("src/renderer/OpenGL/shaders/shadow/cubeShadow.vert", "src/renderer/OpenGL/shaders/shadow/shadow.geom", "src/renderer/OpenGL/shaders/shadow/shadow.frag");
+			ProgramOGL _shadowCubePass			= ProgramOGL("src/renderer/OpenGL/shaders/shadow/cubeShadow.vert", "src/renderer/OpenGL/shaders/shadow/cubeShadow.geom", "src/renderer/OpenGL/shaders/shadow/cubeShadow.frag");		
 		};
 	}
 }

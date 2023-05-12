@@ -38,7 +38,7 @@ namespace M3D
             virtual void deleteTexture(Image* p_texture) = 0;
 
         protected:
-            float _gamma = 2.2f;
+            float _gamma = 2.2f; // 3.5 = blender
             Vec4f _clearColor = Vec4f(0., 0., 0., 0.);
         };
     }

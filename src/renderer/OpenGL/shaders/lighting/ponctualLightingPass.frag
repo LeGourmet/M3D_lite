@@ -70,21 +70,21 @@ void main()
 
 	// ---------- LIGHT ----------
 	vec3 L = uLightPosition-position.xyz;
-	float p_lightDepth = dot(L,L); 
+	float p_lightDepth_sq = dot(L,L); 
 	L = normalize(L);
 	vec3 Light_Componant = uLightEmissivity * 
 						   clamp((dot(-L,uLightDirection)-uLightCosAngles.y) / (uLightCosAngles.x-uLightCosAngles.y), 0., 1.) /
-						   max(p_lightDepth,EPS); 
+						   max(p_lightDepth_sq,EPS); 
 
-	// --- SHADOW ---
-	/*float shadowDepth = texture(uShadowCubeMap,-L).x*uCamData.a;
-	float shadow = ((sqrt(p_lightDepth) > shadowDepth) ? 1. : 0.); 
-	if(shadow==1.) discard;*/
-	
-	// ---------- SHADING ----------
 	float cosNL = dot(N,L);
 	if(cosNL<0.) discard;
+
+	// --- SHADOW ---
+	float shadowDepth = texture(uShadowCubeMap,-L).x*uCamData.a;
+	//float bias = clamp(0.05*(1.-cosNL),0.0005,0.1);
+	if(sqrt(p_lightDepth_sq)-0.05 > shadowDepth) discard;
 	
+	// ---------- SHADING ----------
 	vec3 H = normalize(V+L);
 	float cosNH = dot(N,H);
 	float cosHV = dot(H,V);

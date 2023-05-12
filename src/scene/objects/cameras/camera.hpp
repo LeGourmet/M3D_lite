@@ -46,6 +46,7 @@ namespace Scene
                 case CAMERA_TYPE::PERSPECTIVE:  return glm::perspective(_fovy, _aspectRatio, _znear, _zfar);
                 case CAMERA_TYPE::ORTHOGRAPHIC: return glm::ortho(-0.5f*_xmag, 0.5f*_xmag, -0.5f*_ymag, 0.5f*_ymag, _znear, _zfar);
             }
+            return MAT4F_ID;
         }
 
         // ------------------------------------------------------ SETTERS ------------------------------------------------------

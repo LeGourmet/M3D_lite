@@ -119,7 +119,8 @@ namespace M3D
                 case SDL_WINDOW_VULKAN: break;
             }
 
-            if(!_vSync && _targetFPS != 0) SDL_Delay(glm::max<unsigned int>(0,(unsigned int)(1000./_targetFPS - p_elapsedTime)));
+            // TODO réparer
+            //if(!_vSync && _targetFPS != 0) SDL_Delay(glm::max<unsigned int>(0,(unsigned int)(1000./_targetFPS - p_elapsedTime)));
             // if vsync what are we supossed to do ??
         }
 

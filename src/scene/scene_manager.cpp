@@ -130,7 +130,7 @@ namespace Scene
         _textures.clear();
         _lights.clear();
 
-        _mainCamera = Vec2i(0, 0);
+        _mainCamera = Vec2i(0, 0); // care need to reset
     }
 
     void SceneManager::addInstance(Camera* p_camera, SceneGraphNode* p_node) { p_camera->addInstance(p_node); }

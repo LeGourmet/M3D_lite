@@ -15,12 +15,12 @@ namespace M3D
 {
 	namespace Renderer
 	{
-		class StageMeshEmissive : public StageOGL {
+		class StageMeshEmissiveOGL : public StageOGL {
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-			StageMeshEmissive() { }
+			StageMeshEmissiveOGL() { }
 
-			~StageMeshEmissive() { }
+			~StageMeshEmissiveOGL() { }
 
 			// ----------------------------------------------------- GETTERS -------------------------------------------------------
 
@@ -29,7 +29,7 @@ namespace M3D
 			
 			}
 
-			void execute(std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Image*, TextureOGL*> p_textures) {
+			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Image*, TextureOGL*> p_textures) {
 
 			}
 

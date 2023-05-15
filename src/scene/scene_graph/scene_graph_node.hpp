@@ -17,7 +17,6 @@ namespace M3D
             SceneGraphNode(SceneGraphNode* p_parent, const Vec3f& p_translation, const Vec3f& p_scale, const Quatf& p_rotation) :
                 _parent(p_parent), _translation(p_translation), _scale(p_scale), _rotation(p_rotation) {
                 if(p_parent != nullptr) p_parent->addChild(this);
-                _updateLocalTransformation();
                 update();
             }
             ~SceneGraphNode() {}
@@ -44,19 +43,16 @@ namespace M3D
             // ----------------------------------------------------- SETTERS -------------------------------------------------------
             void setRotation(const Quatf& p_rotation) {
                 _rotation = p_rotation;             // CHECK normalize
-                _updateLocalTransformation();
                 update();
             }
 
             void setScaling(const Vec3f& p_scale) {
                 _scale = p_scale;                   // CHECK negative
-                _updateLocalTransformation();
                 update();
             }
 
             void setTranslation(const Vec3f& p_translation) {
                 _translation = p_translation;
-                _updateLocalTransformation();
                 update();
             }
 
@@ -66,25 +62,23 @@ namespace M3D
             }
             
             void update() {
+                _localTransformation = glm::translate(MAT4F_ID, _translation) * glm::mat4_cast(_rotation) * glm::scale(MAT4F_ID, _scale);
                 _transformation = ((_parent==nullptr) ? MAT4F_ID : _parent->getTransformation()) * _localTransformation;
                 for (SceneGraphNode* child : _childs) child->update();
             }
 
             void translate(const Vec3f& p_delta) {
                 _translation += p_delta;
-                _updateLocalTransformation();
                 update();
             }
 
             void rotate(const Vec3f& p_delta) { 
                 _rotation *= Quatf(p_delta);    // CHECK normalize
-                _updateLocalTransformation(); 
                 update();
             }
 
             void scale(const Vec3f& p_delta) {
                 _scale *= p_delta;              // CHECK negative
-                _updateLocalTransformation();
                 update();
             }
 
@@ -112,13 +106,6 @@ namespace M3D
             
             Mat4f _localTransformation = MAT4F_ID;
             Mat4f _transformation = MAT4F_ID;
-
-            // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-            void _updateLocalTransformation() {
-                _localTransformation = glm::translate(MAT4F_ID, _translation)
-                                     * glm::mat4_cast(_rotation)
-                                     * glm::scale(MAT4F_ID, _scale);
-            }
         };
     }
 }

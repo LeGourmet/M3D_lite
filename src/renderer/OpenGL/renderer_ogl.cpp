@@ -6,9 +6,9 @@
 
 #include "renderer/OpenGL/mesh_ogl.hpp"
 #include "renderer/OpenGL/texture_ogl.hpp"
-#include "renderer/OpenGL/stage/stage_mesh_opaque_ogl.hpp"
-#include "renderer/OpenGL/stage/stage_lighting_ogl.hpp"
-#include "renderer/OpenGL/stage/stage_post_processing_ogl.hpp"
+#include "renderer/OpenGL/stages/stage_mesh_opaque_ogl.hpp"
+#include "renderer/OpenGL/stages/stage_lighting_ogl.hpp"
+#include "renderer/OpenGL/stages/stage_post_processing_ogl.hpp"
 
 #include <iostream>
 

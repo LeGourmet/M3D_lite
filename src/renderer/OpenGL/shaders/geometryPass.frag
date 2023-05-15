@@ -22,13 +22,14 @@ in vec3 fragPosition;
 in mat3 TBN;
 
 void main(){
-	vec2 MetalnessRoughness = (uHasMetalnessRoughnessMap ? texture2D(uMetalnessRoughnessMap,uv).xy : vec2(uMetalness,uRoughness));
-	vec3 normal = normalize(uHasNormalMap ? (TBN*(texture2D(uNormalMap,uv).xyz*2.-1.)) : fragNormal);
 	vec4 albedo = (uHasAlbedoMap ? texture2D(uAlbedoMap,uv) : uAlbedo);
-
+	
 	if(albedo.a<1.) discard;
 
+	vec3 normal = normalize(uHasNormalMap ? (TBN*(texture2D(uNormalMap,uv).xyz*2.-1.)) : fragNormal);
+	vec2 MetalnessRoughness = (uHasMetalnessRoughnessMap ? texture2D(uMetalnessRoughnessMap,uv).xy : vec2(uMetalness,uRoughness));
+
 	position = vec4(fragPosition,1.);
-	normal_metalness = vec4(normal,MetalnessRoughness.x);
+	normal_metalness = vec4(normal, MetalnessRoughness.x);
 	albedo_roughness = vec4(albedo.xyz,MetalnessRoughness.y);
 }

@@ -17,9 +17,9 @@ namespace Scene
             _baseColor(p_baseColor), _emissiveColor(p_emissiveColor), _emissiveStrength(p_emissiveStrength), _metalness(p_metalness), _roughness(p_roughness),
             _baseColorMap(p_baseColorMap), _metalnessRoughnessMap(p_metalnessRoughnessMap), _normalMap(p_normalMap), _occlusionMap(p_occlusionMap), _emissivityMap(p_emissivityMap) 
         {
-            _isTransparent = _baseColorMap != nullptr && _baseColorMap->getNbChannels() == 4;
-            _isOpaque = !_isTransparent || (_baseColorMap == nullptr && _baseColor.a == 1.);
-            _isEmissive = (_emissivityMap != nullptr) || (_emissivityMap == nullptr && glm::length(getEmissivity()) > 0.f);
+            _isTransparent = (_baseColorMap != nullptr && _baseColorMap->getNbChannels() == 4) || (_baseColorMap == nullptr && _baseColor.a < 1.f);
+            _isOpaque = (_baseColorMap != nullptr) || (_baseColorMap == nullptr && _baseColor.a == 1.f);
+            _isEmissive = (_emissivityMap != nullptr) || (_emissivityMap == nullptr && glm::length(getEmissivity()) > 0.f); // add thresold
         }
         ~Material(){}
 

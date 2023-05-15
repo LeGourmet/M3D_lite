@@ -39,7 +39,7 @@ namespace M3D
 
         protected:
             float _gamma = 2.2f; // 3.5 = blender
-            Vec4f _clearColor = Vec4f(0., 0., 0., 0.);
+            Vec4f _clearColor = VEC4F_ZERO;
         };
     }
 }

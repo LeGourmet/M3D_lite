@@ -6,11 +6,12 @@
 //#include <fastgltf_types.hpp>
 #include "tinygltf/tiny_gltf.h"
 
-#include "utils/image.hpp"
-#include "utils/define.hpp"
-
 #include "controller/keyboard_controller.hpp"
 #include "controller/mouse_controller.hpp"
+
+#include "utils/image.hpp"
+#include "utils/texture.hpp"
+#include "utils/define.hpp"
 
 #include <vector>
 #include <filesystem>
@@ -57,7 +58,8 @@ namespace Scene
         void addMesh(Mesh* p_mesh);
         void addInstance(Mesh* p_mesh, SceneGraphNode* p_node);
         void addMaterial(Material* p_material);
-        void addTexture(Image* p_image);
+        void addTexture(Texture* p_texture);
+        void addImage(Image* p_image);
         void addNode(SceneGraphNode* p_node);
 
         void resize(const int p_width, const int p_height);
@@ -69,11 +71,12 @@ namespace Scene
         
     private:
         // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------        
-        std::vector<Camera*> _cameras;
-        std::vector<Light*> _lights;
-        std::vector<Mesh*> _meshes;
-        std::vector<Material*> _materials;
-        std::vector<Image*> _textures; // dissocier image / sampler / textures pour ne pas reload images
+        std::vector<Camera*>    _cameras;
+        std::vector<Light*>     _lights;
+        std::vector<Mesh*>      _meshes;
+        std::vector<Material*>  _materials;
+        std::vector<Texture*>   _textures;
+        std::vector<Image*>     _images;
 
         std::vector<SceneGraphNode*> _sceneGraph;
         Vec2i _mainCamera;

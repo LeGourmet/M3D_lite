@@ -10,7 +10,7 @@ layout( location = 0 ) out vec4 fragColor;
 layout( binding = 0 ) uniform sampler2D uPositionMap;
 layout( binding = 1 ) uniform sampler2D uNormal_MetalnessMap;
 layout( binding = 2 ) uniform sampler2D uAlbedo_RoughnessMap;
-layout( binding = 3 ) uniform samplerCube uShadowCubeMap;
+layout( binding = 3 ) uniform samplerCubeShadow uShadowCubeMap;
 
 uniform vec4 uCamData;
 uniform vec3 uLightPosition;
@@ -70,20 +70,41 @@ void main()
 
 	// ---------- LIGHT ----------
 	vec3 L = uLightPosition-position.xyz;
-	float p_lightDepth_sq = dot(L,L); 
+	float lightDepth_sq = dot(L,L); 
 	L = normalize(L);
 	vec3 Light_Componant = uLightEmissivity * 
 						   clamp((dot(-L,uLightDirection)-uLightCosAngles.y) / (uLightCosAngles.x-uLightCosAngles.y), 0., 1.) /
-						   max(p_lightDepth_sq,EPS); 
+						   max(lightDepth_sq,EPS); 
 
 	float cosNL = dot(N,L);
 	if(cosNL<0.) discard;
 
 	// --- SHADOW ---
-	float shadowDepth = texture(uShadowCubeMap,-L).x*uCamData.a;
-	//float bias = clamp(0.05*(1.-cosNL),0.0005,0.1);
-	if(sqrt(p_lightDepth_sq)-0.05 > shadowDepth) discard;
+	float lightDepth = sqrt(lightDepth_sq); 
+	float shadowDepth = texture(uShadowCubeMap,vec4(-L,1.))*uCamData.a;
+	float shadow = (lightDepth-0.05 > shadowDepth) ? 0. : 1.; // compute better offset + discard / use same comparaison as directionalLight
 	
+	/*pcf
+	float shadow  = 0.0;
+	float bias    = 0.05; 
+	float samples = 4.0;
+	float offset  = 0.1;
+	for(float x = -offset; x < offset; x += offset / (samples * 0.5))
+	{
+		for(float y = -offset; y < offset; y += offset / (samples * 0.5))
+		{
+			for(float z = -offset; z < offset; z += offset / (samples * 0.5))
+			{
+				float closestDepth = texture(depthMap, fragToLight + vec3(x, y, z)).r; 
+				closestDepth *= far_plane;   // undo mapping [0;1]
+				if(currentDepth - bias > closestDepth)
+					shadow += 1.0;
+			}
+		}
+	}
+	shadow /= (samples * samples * samples);
+	*/
+
 	// ---------- SHADING ----------
 	vec3 H = normalize(V+L);
 	float cosNH = dot(N,H);
@@ -95,5 +116,5 @@ void main()
 	vec3 dielectricComponent = albedo_roughness.xyz * mix(diffuse,specular,getFresnel(0.04,cosHV)); //we can use ior with ((1-ior)/(1+ior))^2 that emplace 0.04
 	vec3 MetalComponent = getFresnel(albedo_roughness.xyz,cosHV) * specular;
 
-	fragColor = vec4(mix(dielectricComponent,MetalComponent,normal_metalness.a) * Light_Componant * cosNL, 1.); 
+	fragColor = vec4(mix(dielectricComponent,MetalComponent,normal_metalness.a) * Light_Componant * shadow * cosNL, 1.); 
 }

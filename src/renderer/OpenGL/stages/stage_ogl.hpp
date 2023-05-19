@@ -14,21 +14,21 @@ namespace M3D
 
 			~StageOGL() {}
 
-			void generateMap(GLuint* p_texture) {
+			void generateMap(GLuint* p_texture, GLenum p_min, GLenum p_mag, GLenum p_wrapS, GLenum p_wrapT) {
 				glCreateTextures(GL_TEXTURE_2D, 1, p_texture);
-				glTextureParameteri(*p_texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glTextureParameteri(*p_texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTextureParameteri(*p_texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
-				glTextureParameteri(*p_texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+				glTextureParameteri(*p_texture, GL_TEXTURE_MIN_FILTER, p_min);
+				glTextureParameteri(*p_texture, GL_TEXTURE_MAG_FILTER, p_mag);
+				glTextureParameteri(*p_texture, GL_TEXTURE_WRAP_S, p_wrapS);
+				glTextureParameteri(*p_texture, GL_TEXTURE_WRAP_T, p_wrapT);
 			}
 
-			void generateCubeMap(GLuint* p_texture) {
+			void generateCubeMap(GLuint* p_texture, GLenum p_min, GLenum p_mag, GLenum p_wrapS, GLenum p_wrapT, GLenum p_wrapR) {
 				glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, p_texture);
-				glTextureParameteri(*p_texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTextureParameteri(*p_texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glTextureParameteri(*p_texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTextureParameteri(*p_texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				glTextureParameteri(*p_texture, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+				glTextureParameteri(*p_texture, GL_TEXTURE_MAG_FILTER, p_min);
+				glTextureParameteri(*p_texture, GL_TEXTURE_MIN_FILTER, p_mag);
+				glTextureParameteri(*p_texture, GL_TEXTURE_WRAP_S, p_wrapS);
+				glTextureParameteri(*p_texture, GL_TEXTURE_WRAP_T, p_wrapT);
+				glTextureParameteri(*p_texture, GL_TEXTURE_WRAP_R, p_wrapR);
 			}
 
 			void attachColorMap(GLuint p_framebuffer, GLuint p_texture, int p_id) {

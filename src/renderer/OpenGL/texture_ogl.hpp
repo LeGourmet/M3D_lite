@@ -6,7 +6,7 @@
 #include "glm/gtc/integer.hpp"
 
 #include "utils/define.hpp"
-#include "utils/image.hpp"
+#include "utils/texture.hpp"
 
 namespace M3D
 {
@@ -15,27 +15,47 @@ namespace M3D
 		class TextureOGL
 		{
 		public:
-			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-			TextureOGL(Image* p_texture) {
+			TextureOGL(Texture* p_texture) {
 				glCreateTextures(GL_TEXTURE_2D, 1, &_id);
 
-				glTextureParameteri(_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
-				glTextureParameteri(_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
-				glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-				glTextureParameteri(_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				
 				GLenum format, internalFormat;
-				switch ( p_texture->getNbChannels()) {
-					case 1: format = GL_RED; internalFormat = GL_R32F; break;
-					case 2: format = GL_RG; internalFormat = GL_RG32F; break;
-					case 3: format = GL_RGB; internalFormat = GL_RGB32F; break;
-					default: format = GL_RGBA; internalFormat = GL_RGBA32F; break;
+				switch (p_texture->_image->getNbChannels()) {
+				case 1: format = GL_RED; internalFormat = GL_R32F; break;
+				case 2: format = GL_RG; internalFormat = GL_RG32F; break;
+				case 3: format = GL_RGB; internalFormat = GL_RGB32F; break;
+				default: format = GL_RGBA; internalFormat = GL_RGBA32F; break;
 				}
 
-				unsigned int lvMipMap = (unsigned int)glm::floor(glm::log2(glm::max<int>(p_texture->getWidth(), p_texture->getHeight()))) + 1;
-				glTextureStorage2D(_id, lvMipMap, internalFormat, p_texture->getWidth(), p_texture->getHeight());
-				glTextureSubImage2D(_id, 0, 0, 0, p_texture->getWidth(), p_texture->getHeight(), format, GL_UNSIGNED_BYTE, p_texture->getData()); // care bitdepth ??
-				glGenerateTextureMipmap(_id);
+				GLenum wrapping;
+				switch (p_texture->_wrappingS) {
+				case WRAPPING_TYPE::WRAP_MIRRORED_REPEAT: wrapping = GL_MIRRORED_REPEAT; break;
+				case WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE: wrapping = GL_CLAMP_TO_EDGE; break;
+				default: wrapping = GL_REPEAT; break;
+				}
+				glTextureParameteri(_id, GL_TEXTURE_WRAP_S, wrapping);
+				switch (p_texture->_wrappingT) {
+				case WRAPPING_TYPE::WRAP_MIRRORED_REPEAT: wrapping = GL_MIRRORED_REPEAT; break;
+				case WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE: wrapping = GL_CLAMP_TO_EDGE; break;
+				default: wrapping = GL_REPEAT; break;
+				}
+				glTextureParameteri(_id, GL_TEXTURE_WRAP_T, wrapping);
+
+				glTextureParameteri(_id, GL_TEXTURE_MAG_FILTER, (p_texture->_magnification == MAGNIFICATION_TYPE::MAG_LINEAR) ? GL_LINEAR : GL_NEAREST);
+
+				if (p_texture->_minification == MINIFICATION_TYPE::MIN_LINEAR) { glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR); }
+				else if (p_texture->_minification == MINIFICATION_TYPE::MIN_NEAREST) { glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST); }
+				else {
+					switch (p_texture->_minification) {
+					case MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_NEAREST: glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST); break;
+					case MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_LINEAR: glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); break;
+					case MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_NEAREST: glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);break;
+					default: glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); break;
+					}
+					unsigned int lvMipMap = (unsigned int)glm::floor(glm::log2(glm::max<int>(p_texture->_image->getWidth(), p_texture->_image->getHeight()))) + 1;
+					glTextureStorage2D(_id, lvMipMap, internalFormat, p_texture->_image->getWidth(), p_texture->_image->getHeight());
+					glTextureSubImage2D(_id, 0, 0, 0, p_texture->_image->getWidth(), p_texture->_image->getHeight(), format, GL_UNSIGNED_BYTE, p_texture->_image->getData());
+					glGenerateTextureMipmap(_id);
+				}
 			}
 
 			~TextureOGL() { glDeleteTextures(1, &_id); }

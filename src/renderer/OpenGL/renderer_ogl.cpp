@@ -34,7 +34,7 @@ namespace Renderer
 		delete _stageLightingOGL;
 		delete _stagePostProcessingOGL;
 		for (std::pair<Scene::Mesh*, MeshOGL*> pair : _meshes) delete pair.second;
-		for (std::pair<Image*, TextureOGL*> pair : _textures) delete pair.second;
+		for (std::pair<Texture*, TextureOGL*> pair : _textures) delete pair.second;
 	}
 
 	void RendererOGL::resize(const int p_width, const int p_height) {
@@ -67,12 +67,12 @@ namespace Renderer
 	}
 
 	void RendererOGL::createMesh(Scene::Mesh* p_mesh) { _meshes.insert(std::pair<Scene::Mesh*, MeshOGL*>(p_mesh, new MeshOGL(p_mesh))); }
-	void RendererOGL::createTexture(Image* p_texture) { _textures.insert(std::pair<Image*, TextureOGL*>(p_texture, new TextureOGL(p_texture))); }
+	void RendererOGL::createTexture(Texture* p_texture) { _textures.insert(std::pair<Texture*, TextureOGL*>(p_texture, new TextureOGL(p_texture))); }
 	
 	void RendererOGL::addInstanceMesh(Scene::Mesh* p_mesh, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) { _meshes.at(p_mesh)->addInstance(p_M_matrix, p_V_matrix, p_P_matrix); }
 	void RendererOGL::updateInstanceMesh(Scene::Mesh* p_mesh, unsigned int p_id, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) { _meshes.at(p_mesh)->updateTransformMatrix(p_id, p_M_matrix, p_V_matrix, p_P_matrix); }
 	
 	void RendererOGL::deleteMesh(Scene::Mesh* p_mesh) { delete _meshes.at(p_mesh); _meshes.erase(_meshes.find(p_mesh)); }
-	void RendererOGL::deleteTexture(Image* p_texture) { delete _textures.at(p_texture); _textures.erase(_textures.find(p_texture)); }
+	void RendererOGL::deleteTexture(Texture* p_texture) { delete _textures.at(p_texture); _textures.erase(_textures.find(p_texture)); }
 }
 }

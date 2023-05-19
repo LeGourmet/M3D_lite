@@ -1610,6 +1610,9 @@
     <ClInclude Include="src\renderer\OpenGL\stages\stage_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="src\utils\texture.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\SDL3\src\hidapi\windows\ddk_build\hidapi.def">

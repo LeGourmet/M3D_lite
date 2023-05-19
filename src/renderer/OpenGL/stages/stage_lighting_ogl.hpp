@@ -35,14 +35,18 @@ namespace M3D
 				_ponctualLightingPass.addUniform("uLightCosAngles");
 
 				glCreateFramebuffers(1, &_fboLighting);
-				generateMap(&_lightingMap);
+				generateMap(&_lightingMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 				attachColorMap(_fboLighting, _lightingMap, 0);
 				
 				// ****** SHADOW ******
 				_shadowPass.addUniform("uLightMatrix_VP");
 				
 				glCreateFramebuffers(1, &_fboShadow);
-				generateMap(&_shadowMap); // set to clamp border and set border to white
+				generateMap(&_shadowMap, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
+				float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+				glTextureParameterfv(_shadowMap, GL_TEXTURE_BORDER_COLOR, borderColor);
+				glTextureParameteri(_shadowMap, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+				glTextureParameteri(_shadowMap, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 				attachDepthMap(_fboShadow, _shadowMap);
 				resizeDepthMap(_sadowMapResolution, _sadowMapResolution, _shadowMap);
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboShadow);
@@ -56,7 +60,9 @@ namespace M3D
 				_shadowCubePass.addUniform("uZfar");
 				
 				glCreateFramebuffers(1, &_fboShadowCube);
-				generateCubeMap(&_shadowCubeMap);
+				generateCubeMap(&_shadowCubeMap, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+				//glTextureParameteri(_shadowCubeMap, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+				//glTextureParameteri(_shadowCubeMap, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 				attachDepthMap(_fboShadowCube, _shadowCubeMap);
 				resizeDepthCubeMap(_sadowMapResolution, _sadowMapResolution, _shadowCubeMap);
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboShadowCube);
@@ -107,7 +113,7 @@ namespace M3D
 				resizeColorMap(p_width, p_height, _lightingMap);
 			}
 
-			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Image*, TextureOGL*> p_textures, GLuint p_positionMap, GLuint p_normalMetalnessMap, GLuint p_albedoRoughnessMap) {
+			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_positionMap, GLuint p_normalMetalnessMap, GLuint p_albedoRoughnessMap) {
 				float znear = 1e-3f;
 
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
@@ -118,7 +124,7 @@ namespace M3D
 					for (unsigned int i=0; i<l->getNumberInstances() ;i++)
 						switch (l->getType()) {
 							case LIGHT_TYPE::POINT:
-							case LIGHT_TYPE::SPOT: 
+							case LIGHT_TYPE::SPOT:
 								{
 									float zfar = glm::max(znear,l->getRange()); // TODO frustum culling and bounding sphere objects to compute zfar
 									Vec3f lightPos = l->getInstance(i)->getPosition();

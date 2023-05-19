@@ -10,7 +10,7 @@ layout( location = 0 ) out vec4 fragColor;
 layout( binding = 0 ) uniform sampler2D uPositionMap;
 layout( binding = 1 ) uniform sampler2D uNormal_MetalnessMap;
 layout( binding = 2 ) uniform sampler2D uAlbedo_RoughnessMap;
-layout( binding = 3 ) uniform sampler2D uShadowMap;
+layout( binding = 3 ) uniform sampler2DShadow uShadowMap;
 
 uniform vec3 uCamPos;
 uniform mat4 uLightMatrix_VP;
@@ -72,13 +72,31 @@ void main()
 	float cosNL = dot(N,L);
 	if(cosNL<0.) discard;
 
-	// ---
+	// --- SHADOW ---
 	vec3 fragPosLightSpace = (uLightMatrix_VP * vec4(position.xyz,1.)).xyz;
-	float shadowDepth = texture(uShadowMap,fragPosLightSpace.xy).x; // care if data isn't inside map
-	
-	float bias = clamp(0.005*(1.-cosNL),0.0005,0.01);
+	fragPosLightSpace.z -= clamp(0.005*(1.-cosNL),0.0005,0.01); // compute better bias
+	float shadow = (fragPosLightSpace.z < 1.) ? texture(uShadowMap,fragPosLightSpace) : 1.;
 
-	if(fragPosLightSpace.z-bias > shadowDepth) discard;
+	/*pcf
+	float shadow  = 0.0;
+	float bias    = 0.05; 
+	float samples = 4.0;
+	float offset  = 0.1;
+	for(float x = -offset; x < offset; x += offset / (samples * 0.5))
+	{
+		for(float y = -offset; y < offset; y += offset / (samples * 0.5))
+		{
+			for(float z = -offset; z < offset; z += offset / (samples * 0.5))
+			{
+				float closestDepth = texture(depthMap, fragToLight + vec3(x, y, z)).r; 
+				closestDepth *= far_plane;   // undo mapping [0;1]
+				if(currentDepth - bias > closestDepth)
+					shadow += 1.0;
+			}
+		}
+	}
+	shadow /= (samples * samples * samples);
+	*/
 
 	// ---------- SHADING ----------
 	vec3 H = normalize(V+L);
@@ -91,5 +109,5 @@ void main()
 	vec3 dielectricComponent = albedo_roughness.xyz * mix(diffuse,specular,getFresnel(0.04,cosHV)); //we can use ior with ((1-ior)/(1+ior))^2 that emplace 0.04
 	vec3 MetalComponent = getFresnel(albedo_roughness.xyz,cosHV) * specular;
 
-	fragColor = vec4(mix(dielectricComponent,MetalComponent,normal_metalness.a) * uLightEmissivity * cosNL, 1.); 
+	fragColor = vec4(mix(dielectricComponent,MetalComponent,normal_metalness.a) * uLightEmissivity * shadow * cosNL, 1.); 
 }

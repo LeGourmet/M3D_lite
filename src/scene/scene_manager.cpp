@@ -5,10 +5,11 @@
 #include "application.hpp"
 #include "renderer/renderer.hpp"
 
+#include "scene_graph/scene_graph_node.hpp"
+
 #include "objects/lights/light.hpp"
 #include "objects/meshes/mesh.hpp"
 #include "objects/meshes/material.hpp"
-#include "scene_graph/scene_graph_node.hpp"
 #include "objects/cameras/camera.hpp"
 
 //#include <variant>
@@ -36,6 +37,7 @@ namespace Scene
         for (int i=0; i<_sceneGraph.size() ;i++) delete _sceneGraph[i];
         for (int i=0; i<_meshes.size() ;i++) { Application::getInstance().getRenderer().deleteMesh(_meshes[i]); delete _meshes[i]; }
         for (int i=0; i<_textures.size() ;i++) { Application::getInstance().getRenderer().deleteTexture(_textures[i]); delete _textures[i]; }
+        for (int i = 0; i<_images.size();i++) { delete _images[i]; }
         for (int i=0; i<_lights.size() ;i++) delete _lights[i];
     }
 
@@ -57,7 +59,9 @@ namespace Scene
 
     void SceneManager::addMaterial(Material* p_material) { _materials.push_back(p_material); }
 
-    void SceneManager::addTexture(Image* p_image) { _textures.push_back(p_image); Application::getInstance().getRenderer().createTexture(p_image); }
+    void SceneManager::addTexture(Texture* p_texture) { _textures.push_back(p_texture); Application::getInstance().getRenderer().createTexture(p_texture); }
+
+    void SceneManager::addImage(Image* p_image) { _images.push_back(p_image); }
 
     void SceneManager::addNode(SceneGraphNode* p_node) { _sceneGraph.push_back(p_node); }
 
@@ -123,13 +127,16 @@ namespace Scene
         _materials.erase(_materials.begin()+1,_materials.end());
         _sceneGraph.erase(_sceneGraph.begin()+1,_sceneGraph.end());
 
-        for (int i=0; i<_meshes.size() ;i++) { Application::getInstance().getRenderer().deleteMesh(_meshes[i]); delete _meshes[i]; }
-        for (int i=0; i<_textures.size() ;i++) { Application::getInstance().getRenderer().deleteTexture(_textures[i]); delete _textures[i]; }
-        for (int i=0; i<_lights.size() ;i++) delete _lights[i];
+        for (int i = 0; i < _meshes.size();i++) { Application::getInstance().getRenderer().deleteMesh(_meshes[i]); delete _meshes[i]; }
+        for (int i = 0; i < _textures.size();i++) { Application::getInstance().getRenderer().deleteTexture(_textures[i]); delete _textures[i]; }
+        for (int i = 0; i < _images.size();i++) delete _images[i];
+        for (int i = 0; i < _lights.size();i++) delete _lights[i];
         _meshes.clear();
         _textures.clear();
+        _images.clear();
         _lights.clear();
 
+        _sceneGraph[0]->clearChilds();
         _mainCamera = Vec2i(0, 0); // care need to reset pos
     }
 
@@ -183,18 +190,53 @@ namespace Scene
             if (!loader.LoadBinaryFromFile(&model, nullptr, nullptr, p_path.string())) throw std::runtime_error("Fail to load file: " + p_path.string());
         }
 
+        // ------------- IMAGES
+        unsigned int startIdImages = (unsigned int)_images.size();
+        _images.reserve(startIdImages + model.images.size());
+        for (tinygltf::Image i : model.images)
+            addImage(new Image(i.width, i.height, i.component, i.bits, i.pixel_type, i.image));
+
         // ------------- TEXTURES
         unsigned int startIdTextures = (unsigned int)_textures.size();
         _textures.reserve(startIdTextures + model.textures.size());
-        for (tinygltf::Texture t : model.textures)
-            addTexture(new Image(
-                model.images[t.source].width,
-                model.images[t.source].height,
-                model.images[t.source].component,
-                model.images[t.source].bits,
-                0,
-                model.images[t.source].image
-            ));
+        for (tinygltf::Texture t : model.textures) {
+            Texture* texture = new Texture();
+            texture->_image = _images[startIdImages + t.source];
+
+            switch (model.samplers[t.sampler].magFilter) {
+            case TINYGLTF_TEXTURE_FILTER_NEAREST: texture->_magnification = MAGNIFICATION_TYPE::MAG_NEAREST; break;
+            default: texture->_magnification = MAGNIFICATION_TYPE::MAG_LINEAR; break;
+            }
+
+            switch (model.samplers[t.sampler].minFilter) {
+            case TINYGLTF_TEXTURE_FILTER_NEAREST: texture->_minification = MINIFICATION_TYPE::MIN_NEAREST; break;
+            case TINYGLTF_TEXTURE_FILTER_LINEAR: texture->_minification = MINIFICATION_TYPE::MIN_LINEAR; break;
+            case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST: texture->_minification = MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_NEAREST; break;
+            case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST: texture->_minification = MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_NEAREST; break;
+            case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR: texture->_minification = MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_LINEAR; break;
+            default: texture->_minification = MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_LINEAR; break;
+            }
+
+            switch (model.samplers[t.sampler].wrapR) {
+            case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture->_wrappingR = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
+            case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture->_wrappingR = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
+            default: texture->_wrappingR = WRAPPING_TYPE::WRAP_REPEAT; break;
+            }
+
+            switch (model.samplers[t.sampler].wrapS) {
+            case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture->_wrappingS = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
+            case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture->_wrappingS = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
+            default: texture->_wrappingS = WRAPPING_TYPE::WRAP_REPEAT; break;
+            }
+
+            switch (model.samplers[t.sampler].wrapT) {
+            case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture->_wrappingT = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
+            case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture->_wrappingT = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
+            default: texture->_wrappingT = WRAPPING_TYPE::WRAP_REPEAT; break;
+            }
+
+            addTexture(texture);
+        }
 
         // ------------- MATERIALS
         unsigned int startIdMaterials = (unsigned int)_materials.size();

@@ -33,6 +33,14 @@ namespace Scene
         ~Camera() {}
 
         // ------------------------------------------------------ GETTERS ------------------------------------------------------
+        inline CAMERA_TYPE getType() { return _type; }
+        inline float getZNear() { return _znear; }
+        inline float getZFar() { return _zfar; }
+        inline float getFovy() { return _fovy; }
+        inline float getAspectRatio() { return _aspectRatio; }
+        inline float getXMag() { return _xmag; }
+        inline float getYMag() { return _ymag; }
+        
         const Mat4f getViewMatrix(const unsigned int p_instanceId) const {
             if (p_instanceId < _instances.size())
                 return glm::lookAt(_instances[p_instanceId]->getPosition(),

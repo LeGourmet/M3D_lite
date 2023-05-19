@@ -28,11 +28,11 @@ namespace M3D
 				_geometryPass.addUniform("uHasNormalMap");
 
 				glCreateFramebuffers(1, &_fbo);
-				generateMap(&_positionMap);
+				generateMap(&_positionMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 				attachColorMap(_fbo, _positionMap, 0);
-				generateMap(&_normalMetalnessMap);
+				generateMap(&_normalMetalnessMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 				attachColorMap(_fbo, _normalMetalnessMap, 1);
-				generateMap(&_albedoRoughnessMap);
+				generateMap(&_albedoRoughnessMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 				attachColorMap(_fbo, _albedoRoughnessMap, 2);
 				GLenum DrawBuffers[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 				glNamedFramebufferDrawBuffers(_fbo, 3, DrawBuffers);
@@ -64,7 +64,7 @@ namespace M3D
 				resizeRbo(p_width, p_height, _rbo);
 			}
 
-			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Image*, TextureOGL*> p_textures) {
+			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures) {
 				glViewport(0, 0, p_width, p_height);
 				
 				glBindFramebuffer(GL_FRAMEBUFFER, _fbo);

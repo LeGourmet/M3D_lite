@@ -61,9 +61,12 @@ namespace M3D
                 _childs.push_back(child);
             }
             
+            void clearChilds() { _childs.clear(); }
+
             void update() {
                 _localTransformation = glm::translate(MAT4F_ID, _translation) * glm::mat4_cast(_rotation) * glm::scale(MAT4F_ID, _scale);
                 _transformation = ((_parent==nullptr) ? MAT4F_ID : _parent->getTransformation()) * _localTransformation;
+                // ou inverse ?
                 for (SceneGraphNode* child : _childs) child->update();
             }
 

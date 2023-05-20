@@ -359,6 +359,12 @@ namespace Scene
             addLight(light);
             addNode(node);
             addInstance(light, node);
+
+            SceneGraphNode* pointNode = new SceneGraphNode(_cameras[_mainCamera.x]->getInstance(_mainCamera.y), VEC3F_ZERO, VEC3F_ONE, QUATF_ID);
+            Light* point = new Light(LIGHT_TYPE::POINT, Vec3f(1., 1., 1.), 650.);
+            addLight(point);
+            addNode(pointNode);
+            addInstance(point, pointNode);
         }
 
         if (_cameras.size() > 1 && _cameras[1]->getNumberInstances() > 0) _mainCamera = Vec2i(1, 0);

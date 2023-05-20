@@ -3,6 +3,8 @@
 #define PI				3.1415926535
 #define TWO_PI			6.2831853071
 #define INV_SQRT_TWO	0.7071067811
+#define PCF_SAMPLES     8.
+#define PCF_OFFSET      0.05
 #define EPS				0.0001
 
 layout( location = 0 ) out vec4 fragColor;
@@ -80,30 +82,22 @@ void main()
 	if(cosNL<0.) discard;
 
 	// --- SHADOW ---
-	float lightDepth = sqrt(lightDepth_sq); 
-	float shadowDepth = texture(uShadowCubeMap,vec4(-L,1.))*uCamData.a;
-	float shadow = (lightDepth-0.05 > shadowDepth) ? 0. : 1.; // compute better offset + discard / use same comparaison as directionalLight
-	
-	/*pcf
-	float shadow  = 0.0;
-	float bias    = 0.05; 
-	float samples = 4.0;
-	float offset  = 0.1;
-	for(float x = -offset; x < offset; x += offset / (samples * 0.5))
-	{
-		for(float y = -offset; y < offset; y += offset / (samples * 0.5))
-		{
-			for(float z = -offset; z < offset; z += offset / (samples * 0.5))
-			{
-				float closestDepth = texture(depthMap, fragToLight + vec3(x, y, z)).r; 
-				closestDepth *= far_plane;   // undo mapping [0;1]
-				if(currentDepth - bias > closestDepth)
-					shadow += 1.0;
+	vec3 T = cross(N,vec3(1.,0.,0.));
+	if(length(T)<0.1) T = cross(N,vec3(0.,1.,0.));
+	T = normalize(T);
+	vec3 B = normalize(cross(N,T));
+
+	// --- PCF => todo implement pcss
+	float shadow  = 0.;
+	for(float x = -PCF_OFFSET; x<PCF_OFFSET; x += PCF_OFFSET/(PCF_SAMPLES*0.5))
+		for(float y = -PCF_OFFSET; y<PCF_OFFSET; y += PCF_OFFSET/(PCF_SAMPLES*0.5)){
+				vec3 fp = position.xyz + T*x + B*y + N*clamp(0.05*(cosNL),0.05,0.1);
+				vec3 fpL = fp-uLightPosition;
+				float lightDepth = length(fpL);
+				float shadowDepth = texture(uShadowCubeMap,vec4(normalize(fpL),1.))*uCamData.a;;
+				shadow += (lightDepth > shadowDepth) ? 0. : 1.;
 			}
-		}
-	}
-	shadow /= (samples * samples * samples);
-	*/
+	shadow /= (PCF_SAMPLES * PCF_SAMPLES);
 
 	// ---------- SHADING ----------
 	vec3 H = normalize(V+L);

@@ -11,12 +11,12 @@ namespace M3D
 	enum WRAPPING_TYPE { WRAP_REPEAT, WRAP_MIRRORED_REPEAT, WRAP_CLAMP_TO_EDGE };
 
 	struct Texture {
-		MINIFICATION_TYPE	_minification;
-		MAGNIFICATION_TYPE	_magnification;
-		WRAPPING_TYPE		_wrappingR;
-		WRAPPING_TYPE		_wrappingS;
-		WRAPPING_TYPE		_wrappingT;
-		Image*				_image;
+		MINIFICATION_TYPE	_minification	= MINIFICATION_TYPE::MIN_NEAREST;
+		MAGNIFICATION_TYPE	_magnification	= MAGNIFICATION_TYPE::MAG_NEAREST;
+		WRAPPING_TYPE		_wrappingR		= WRAPPING_TYPE::WRAP_REPEAT;
+		WRAPPING_TYPE		_wrappingS		= WRAPPING_TYPE::WRAP_REPEAT;
+		WRAPPING_TYPE		_wrappingT		= WRAPPING_TYPE::WRAP_REPEAT;
+		Image*				_image			= nullptr;
 	};
 }
 

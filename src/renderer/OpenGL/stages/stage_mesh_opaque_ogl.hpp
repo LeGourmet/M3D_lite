@@ -22,6 +22,7 @@ namespace M3D
 				_geometryPass.addUniform("uAlbedo");
 				_geometryPass.addUniform("uMetalness");
 				_geometryPass.addUniform("uRoughness");
+				_geometryPass.addUniform("uAlphaCutOff");
 
 				_geometryPass.addUniform("uHasAlbedoMap");
 				_geometryPass.addUniform("uHasMetalnessRoughnessMap");
@@ -77,7 +78,7 @@ namespace M3D
 				for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes) {
 					for (unsigned int i = 0; i < mesh.first->getPrimitives().size();i++) {
 						Scene::Primitive* primitive = mesh.first->getPrimitives()[i];
-						if (primitive->getMaterial().isTransparent()) continue;
+						if (!primitive->getMaterial().isOpaque()) continue;
 
 						glProgramUniform4fv(_geometryPass.getProgram(), _geometryPass.getUniform("uAlbedo"), 1, glm::value_ptr(primitive->getMaterial().getBaseColor()));
 						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasAlbedoMap"), primitive->getMaterial().getBaseColorMap() != nullptr);
@@ -85,6 +86,7 @@ namespace M3D
 
 						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uMetalness"), primitive->getMaterial().getMetalness());
 						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uRoughness"), primitive->getMaterial().getRoughness());
+						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uAlphaCutOff"), primitive->getMaterial().getAlphaCutOff());
 						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasMetalnessRoughnessMap"), primitive->getMaterial().getMetalnessRoughnessMap() != nullptr);
 						if (primitive->getMaterial().getMetalnessRoughnessMap() != nullptr) glBindTextureUnit(2, p_textures.at(primitive->getMaterial().getMetalnessRoughnessMap())->getId());
 

@@ -11,6 +11,7 @@ layout( binding = 3 ) uniform sampler2D uNormalMap;
 uniform vec4 uAlbedo;
 uniform float uMetalness;
 uniform float uRoughness;
+uniform float uAlphaCutOff;
 
 uniform bool uHasAlbedoMap;
 uniform bool uHasMetalnessRoughnessMap;
@@ -24,7 +25,7 @@ in mat3 TBN;
 void main(){
 	vec4 albedo = (uHasAlbedoMap ? texture2D(uAlbedoMap,uv) : uAlbedo);
 	
-	if(albedo.a<1.) discard;
+	if(albedo.a<uAlphaCutOff) discard;
 
 	vec3 normal = normalize(uHasNormalMap ? (TBN*(texture2D(uNormalMap,uv).xyz*2.-1.)) : fragNormal);
 	vec2 MetalnessRoughness = (uHasMetalnessRoughnessMap ? texture2D(uMetalnessRoughnessMap,uv).xy : vec2(uMetalness,uRoughness));

@@ -12,9 +12,9 @@ namespace Scene
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-        Material(const Vec4f& p_baseColor, const Vec3f& p_emissiveColor, float p_emissiveStrength, float p_metalness, float p_roughness,
+        Material(const Vec4f& p_baseColor, const Vec3f& p_emissiveColor, float p_emissiveStrength, float p_metalness, float p_roughness, float p_alphaCutOff,
                  Texture* p_baseColorMap, Texture* p_metalnessRoughnessMap, Texture* p_normalMap, Texture* p_occlusionMap, Texture* p_emissivityMap):
-            _baseColor(p_baseColor), _emissiveColor(p_emissiveColor), _emissiveStrength(p_emissiveStrength), _metalness(p_metalness), _roughness(p_roughness),
+            _baseColor(p_baseColor), _emissiveColor(p_emissiveColor), _emissiveStrength(p_emissiveStrength), _metalness(p_metalness), _roughness(p_roughness), _alphCutOff(p_alphaCutOff),
             _baseColorMap(p_baseColorMap), _metalnessRoughnessMap(p_metalnessRoughnessMap), _normalMap(p_normalMap), _occlusionMap(p_occlusionMap), _emissivityMap(p_emissivityMap) 
         {
             _isTransparent = (_baseColorMap != nullptr && _baseColorMap->_image->getNbChannels() == 4) || (_baseColorMap == nullptr && _baseColor.a < 1.f);
@@ -31,6 +31,7 @@ namespace Scene
         inline float getEmissiveStrength() const { return _emissiveStrength; }
         inline float getMetalness() const { return _metalness; }
         inline float getRoughness() const { return _roughness; }
+        inline float getAlphaCutOff() const { return _alphCutOff; }
 
         inline bool isOpaque() const { return _isOpaque; }
         inline bool isTransparent() const { return _isTransparent; }
@@ -52,6 +53,7 @@ namespace Scene
         float _emissiveStrength = 0.f;
         float _metalness = 0.f;
         float _roughness = 1.f;
+        float _alphCutOff = 0.f;  // (opaque no discard = 0.) / (blend full discard = 1.) / (mask partial discard = others)
 
         bool _isOpaque = true;
         bool _isTransparent = false;

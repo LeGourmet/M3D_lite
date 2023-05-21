@@ -19,7 +19,5 @@ TODO
 	- implement shadow volume : stencil + genereate geometry "shadow volulme"
 
 WARNING
-	- ne supporte pas l'alpha mode du materiaux, si il y un canal alpha et où les valeurs != 1 => blend
 	- ne prend pas en compte l'aspect ratio des cameras perspective
 	- regler pb de mipmap avec alpha des images
-	- reload plusieurs fois les même image

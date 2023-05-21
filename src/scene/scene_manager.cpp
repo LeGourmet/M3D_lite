@@ -21,7 +21,7 @@ namespace M3D
 namespace Scene
 {
     SceneManager::SceneManager(const int p_width, const int p_height) {
-        addMaterial(new Material(VEC4F_ONE, VEC3F_ZERO, 0.f, 0.f, 1.f, nullptr, nullptr, nullptr, nullptr, nullptr)); 
+        addMaterial(new Material(VEC4F_ONE, VEC3F_ZERO, 0.f, 0.f, 1.f, 1.f, nullptr, nullptr, nullptr, nullptr, nullptr)); 
         
         addCamera(new Camera(PIf/2.f, 1., 1e-2f, 1e3f ,CAMERA_TYPE::PERSPECTIVE));
         addNode(new SceneGraphNode(nullptr,VEC3F_ZERO,VEC3F_ONE,QUATF_ID));
@@ -248,6 +248,7 @@ namespace Scene
                 m.extensions.find("KHR_materials_emissive_strength") != m.extensions.end() && m.extensions.at("KHR_materials_emissive_strength").Has("emissiveStrength") ? (float)m.extensions.at("KHR_materials_emissive_strength").Get("emissiveStrength").GetNumberAsDouble() : 0.f,
                 (float)m.pbrMetallicRoughness.metallicFactor,
                 (float)m.pbrMetallicRoughness.roughnessFactor,
+                (float)(m.alphaMode=="OPAQUE" ? 0. : (m.alphaMode=="BLEND" ? 1. : m.alphaCutoff)),
                 (m.pbrMetallicRoughness.baseColorTexture.index == -1.) ? nullptr : _textures[startIdTextures + m.pbrMetallicRoughness.baseColorTexture.index],
                 (m.pbrMetallicRoughness.metallicRoughnessTexture.index == -1.) ? nullptr : _textures[startIdTextures + m.pbrMetallicRoughness.metallicRoughnessTexture.index],
                 (m.normalTexture.index == -1.) ? nullptr : _textures[startIdTextures + m.normalTexture.index],
@@ -298,7 +299,9 @@ namespace Scene
                                         ._normal = glm::normalize(glm::make_vec3(&normalsBuffer[i * 3])),
                                         ._uv = glm::make_vec2(&texCoord0Buffer[i * 2])
                     };
-                    v._tangent = (isTangent) ? glm::normalize(glm::make_vec3(&tangentsBuffer[i * 3])) : VEC3F_X; // TODO implement better
+                    v._tangent = glm::cross(v._normal, VEC3F_X);
+                    if (glm::length(v._tangent) < 0.1) v._tangent = glm::cross(v._normal, VEC3F_Y);
+                    v._tangent = glm::normalize(v._tangent);
                     v._bitangent = glm::normalize(glm::cross(v._normal, v._tangent));
                     newPrimitive->addVertex(v);
                 }
@@ -354,14 +357,15 @@ namespace Scene
 
         // ============================= TODO virer
         if (_lights.size() == 0) {
-            SceneGraphNode* node = new SceneGraphNode(nullptr, Vec3f(0., 0., 0.), Vec3f(1., 1., 1.), Quatf(0.378f, -0.444f, 0.805f, 0.101f));
-            Light* light = new Light(LIGHT_TYPE::DIRECTIONAL, Vec4f(1., 1., 1., 1.), 1.);
+            SceneGraphNode* node = new SceneGraphNode(nullptr, Vec3f(0., 0., 0.), Vec3f(1., 1., 1.), QUATF_ID);
+            //node->rotate(Vec3f(0., 0., PIf));
+            Light* light = new Light(LIGHT_TYPE::DIRECTIONAL, Vec4f(1., 1., 1., 1.), 1650.);
             addLight(light);
             addNode(node);
             addInstance(light, node);
 
             SceneGraphNode* pointNode = new SceneGraphNode(_cameras[_mainCamera.x]->getInstance(_mainCamera.y), VEC3F_ZERO, VEC3F_ONE, QUATF_ID);
-            Light* point = new Light(LIGHT_TYPE::POINT, Vec3f(1., 1., 1.), 650.);
+            Light* point = new Light(LIGHT_TYPE::POINT, Vec3f(1., 1., 1.), 0650.);
             addLight(point);
             addNode(pointNode);
             addInstance(point, pointNode);

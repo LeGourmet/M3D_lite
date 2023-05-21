@@ -28,7 +28,7 @@ void main(){
 	if(albedo.a<uAlphaCutOff) discard;
 
 	vec3 normal = normalize(uHasNormalMap ? (TBN*(texture2D(uNormalMap,uv).xyz*2.-1.)) : fragNormal);
-	vec2 MetalnessRoughness = (uHasMetalnessRoughnessMap ? texture2D(uMetalnessRoughnessMap,uv).xy : vec2(uMetalness,uRoughness));
+	vec2 MetalnessRoughness = (uHasMetalnessRoughnessMap ? texture2D(uMetalnessRoughnessMap,uv).zy : vec2(uMetalness,uRoughness));
 
 	position = vec4(fragPosition,1.);
 	normal_metalness = vec4(normal, MetalnessRoughness.x);

@@ -271,22 +271,14 @@ namespace Scene
                 tinygltf::Accessor a_position = model.accessors[p.attributes.at("POSITION")];
                 tinygltf::Accessor a_normal = model.accessors[p.attributes.at("NORMAL")];
                 tinygltf::Accessor a_texcoord = model.accessors[p.attributes.at("TEXCOORD_0")];
-                tinygltf::Accessor a_tangent;
-                if (isTangent) a_tangent = model.accessors[p.attributes.at("TANGENT")];
 
-                if (!((a_position.count == a_normal.count) && (a_normal.count == a_texcoord.count) && (!isTangent || (a_texcoord.count == a_tangent.count)))) throw std::runtime_error("Fail to load file: primitive vertices must have the same number of position, normal, tangent and texcoord0.");
+                if (!((a_position.count == a_normal.count) && (a_normal.count == a_texcoord.count))) throw std::runtime_error("Fail to load file: primitive vertices must have the same number of position, normal and texcoord0.");
 
                 tinygltf::BufferView bv_position = model.bufferViews[a_position.bufferView];
                 const float* positionsBuffer = reinterpret_cast<const float*>(&model.buffers[bv_position.buffer].data[a_position.byteOffset + bv_position.byteOffset]);
 
                 tinygltf::BufferView bv_normal = model.bufferViews[a_normal.bufferView];
                 const float* normalsBuffer = reinterpret_cast<const float*>(&model.buffers[bv_normal.buffer].data[a_normal.byteOffset + bv_normal.byteOffset]);
-
-                const float* tangentsBuffer = nullptr;
-                if (isTangent) {
-                    tinygltf::BufferView bv_tangent = model.bufferViews[a_tangent.bufferView];
-                    tangentsBuffer = reinterpret_cast<const float*>(&model.buffers[bv_tangent.buffer].data[a_tangent.byteOffset + bv_tangent.byteOffset]);
-                }
 
                 tinygltf::Accessor a_indices = model.accessors[p.indices];
                 tinygltf::BufferView bv_texcoord = model.bufferViews[a_texcoord.bufferView];
@@ -354,22 +346,6 @@ namespace Scene
         for (tinygltf::Scene s : model.scenes)
             for (int id : s.nodes)
                 _createSceneGraph(id, nullptr, startIdMeshes, startIdLights, idStartCameras, model);
-
-        // ============================= TODO virer
-        if (_lights.size() == 0) {
-            SceneGraphNode* node = new SceneGraphNode(nullptr, Vec3f(0., 0., 0.), Vec3f(1., 1., 1.), QUATF_ID);
-            //node->rotate(Vec3f(0., 0., PIf));
-            Light* light = new Light(LIGHT_TYPE::DIRECTIONAL, Vec4f(1., 1., 1., 1.), 1650.);
-            addLight(light);
-            addNode(node);
-            addInstance(light, node);
-
-            SceneGraphNode* pointNode = new SceneGraphNode(_cameras[_mainCamera.x]->getInstance(_mainCamera.y), VEC3F_ZERO, VEC3F_ONE, QUATF_ID);
-            Light* point = new Light(LIGHT_TYPE::POINT, Vec3f(1., 1., 1.), 0650.);
-            addLight(point);
-            addNode(pointNode);
-            addInstance(point, pointNode);
-        }
 
         if (_cameras.size() > 1 && _cameras[1]->getNumberInstances() > 0) _mainCamera = Vec2i(1, 0);
         // =============================

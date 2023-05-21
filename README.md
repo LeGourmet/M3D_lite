@@ -3,6 +3,9 @@ BUGS
 	- rotation de quaternion à tendance à faire tourner un objet sur lui même au recalcule de ses vecteurs
 	- mauvaise gestion de la conversion d'unité de la lumière (material emissivity + light constructor)
 	- target fps pas parfait => use frame count
+	- auto intersection ombre (tangent - bitangent ?)
+	- mauvaise calcule near/far shadow
+	- emissive.glb won't load ??
 
 TODO
 	- enlever tous les news inutile

@@ -40,6 +40,9 @@ namespace M3D
 				
 				// ****** SHADOW ******
 				_shadowPass.addUniform("uLightMatrix_VP");
+				_shadowPass.addUniform("uAlbedo");
+				_shadowPass.addUniform("uAlphaCutOff");
+				_shadowPass.addUniform("uHasAlbedoMap");
 				
 				glCreateFramebuffers(1, &_fboShadow);
 				generateMap(&_shadowMap, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
@@ -58,6 +61,9 @@ namespace M3D
 				_shadowCubePass.addUniform("uShadowTransform");
 				_shadowCubePass.addUniform("uLightPos");
 				_shadowCubePass.addUniform("uZfar");
+				_shadowCubePass.addUniform("uAlbedo");
+				_shadowCubePass.addUniform("uAlphaCutOff");
+				_shadowCubePass.addUniform("uHasAlbedoMap");
 				
 				glCreateFramebuffers(1, &_fboShadowCube);
 				generateCubeMap(&_shadowCubeMap, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
@@ -153,12 +159,18 @@ namespace M3D
 									glProgramUniform3fv(_shadowCubePass.getProgram(), _shadowCubePass.getUniform("uLightPos"), 1, glm::value_ptr(lightPos));
 									glProgramUniform1f(_shadowCubePass.getProgram(), _shadowCubePass.getUniform("uZfar"), zfar);
 
-									// TODO gerer les objets full transparent => gerer les niveaux de transparence
 									for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes)
 										for (unsigned int j=0; j < mesh.first->getPrimitives().size(); j++) {
-											//if (mesh.first->getPrimitives()[j]->getMaterial().isTransparent()) continue;
+											Scene::Primitive* primitive = mesh.first->getPrimitives()[j];
+											if (!primitive->getMaterial().isOpaque()) continue;
+
+											glProgramUniform4fv(_shadowCubePass.getProgram(), _shadowCubePass.getUniform("uAlbedo"), 1, glm::value_ptr(primitive->getMaterial().getBaseColor()));
+											glProgramUniform1f(_shadowCubePass.getProgram(), _shadowCubePass.getUniform("uAlphaCutOff"), primitive->getMaterial().getAlphaCutOff());
+											glProgramUniform1i(_shadowCubePass.getProgram(), _shadowCubePass.getUniform("uHasAlbedoMap"), primitive->getMaterial().getBaseColorMap() != nullptr);
+											if (primitive->getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures.at(primitive->getMaterial().getBaseColorMap())->getId());
+
 											mesh.second->bind(j);
-											glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)mesh.first->getPrimitives()[j]->getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
+											glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)primitive->getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
 											glBindVertexArray(0);
 										}
 
@@ -231,12 +243,18 @@ namespace M3D
 									Mat4f lightMatrix_VP = glm::ortho(-0.5f*xmag, 0.5f*xmag, -0.5f*ymag, 0.5f*ymag, znear, zfar) * glm::lookAt(centerFrustum+l->getInstance(i)->getBack()*0.5f*zfar, centerFrustum, l->getInstance(i)->getUp());
 									glProgramUniformMatrix4fv(_shadowPass.getProgram(), _shadowPass.getUniform("uLightMatrix_VP"), 1, false, glm::value_ptr(lightMatrix_VP));
 									
-									// TODO gerer les objets full transparent => gerer les niveaux de transparence
 									for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes)
 										for (unsigned int j=0; j<mesh.first->getPrimitives().size(); j++) {
-											//if (mesh.first->getPrimitives()[j]->getMaterial().isTransparent()) continue;
+											Scene::Primitive* primitive = mesh.first->getPrimitives()[j];
+											if (!primitive->getMaterial().isOpaque()) continue;
+
+											glProgramUniform4fv(_shadowPass.getProgram(), _shadowPass.getUniform("uAlbedo"), 1, glm::value_ptr(primitive->getMaterial().getBaseColor()));
+											glProgramUniform1f(_shadowPass.getProgram(), _shadowPass.getUniform("uAlphaCutOff"), primitive->getMaterial().getAlphaCutOff());
+											glProgramUniform1i(_shadowPass.getProgram(), _shadowPass.getUniform("uHasAlbedoMap"), primitive->getMaterial().getBaseColorMap() != nullptr);
+											if (primitive->getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures.at(primitive->getMaterial().getBaseColorMap())->getId());
+
 											mesh.second->bind(j);
-											glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)mesh.first->getPrimitives()[j]->getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
+											glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)primitive->getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
 											glBindVertexArray(0);
 										}
 
@@ -297,7 +315,7 @@ namespace M3D
 			ProgramOGL _directionalLightingPass = ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/directionalLightingPass.frag");
 			//ProgramOGL _ponctualLightingPass	= ProgramOGL("src/renderer/OpenGL/shaders/utils/billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/ponctualLightingPass.frag");
 			ProgramOGL _ponctualLightingPass	= ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/ponctualLightingPass.frag");
-			ProgramOGL _shadowPass				= ProgramOGL("src/renderer/OpenGL/shaders/shadow/shadow.vert", "", "");
+			ProgramOGL _shadowPass				= ProgramOGL("src/renderer/OpenGL/shaders/shadow/shadow.vert", "", "src/renderer/OpenGL/shaders/shadow/shadow.frag");
 			ProgramOGL _shadowCubePass			= ProgramOGL("src/renderer/OpenGL/shaders/shadow/cubeShadow.vert", "src/renderer/OpenGL/shaders/shadow/cubeShadow.geom", "src/renderer/OpenGL/shaders/shadow/cubeShadow.frag");		
 		};
 	}

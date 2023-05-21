@@ -8,7 +8,10 @@ layout( location = 4 ) in vec3 aVertexBitangent;
 
 layout(std430, binding = 0) buffer aTransformations { mat4 data_SSBO[]; };
 
+out vec2 uv;
+
 void main()
 {
+	uv = aVertexTexCoords;
 	gl_Position = data_SSBO[gl_InstanceID*3] * vec4(aVertexPosition, 1.);
 }

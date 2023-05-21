@@ -84,7 +84,7 @@ void main()
 	float shadow  = 0.;
 	for(float x = -PCF_OFFSET; x<PCF_OFFSET; x += PCF_OFFSET/(PCF_SAMPLES*0.5))
 		for(float y = -PCF_OFFSET; y<PCF_OFFSET; y += PCF_OFFSET/(PCF_SAMPLES*0.5)){
-				vec3 fp = position.xyz + T*x + B*y + N*clamp(0.05*(cosNL),0.05,0.1);
+				vec3 fp = position.xyz + T*x + B*y + L*clamp(0.05*(cosNL),0.05,0.1); // N better but bug black zones 
 				vec3 fpLS = (uLightMatrix_VP * vec4(fp,1.)).xyz;
 				shadow += (fpLS.z < 1.) ? texture(uShadowMap,fpLS) : 1.;
 			}

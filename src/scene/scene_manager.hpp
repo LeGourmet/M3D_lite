@@ -41,8 +41,8 @@ namespace Scene
         inline const std::vector<Light*>& getLights() const { return _lights; }
         inline const std::vector<Camera*>& getCameras() const { return _cameras; }
 
-        const Camera* getMainCamera() const;
-        const SceneGraphNode* getMainCameraSceneGraphNode() const;
+        Camera &getMainCamera() const;
+        SceneGraphNode* getMainCameraSceneGraphNode() const;
         const Mat4f getMainCameraTransformation() const;
         const Mat4f getMainCameraViewMatrix() const;
         const Mat4f getMainCameraProjectionMatrix() const;

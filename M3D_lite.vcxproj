@@ -22,6 +22,13 @@
     <ClCompile Include="lib\fastgltf\base64_decode.cpp" />
     <ClCompile Include="lib\fastgltf\fastgltf.cpp" />
     <ClCompile Include="lib\gl3w\GL\gl3w.c" />
+    <ClCompile Include="lib\imgui\imgui.cpp" />
+    <ClCompile Include="lib\imgui\imgui_demo.cpp" />
+    <ClCompile Include="lib\imgui\imgui_draw.cpp" />
+    <ClCompile Include="lib\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="lib\imgui\imgui_impl_sdl3.cpp" />
+    <ClCompile Include="lib\imgui\imgui_tables.cpp" />
+    <ClCompile Include="lib\imgui\imgui_widgets.cpp" />
     <ClCompile Include="lib\simdjson\simdjson.cpp" />
     <ClCompile Include="lib\tinygltf\tiny_gltf.cc" />
     <ClCompile Include="src\application.cpp" />
@@ -38,6 +45,15 @@
     <ClInclude Include="lib\fastgltf\fastgltf_util.hpp" />
     <ClInclude Include="lib\gl3w\GL\gl3w.h" />
     <ClInclude Include="lib\gl3w\GL\glcorearb.h" />
+    <ClInclude Include="lib\imgui\imconfig.h" />
+    <ClInclude Include="lib\imgui\imgui.h" />
+    <ClInclude Include="lib\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="lib\imgui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="lib\imgui\imgui_impl_sdl3.h" />
+    <ClInclude Include="lib\imgui\imgui_internal.h" />
+    <ClInclude Include="lib\imgui\imstb_rectpack.h" />
+    <ClInclude Include="lib\imgui\imstb_textedit.h" />
+    <ClInclude Include="lib\imgui\imstb_truetype.h" />
     <ClInclude Include="lib\SDL3\include\SDL.h" />
     <ClInclude Include="lib\SDL3\include\SDL_assert.h" />
     <ClInclude Include="lib\SDL3\include\SDL_atomic.h" />
@@ -652,7 +668,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\fastgltf;$(ProjectDir)\lib\simdjson;$(ProjectDir)\lib\SDL3\include;$(ProjectDir)\lib\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\fastgltf;$(ProjectDir)\lib\simdjson;$(ProjectDir)\lib\portableFileDialogs;$(ProjectDir)\lib\imgui;$(ProjectDir)\lib\SDL3\include;$(ProjectDir)\lib\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MaxSpeed</Optimization>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -677,7 +693,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\fastgltf;$(ProjectDir)\lib\simdjson;$(ProjectDir)\lib\SDL3\include;$(ProjectDir)\lib\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\fastgltf;$(ProjectDir)\lib\simdjson;$(ProjectDir)\lib\portableFileDialogs;$(ProjectDir)\lib\imgui;$(ProjectDir)\lib\SDL3\include;$(ProjectDir)\lib\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>

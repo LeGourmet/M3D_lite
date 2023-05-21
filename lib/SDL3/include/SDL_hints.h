@@ -146,6 +146,19 @@ extern "C" {
 #define SDL_HINT_ANDROID_TRAP_BACK_BUTTON "SDL_ANDROID_TRAP_BACK_BUTTON"
 
 /**
+ * \brief A variable to control whether SDL activity is allowed to be re-created.
+ *        If so, java static datas and static datas from native libraries remain with their current values.
+ *        When not allowed, the activity terminates with exit(0) to be fully re-initialized afterward.
+ *
+ * The variable can be set to the following values:
+ *   "0"       - Not allowed. (default)
+ *   "1"       - Allowed.
+ *
+ * The value of this hint is used at runtime, so it can be changed at any time.
+ */
+#define SDL_HINT_ANDROID_ALLOW_RECREATE_ACTIVITY "SDL_ANDROID_ALLOW_RECREATE_ACTIVITY"
+
+/**
  *  \brief Specify an application name.
  *
  * This hint lets you specify the application name sent to the OS when
@@ -383,6 +396,17 @@ extern "C" {
 #define SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT   "SDL_EMSCRIPTEN_KEYBOARD_ELEMENT"
 
 /**
+ *  \brief  A variable that controls whether the on-screen keyboard should be shown when text input is active
+ *
+ *  The variable can be set to the following values:
+ *    "0"       - Do not show the on-screen keyboard
+ *    "1"       - Show the on-screen keyboard
+ *
+ *  The default value is "1". This hint must be set before text input is activated.
+ */
+#define SDL_HINT_ENABLE_SCREEN_KEYBOARD "SDL_ENABLE_SCREEN_KEYBOARD"
+
+/**
  *  \brief  A variable that controls whether Steam Controllers should be exposed using the SDL joystick and game controller APIs
  *
  *  The variable can be set to the following values:
@@ -427,6 +451,18 @@ extern "C" {
  *  http://stackoverflow.com/a/34414846 for a discussion.
  */
 #define SDL_HINT_FORCE_RAISEWINDOW    "SDL_HINT_FORCE_RAISEWINDOW"
+
+/**
+*  \brief  A variable controlling whether the window is activated when the SDL_RaiseWindow function is called
+*
+*  This variable can be set to the following values:
+*    "0"       - The window is not activated when the SDL_RaiseWindow function is called
+*    "1"       - The window is activated when the SDL_RaiseWindow function is called
+*
+*  By default SDL will activate the window when the SDL_RaiseWindow function is called.
+*  At present this is only available for MS Windows.
+*/
+#define SDL_HINT_WINDOW_ACTIVATE_WHEN_RAISED    "SDL_WINDOW_ACTIVATE_WHEN_RAISED"
 
 /**
  *  \brief  A variable controlling how 3D acceleration is used to accelerate the SDL screen surface.
@@ -2012,12 +2048,12 @@ extern "C" {
 *  \brief  A variable controlling whether the window is activated when the SDL_ShowWindow function is called
 *
 *  This variable can be set to the following values:
-*    "0"       - The window is activated when the SDL_ShowWindow function is called
-*    "1"       - The window is not activated when the SDL_ShowWindow function is called
+*    "0"       - The window is not activated when the SDL_ShowWindow function is called
+*    "1"       - The window is activated when the SDL_ShowWindow function is called
 *
 *  By default SDL will activate the window when the SDL_ShowWindow function is called
 */
-#define SDL_HINT_WINDOW_NO_ACTIVATION_WHEN_SHOWN    "SDL_WINDOW_NO_ACTIVATION_WHEN_SHOWN"
+#define SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN    "SDL_WINDOW_ACTIVATE_WHEN_SHOWN"
 
 /** \brief Allows back-button-press events on Windows Phone to be marked as handled
  *

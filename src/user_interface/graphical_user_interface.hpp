@@ -12,6 +12,7 @@ namespace UserInterface
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------
         GraphicalUserInterface();
+        GraphicalUserInterface(SDL_Window* p_window, const SDL_GLContext& p_glContext);
         ~GraphicalUserInterface();
 
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
@@ -24,6 +25,7 @@ namespace UserInterface
 
     private:
         // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
+        void _dispose();
     };
 }
 }

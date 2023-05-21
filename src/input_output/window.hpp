@@ -21,6 +21,9 @@ namespace M3D
             inline bool getVSync() { return _vSync; }
             inline unsigned int getTargetFps() { return _targetFPS; }
 
+            inline SDL_GLContext getGLContext() { return _glContext; }// todo virer !
+
+
             // ----------------------------------------------------- SETTERS -------------------------------------------------------
             void setVSync(bool p_vSync);
             void setTargetFPS(unsigned int p_targetFPS);
@@ -41,6 +44,7 @@ namespace M3D
             // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
             SDL_Window* _window = nullptr;
             SDL_WindowFlags _rendererType;
+            SDL_GLContext _glContext = nullptr; // todo virer pas bien !!
             
             // add audio => liste de piste preload au lancerment de la window + celles qui vont s'add ==> use set
             unsigned long long _time = 0;

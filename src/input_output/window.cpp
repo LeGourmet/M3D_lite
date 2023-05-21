@@ -36,11 +36,11 @@ namespace M3D
                                 Application::getInstance().getHeight(),
                                 SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
-                            SDL_GLContext glContext = SDL_GL_CreateContext(_window);
-                            if (glContext == nullptr) 
+                            _glContext = SDL_GL_CreateContext(_window);
+                            if (_glContext == nullptr) 
                                 throw std::runtime_error("Exception caught: " + std::string(SDL_GetError()));
 
-                            SDL_GL_MakeCurrent(_window, glContext);
+                            SDL_GL_MakeCurrent(_window, _glContext);
                             break;
                         }
                     case SDL_WINDOW_VULKAN: break;
@@ -176,8 +176,8 @@ namespace M3D
         }
 
         void Window::_dispose() {
+            if (_glContext) SDL_GL_DeleteContext(_glContext);
             if (_window) SDL_DestroyWindow(_window);
-            // delete contexte gl/vulkan ?
             SDL_Quit();
         }
     }

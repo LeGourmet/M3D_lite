@@ -41,8 +41,8 @@ namespace Scene
         for (int i=0; i<_lights.size() ;i++) delete _lights[i];
     }
 
-    const Camera* SceneManager::getMainCamera() const { return _cameras[_mainCamera.x]; }
-    const SceneGraphNode* SceneManager::getMainCameraSceneGraphNode() const { return _cameras[_mainCamera.x]->getInstance(_mainCamera.y); }
+    Camera &SceneManager::getMainCamera() const { return *_cameras[_mainCamera.x]; }
+    SceneGraphNode* SceneManager::getMainCameraSceneGraphNode() const { return _cameras[_mainCamera.x]->getInstance(_mainCamera.y); }
     const Mat4f SceneManager::getMainCameraTransformation() const { return _cameras[_mainCamera.x]->getInstance(_mainCamera.y)->getTransformation(); }
     const Mat4f SceneManager::getMainCameraViewMatrix() const { return _cameras[_mainCamera.x]->getViewMatrix(_mainCamera.y); }
     const Mat4f SceneManager::getMainCameraProjectionMatrix() const { return _cameras[_mainCamera.x]->getProjectionMatrix(); }

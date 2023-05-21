@@ -6,6 +6,8 @@
 
 #include "utils/define.hpp"
 
+#include <vector>
+
 namespace M3D
 {
     namespace Scene

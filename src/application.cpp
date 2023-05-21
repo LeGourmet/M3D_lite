@@ -25,7 +25,7 @@ namespace M3D
 		_window			 = new InputOutput::Window(SDL_WINDOW_OPENGL);
 		_renderer		 = new Renderer::RendererOGL(&_window->get());
 		_sceneManager	 = new Scene::SceneManager(_width, _height);
-		_gui			 = new UserInterface::GraphicalUserInterface();
+		_gui			 = new UserInterface::GraphicalUserInterface(&_window->get(),_window->getGLContext());
 
 		_window->chronoUpdate();
 		while (_running) _update();

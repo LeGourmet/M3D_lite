@@ -542,7 +542,6 @@
     <ClInclude Include="lib\tinygltf\tiny_gltf.h" />
     <ClInclude Include="src\application.hpp" />
     <ClInclude Include="src\renderer\OpenGL\stages\stage_lighting_ogl.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\stages\stage_mesh_emissive_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\stages\stage_mesh_opaque_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\stages\stage_mesh_transparent_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\stages\stage_post_processing_ogl.hpp" />

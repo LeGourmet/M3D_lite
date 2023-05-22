@@ -45,7 +45,7 @@ namespace Renderer
 
 	void RendererOGL::drawFrame() {
 		_stageMeshOpaqueOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures);
-		_stageLightingOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageMeshOpaqueOGL->getPositionMap(), _stageMeshOpaqueOGL->getNormalMetalnessMap(), _stageMeshOpaqueOGL->getAlbedoRoughnessMap());
+		_stageLightingOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageMeshOpaqueOGL->getPositionMap(), _stageMeshOpaqueOGL->getNormalMetalnessMap(), _stageMeshOpaqueOGL->getAlbedoRoughnessMap(), _stageMeshOpaqueOGL->getFBO());
 		_stagePostProcessingOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageLightingOGL->getLightingMap());
 
 		GLenum err;

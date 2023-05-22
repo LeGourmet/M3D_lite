@@ -119,12 +119,12 @@ namespace M3D
 				resizeColorMap(p_width, p_height, _lightingMap);
 			}
 
-			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_positionMap, GLuint p_normalMetalnessMap, GLuint p_albedoRoughnessMap) {
+			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_positionMap, GLuint p_normalMetalnessMap, GLuint p_albedoRoughnessMap, GLuint p_fbo) {
 				float znear = 1e-3f;
 
-				glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				glNamedFramebufferReadBuffer(p_fbo, GL_COLOR_ATTACHMENT3);
+				glNamedFramebufferDrawBuffer(_fboLighting, GL_COLOR_ATTACHMENT0);
+				glBlitNamedFramebuffer(p_fbo,_fboLighting,0,0,p_width,p_height,0,0,p_width,p_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 				for (Scene::Light* l : Application::getInstance().getSceneManager().getLights())
 					for (unsigned int i=0; i<l->getNumberInstances() ;i++)
@@ -164,6 +164,9 @@ namespace M3D
 											Scene::Primitive* primitive = mesh.first->getPrimitives()[j];
 											if (!primitive->getMaterial().isOpaque()) continue;
 
+											glDisable(GL_CULL_FACE);
+											if (primitive->getMaterial().isDoubleSide()) { glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
+
 											glProgramUniform4fv(_shadowCubePass.getProgram(), _shadowCubePass.getUniform("uAlbedo"), 1, glm::value_ptr(primitive->getMaterial().getBaseColor()));
 											glProgramUniform1f(_shadowCubePass.getProgram(), _shadowCubePass.getUniform("uAlphaCutOff"), primitive->getMaterial().getAlphaCutOff());
 											glProgramUniform1i(_shadowCubePass.getProgram(), _shadowCubePass.getUniform("uHasAlbedoMap"), primitive->getMaterial().getBaseColorMap() != nullptr);
@@ -174,6 +177,7 @@ namespace M3D
 											glBindVertexArray(0);
 										}
 
+									glDisable(GL_CULL_FACE);
 									glDisable(GL_DEPTH_TEST);
 									glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -243,10 +247,14 @@ namespace M3D
 									Mat4f lightMatrix_VP = glm::ortho(-0.5f*xmag, 0.5f*xmag, -0.5f*ymag, 0.5f*ymag, znear, zfar) * glm::lookAt(centerFrustum+l->getInstance(i)->getBack()*0.5f*zfar, centerFrustum, l->getInstance(i)->getUp());
 									glProgramUniformMatrix4fv(_shadowPass.getProgram(), _shadowPass.getUniform("uLightMatrix_VP"), 1, false, glm::value_ptr(lightMatrix_VP));
 									
+									
 									for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes)
 										for (unsigned int j=0; j<mesh.first->getPrimitives().size(); j++) {
 											Scene::Primitive* primitive = mesh.first->getPrimitives()[j];
 											if (!primitive->getMaterial().isOpaque()) continue;
+
+											glDisable(GL_CULL_FACE);
+											if (primitive->getMaterial().isDoubleSide()) { glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
 
 											glProgramUniform4fv(_shadowPass.getProgram(), _shadowPass.getUniform("uAlbedo"), 1, glm::value_ptr(primitive->getMaterial().getBaseColor()));
 											glProgramUniform1f(_shadowPass.getProgram(), _shadowPass.getUniform("uAlphaCutOff"), primitive->getMaterial().getAlphaCutOff());
@@ -258,6 +266,7 @@ namespace M3D
 											glBindVertexArray(0);
 										}
 
+									glDisable(GL_CULL_FACE);
 									glDisable(GL_DEPTH_TEST);
 									glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

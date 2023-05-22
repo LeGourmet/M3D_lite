@@ -1622,9 +1622,6 @@
     <ClInclude Include="src\renderer\OpenGL\stages\stage_mesh_transparent_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\OpenGL\stages\stage_mesh_emissive_ogl.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="src\renderer\OpenGL\stages\stage_lighting_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>

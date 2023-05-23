@@ -98,6 +98,7 @@ namespace Scene
         cameraInstance->translate(translation);
         cameraInstance->rotate(rotation);
 
+        // todo add dirty flag to not always update matrices
         for (Mesh* mesh : _meshes)
             for (unsigned int i=0; i<mesh->getNumberInstances() ;i++)
                 Application::getInstance().getRenderer().updateInstanceMesh(
@@ -155,7 +156,7 @@ namespace Scene
         );
     }
 
-    void SceneManager::_createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, unsigned int p_meshOffset, unsigned int p_lightOffset, unsigned int p_camOffset, tinygltf::Model p_model) {
+    void SceneManager::_createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, unsigned int p_meshOffset, unsigned int p_lightOffset, unsigned int p_camOffset, tinygltf::Model &p_model) {
         Vec3f translation = (p_model.nodes[p_idCurrent].translation.size() == 3) ? (Vec3f)glm::make_vec3(p_model.nodes[p_idCurrent].translation.data()) : VEC3F_ZERO;
         Vec3f scale = (p_model.nodes[p_idCurrent].scale.size() == 3) ? (Vec3f)glm::make_vec3(p_model.nodes[p_idCurrent].scale.data()) : VEC3F_ONE;
         Quatf rotation = (p_model.nodes[p_idCurrent].rotation.size() == 4) ? Quatf((float)p_model.nodes[p_idCurrent].rotation[3], (float)p_model.nodes[p_idCurrent].rotation[0], (float)p_model.nodes[p_idCurrent].rotation[1], (float)p_model.nodes[p_idCurrent].rotation[2]) : QUATF_ID;
@@ -189,6 +190,7 @@ namespace Scene
         else {
             if (!loader.LoadBinaryFromFile(&model, nullptr, nullptr, p_path.string())) throw std::runtime_error("Fail to load file: " + p_path.string());
         }
+        std::cout << "tiny finish"<< std::endl;
 
         // ------------- IMAGES
         unsigned int startIdImages = (unsigned int)_images.size();
@@ -196,7 +198,9 @@ namespace Scene
         for (tinygltf::Image i : model.images)
             addImage(new Image(i.width, i.height, i.component, i.bits, i.pixel_type, i.image));
 
-        // ------------- TEXTURES
+        std::cout << "images loaded: " << _images.size() - startIdImages << std::endl;
+
+        // ------------- TEXTURES ==> texture_ogl very slow ! and memory leak ?? 
         unsigned int startIdTextures = (unsigned int)_textures.size();
         _textures.reserve(startIdTextures + model.textures.size());
         for (tinygltf::Texture t : model.textures) {
@@ -238,6 +242,8 @@ namespace Scene
             addTexture(texture);
         }
 
+        std::cout << "textures loaded: " << _textures.size() - startIdTextures << std::endl;
+
         // ------------- MATERIALS
         unsigned int startIdMaterials = (unsigned int)_materials.size();
         _materials.reserve(startIdMaterials + model.materials.size());
@@ -256,6 +262,8 @@ namespace Scene
                 (m.occlusionTexture.index == -1.) ? nullptr : _textures[startIdTextures + m.occlusionTexture.index],
                 (m.emissiveTexture.index == -1.) ? nullptr : _textures[startIdTextures + m.emissiveTexture.index]
             ));
+
+        std::cout << "materials loaded: " << _materials.size() - startIdMaterials << std::endl;
 
         // ------------- MESHES
         unsigned int startIdMeshes = (unsigned int)_meshes.size();
@@ -316,6 +324,8 @@ namespace Scene
             addMesh(newMesh);
         }
 
+        std::cout << "meshes loaded: " << _meshes.size() - startIdMeshes << std::endl;
+
         // ------------- LIGHTS
         unsigned int startIdLights = (unsigned int)_lights.size();
         _lights.reserve(startIdLights + model.lights.size());
@@ -328,6 +338,8 @@ namespace Scene
             }
         }
 
+        std::cout << "lights loaded: " << _lights.size() - startIdLights << std::endl;
+
         // ------------- CAMERAS
         int startIdCameras = (int)_cameras.size();
         _cameras.reserve(startIdCameras + (int)model.cameras.size());
@@ -339,6 +351,8 @@ namespace Scene
                 addCamera(new Camera((float)c.orthographic.xmag, (float)c.orthographic.ymag, (float)c.orthographic.znear, (float)c.orthographic.zfar, CAMERA_TYPE::ORTHOGRAPHIC));
             }
         }
+
+        std::cout << "cameras loaded: " << _cameras.size() - startIdCameras << std::endl;
         
         // ------------- SCENE GRAPH
         unsigned int startIdSceneGraph = (unsigned int)_sceneGraph.size();
@@ -346,6 +360,8 @@ namespace Scene
         for (tinygltf::Scene s : model.scenes)
             for (int id : s.nodes)
                 _createSceneGraph(id, nullptr, startIdMeshes, startIdLights, startIdCameras, model);
+
+        std::cout << "nodes loaded: " << _sceneGraph.size() - startIdSceneGraph << std::endl;
 
         if (_cameras.size() > 1 && _cameras[1]->getNumberInstances() > 0) _mainCamera = Vec2i(1, 0);
 

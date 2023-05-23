@@ -33,6 +33,7 @@ namespace M3D
 				default: wrapping = GL_REPEAT; break;
 				}
 				glTextureParameteri(_id, GL_TEXTURE_WRAP_S, wrapping);
+
 				switch (p_texture->_wrappingT) {
 				case WRAPPING_TYPE::WRAP_MIRRORED_REPEAT: wrapping = GL_MIRRORED_REPEAT; break;
 				case WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE: wrapping = GL_CLAMP_TO_EDGE; break;
@@ -40,22 +41,21 @@ namespace M3D
 				}
 				glTextureParameteri(_id, GL_TEXTURE_WRAP_T, wrapping);
 
-				glTextureParameteri(_id, GL_TEXTURE_MAG_FILTER, (p_texture->_magnification == MAGNIFICATION_TYPE::MAG_LINEAR) ? GL_LINEAR : GL_NEAREST);
-
-				if (p_texture->_minification == MINIFICATION_TYPE::MIN_LINEAR) { glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR); }
-				else if (p_texture->_minification == MINIFICATION_TYPE::MIN_NEAREST) { glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST); }
-				else {
-					switch (p_texture->_minification) {
-					case MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_NEAREST: glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST); break;
-					case MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_LINEAR: glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); break;
-					case MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_NEAREST: glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);break;
-					default: glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); break;
-					}
-					unsigned int lvMipMap = (unsigned int)glm::floor(glm::log2(glm::max<int>(p_texture->_image->getWidth(), p_texture->_image->getHeight()))) + 1;
-					glTextureStorage2D(_id, lvMipMap, internalFormat, p_texture->_image->getWidth(), p_texture->_image->getHeight());
-					glTextureSubImage2D(_id, 0, 0, 0, p_texture->_image->getWidth(), p_texture->_image->getHeight(), format, GL_UNSIGNED_BYTE, p_texture->_image->getData());
-					glGenerateTextureMipmap(_id);
+				switch(p_texture->_minification){
+				case MINIFICATION_TYPE::MIN_NEAREST: glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST); break;
+				case MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_NEAREST: glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST); break;
+				case MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_LINEAR: glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); break;
+				case MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_NEAREST: glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST); break;
+				case MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_LINEAR: glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); break;
+				default: glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 				}
+
+				glTextureParameteri(_id, GL_TEXTURE_MAG_FILTER, (p_texture->_magnification == MAGNIFICATION_TYPE::MAG_LINEAR) ? GL_LINEAR : GL_NEAREST);
+				
+				unsigned int lvMipMap = (unsigned int)glm::floor(glm::log2(glm::max<int>(p_texture->_image->getWidth(), p_texture->_image->getHeight()))) + 1;
+				glTextureStorage2D(_id, lvMipMap, internalFormat, p_texture->_image->getWidth(), p_texture->_image->getHeight());
+				glTextureSubImage2D(_id, 0, 0, 0, p_texture->_image->getWidth(), p_texture->_image->getHeight(), format, GL_UNSIGNED_BYTE, p_texture->_image->getData());
+				glGenerateTextureMipmap(_id);
 			}
 
 			~TextureOGL() { glDeleteTextures(1, &_id); }

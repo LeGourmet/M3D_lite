@@ -86,7 +86,7 @@ namespace Scene
         // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
         void _loadFile(const std::filesystem::path &p_path);
         //void _createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, unsigned int p_meshOffset, unsigned int p_lightOffset, unsigned int p_camOffset, std::vector<fastgltf::Node>& p_nodes);
-        void _createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, unsigned int p_meshOffset, unsigned int p_lightOffset, unsigned int p_camOffset, tinygltf::Model p_model);
+        void _createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, unsigned int p_meshOffset, unsigned int p_lightOffset, unsigned int p_camOffset, tinygltf::Model &p_model);
     };
 }
 }

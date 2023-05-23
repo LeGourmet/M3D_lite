@@ -268,7 +268,6 @@ namespace Scene
 
                 Primitive* newPrimitive = new Primitive(_materials[startIdMaterials + p.material]); // care default material
 
-                bool isTangent = p.attributes.contains("TANGENT");
                 tinygltf::Accessor a_position = model.accessors[p.attributes.at("POSITION")];
                 tinygltf::Accessor a_normal = model.accessors[p.attributes.at("NORMAL")];
                 tinygltf::Accessor a_texcoord = model.accessors[p.attributes.at("TEXCOORD_0")];

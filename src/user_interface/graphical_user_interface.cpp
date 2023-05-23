@@ -56,7 +56,8 @@ namespace UserInterface
 		//Application::getInstance().getSceneManager().loadNewScene("assets/chest.glb");
 		//Application::getInstance().getSceneManager().loadNewScene("assets/toyCar.glb");
 		//Application::getInstance().getSceneManager().loadNewScene("assets/sponza.glb");
-		Application::getInstance().getSceneManager().loadNewScene("assets/emissive.glb");
+		//Application::getInstance().getSceneManager().loadNewScene("assets/emissive.glb");
+		Application::getInstance().getSceneManager().loadNewScene("assets/conf.glb");
 	}
 
 	GraphicalUserInterface::~GraphicalUserInterface() { _dispose(); }

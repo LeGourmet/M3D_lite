@@ -97,7 +97,7 @@ namespace M3D
                         break;
                     default:
                         if (_captureEvent(event)) break;
-                        if (Application::getInstance().getGraphicalUserInterface().captureEvent(event)) break;
+                        if (Application::getInstance().getGraphicalUserInterface().captureEvent(event)) { Application::getInstance().getSceneManager().clearEvents(); break; }
                         Application::getInstance().getSceneManager().captureEvent(event); break;
                 }
             }

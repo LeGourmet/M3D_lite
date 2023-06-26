@@ -2,10 +2,11 @@
 
 #define PI				3.1415926535
 #define TWO_PI			6.2831853071
-#define INV_SQRT_TWO	0.7071067811
 #define PCF_SAMPLES     8.
 #define PCF_OFFSET      0.05
 #define EPS				0.0001
+
+#define pow2(a) (a)*(a)
 
 layout( location = 0 ) out vec4 fragColor;
 
@@ -23,38 +24,14 @@ uniform vec2 uLightCosAngles;
 in vec2 uv;
 
 // ------------- fresnel -------------	:	schilk
-float getFresnel(float f0, float cosHV){ 
-	float tmp = 1.-cosHV;
-	return f0 + (1 - f0) * tmp*tmp*tmp*tmp*tmp;
-}
+float schlick(in float f0, in float f90, in float cosT){
+    float tmp = 1.-cosT;
+    return f0 + (f90 - f0) * tmp*tmp*tmp*tmp*tmp;
+} 
 
-vec3 getFresnel(vec3 f0, float cosHV){ return vec3(getFresnel(f0.x,cosHV),getFresnel(f0.y,cosHV),getFresnel(f0.z,cosHV)); }
-
-// ---------- specular BRDF ----------	:	GGX+smith
-float getSpecular(float a2, float cosNV, float cosNL, float cosNH){
-	a2 *= a2; // re-maping
-
-	// *** G : smith ***
-    float tmpG = 1.-a2;
-    float G = 2.*cosNV*cosNL/ (cosNL * sqrt(a2+tmpG*cosNV*cosNV) + cosNV * sqrt(a2+tmpG*cosNL*cosNL)); // care 0
-
-	// *** D : GGX ***
-	float tmpD = cosNH*cosNH*(a2-1.)+1.;
-	float D = a2/(PI*tmpD*tmpD);		// care == 0
-
-	return G*D/(4.*cosNV*cosNL);
-}
-
-// ---------- diffuse BRDF ----------	:	oren Nayar
-float getDiffuse(float a, float cosNV, float cosNL, vec3 N, vec3 V, vec3 L ){
-	float r_OrenNayar = atan(a)*INV_SQRT_TWO;
-	float r2_OrenNayar = r_OrenNayar*r_OrenNayar;
-	float To = acos(cosNV);
-	float Ti = acos(cosNL);
-	float PHI = dot(normalize(V-N*cosNL),normalize(L-N*cosNV));
-	float A = 1.-0.5*(r2_OrenNayar/(r2_OrenNayar+0.33));
-	float B	= 0.45*(r2_OrenNayar/(r2_OrenNayar+0.09));
-	return (A+( B * max(0.,PHI) * sin(max(Ti,To)) * tan(min(Ti,To)) ) ) / PI;
+vec3 schlick(in vec3 f0, in vec3 f90, in float cosT){ 
+	float tmp = 1.-cosT;
+	return f0 + (f90-f0) * tmp*tmp*tmp*tmp*tmp;
 }
 
 void main()
@@ -101,14 +78,24 @@ void main()
 
 	// ---------- SHADING ----------
 	vec3 H = normalize(V+L);
-	float cosNH = dot(N,H);
 	float cosHV = dot(H,V);
+	float cosHL = dot(H,L);
+	float cosHN = dot(H,N);
 
-	float specular = getSpecular(albedo_roughness.a*albedo_roughness.a,cosNV,cosNL,cosNH);
-	float diffuse = getDiffuse(albedo_roughness.a,cosNV,cosNL,N,V,L);
+	// --- dielectic ---
+	float f90 = albedo_roughness.a * (2.*cosHL*cosHL+0.5);
+    vec3 dielectric = albedo_roughness.xyz * schlick(1.,f90,cosNL) * schlick(1.,f90,cosNV) * (1.-albedo_roughness.a*0.51/1.51) / PI;
 
-	vec3 dielectricComponent = albedo_roughness.xyz * mix(diffuse,specular,getFresnel(0.04,cosHV)); //we can use ior with ((1-ior)/(1+ior))^2 that emplace 0.04
-	vec3 MetalComponent = getFresnel(albedo_roughness.xyz,cosHV) * specular;
+	// --- conductor ---   
+	float r = albedo_roughness.a * albedo_roughness.a;
+    float r2 = r*r;
+    
+    // use fresnel normal incidence for m.ior and 1.
+    vec3 F0 = mix(vec3(0.04),albedo_roughness.xyz,normal_metalness.a);
+    vec3 F = schlick(F0,vec3(1.),cosHL);
+    float D = r2/(PI*pow2(cosHN*cosHN*(r2-1.)+1.));
+    float V2 = 0.5/(cosNL*sqrt((cosNV-cosNV*r2)*cosNV+r2) + cosNV*sqrt((cosNL-cosNL*r2)*cosNL+r2));
+    vec3 conductor = F*D*V2;
 
-	fragColor = vec4(mix(dielectricComponent,MetalComponent,normal_metalness.a) * Light_Componant * shadow * cosNL, 1.); 
+	fragColor = vec4(((1.-F)*dielectric+conductor) * Light_Componant * shadow * cosNL,1.);
 }

@@ -28,8 +28,8 @@ namespace M3D
             inline const std::vector<SceneGraphNode*> getChilds() const { return _childs; }
 
             inline const Vec3f getPosition() const { return _transformation * Vec4f( VEC3F_ZERO, 1.); }
-            inline const Vec3f getFront()    const { return _transformation * Vec4f(-VEC3F_Z, 0.); }
-            inline const Vec3f getBack()     const { return _transformation * Vec4f( VEC3F_Z, 0.); }
+            inline const Vec3f getFront()    const { return _transformation * Vec4f(-VEC3F_Z, 0.); } // gltf use z as front
+            inline const Vec3f getBack()     const { return _transformation * Vec4f( VEC3F_Z, 0.); } // gltf use -z as back
             inline const Vec3f getUp()       const { return _transformation * Vec4f( VEC3F_Y, 0.); }
             inline const Vec3f getDown()     const { return _transformation * Vec4f(-VEC3F_Y, 0.); }
             inline const Vec3f getRight()    const { return _transformation * Vec4f( VEC3F_X, 0.); } // gltf use -X as right !?

@@ -156,7 +156,7 @@ namespace Scene
         );
     }
 
-    void SceneManager::_createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, unsigned int p_meshOffset, unsigned int p_lightOffset, unsigned int p_camOffset, tinygltf::Model &p_model) {
+    void SceneManager::_createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, unsigned int p_meshOffset, unsigned int p_lightOffset, unsigned int p_camOffset, tinygltf::Model& p_model) {
         Vec3f translation = (p_model.nodes[p_idCurrent].translation.size() == 3) ? (Vec3f)glm::make_vec3(p_model.nodes[p_idCurrent].translation.data()) : VEC3F_ZERO;
         Vec3f scale = (p_model.nodes[p_idCurrent].scale.size() == 3) ? (Vec3f)glm::make_vec3(p_model.nodes[p_idCurrent].scale.data()) : VEC3F_ONE;
         Quatf rotation = (p_model.nodes[p_idCurrent].rotation.size() == 4) ? Quatf((float)p_model.nodes[p_idCurrent].rotation[3], (float)p_model.nodes[p_idCurrent].rotation[0], (float)p_model.nodes[p_idCurrent].rotation[1], (float)p_model.nodes[p_idCurrent].rotation[2]) : QUATF_ID;
@@ -478,6 +478,7 @@ namespace Scene
                 m.pbrData.has_value() ? m.pbrData.value().metallicFactor : 0.f,
                 m.pbrData.has_value() ? m.pbrData.value().roughnessFactor : 1.f,
                 (m.alphaMode == fastgltf::AlphaMode::Opaque ? 0. : (m.alphaMode == fastgltf::AlphaMode::Blend ? 1. : m.alphaCutoff)),
+                m.doubleSided,
                 m.pbrData.has_value() ? (m.pbrData.value().baseColorTexture.has_value() ? _textures[startIdTextures + m.pbrData.value().baseColorTexture.value().textureIndex] : nullptr) : nullptr,
                 m.pbrData.has_value() ? (m.pbrData.value().metallicRoughnessTexture.has_value() ?_textures[startIdTextures + m.pbrData.value().metallicRoughnessTexture.value().textureIndex] : nullptr) : nullptr,
                 m.normalTexture.has_value() ? _textures[startIdTextures + m.normalTexture.value().textureIndex] : nullptr,

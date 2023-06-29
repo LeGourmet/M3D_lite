@@ -2,7 +2,7 @@
 
 layout (location = 0) out vec3 fragColor;
 
-uniform sampler2D srcTexture; // edge clamp + bilinear mignification + hdr
+layout( binding = 0 ) uniform sampler2D srcTexture; // edge clamp + bilinear mignification + hdr
 uniform vec2 invSrcRes; // 1./ srcRes
 
 in vec2 uv;

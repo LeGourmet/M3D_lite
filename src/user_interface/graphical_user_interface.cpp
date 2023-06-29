@@ -51,14 +51,8 @@ namespace UserInterface
 		}
 
 		//Application::getInstance().getSceneManager().loadNewScene("assets/musee.gltf");
-		//Application::getInstance().getSceneManager().loadNewScene("assets/alphaTest.glb");
-		//Application::getInstance().getSceneManager().loadNewScene("assets/shadow.glb");
-		//Application::getInstance().getSceneManager().loadNewScene("assets/chest.glb");
-		//Application::getInstance().getSceneManager().loadNewScene("assets/toyCar.glb");
-		Application::getInstance().getSceneManager().loadNewScene("assets/sponza.glb");
-		//Application::getInstance().getSceneManager().loadNewScene("assets/conf.glb");
+		//Application::getInstance().getSceneManager().loadNewScene("assets/sponza.glb");
 		//Application::getInstance().getSceneManager().loadNewScene("assets/emissive.glb");
-		//Application::getInstance().getSceneManager().loadNewScene("assets/intelSponza.glb");
 	}
 
 	GraphicalUserInterface::~GraphicalUserInterface() { _dispose(); }
@@ -68,6 +62,8 @@ namespace UserInterface
 	void GraphicalUserInterface::update(unsigned long long p_deltaTime) { }
 
 	void GraphicalUserInterface::drawFrame() { 
+		if (_hide) return;
+
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplSDL3_NewFrame();
 		ImGui::NewFrame();
@@ -176,5 +172,7 @@ namespace UserInterface
 		if (ImGui::GetCurrentContext() != nullptr)
 			ImGui::DestroyContext();
 	}
+
+	void GraphicalUserInterface::toggleDisplayMode() { _hide = !_hide; }
 }
 }

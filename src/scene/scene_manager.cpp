@@ -24,7 +24,7 @@ namespace Scene
         addMaterial(new Material(VEC4F_ONE, VEC3F_ZERO, 0.f, 0.f, 1.f, 1.f, false, nullptr, nullptr, nullptr, nullptr, nullptr));
         
         addCamera(new Camera(PIf/2.f, 1., 1e-2f, 1e3f ,CAMERA_TYPE::PERSPECTIVE));
-        addNode(new SceneGraphNode(nullptr,VEC3F_ZERO,VEC3F_ONE,QUATF_ID));
+        addNode(new SceneGraphNode(nullptr,VEC3F_Z,VEC3F_ONE,QUATF_ID));
         addInstance(_cameras[0], _sceneGraph[0]);
         _mainCamera = Vec2i(0, 0);
 
@@ -93,7 +93,7 @@ namespace Scene
         if (_isKeyPressed(SDL_SCANCODE_F)) translation.y--;*/
             
         rotation *= p_deltaTime * 0.0001;
-        translation *= p_deltaTime * 0.001;
+        translation *= p_deltaTime * 0.1;
 
         cameraInstance->translate(translation);
         cameraInstance->rotate(rotation);
@@ -190,7 +190,6 @@ namespace Scene
         else {
             if (!loader.LoadBinaryFromFile(&model, nullptr, nullptr, p_path.string())) throw std::runtime_error("Fail to load file: " + p_path.string());
         }
-        std::cout << "tiny finish"<< std::endl;
 
         // ------------- IMAGES
         unsigned int startIdImages = (unsigned int)_images.size();
@@ -206,37 +205,39 @@ namespace Scene
         for (tinygltf::Texture t : model.textures) {
             Texture* texture = new Texture();
             texture->_image = _images[startIdImages + t.source];
+            
+            if (t.sampler != -1) {
+                switch (model.samplers[t.sampler].magFilter) {
+                case TINYGLTF_TEXTURE_FILTER_NEAREST: texture->_magnification = MAGNIFICATION_TYPE::MAG_NEAREST; break;
+                default: texture->_magnification = MAGNIFICATION_TYPE::MAG_LINEAR; break;
+                }
 
-            switch (model.samplers[t.sampler].magFilter) {
-            case TINYGLTF_TEXTURE_FILTER_NEAREST: texture->_magnification = MAGNIFICATION_TYPE::MAG_NEAREST; break;
-            default: texture->_magnification = MAGNIFICATION_TYPE::MAG_LINEAR; break;
-            }
+                switch (model.samplers[t.sampler].minFilter) {
+                case TINYGLTF_TEXTURE_FILTER_NEAREST: texture->_minification = MINIFICATION_TYPE::MIN_NEAREST; break;
+                case TINYGLTF_TEXTURE_FILTER_LINEAR: texture->_minification = MINIFICATION_TYPE::MIN_LINEAR; break;
+                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST: texture->_minification = MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_NEAREST; break;
+                case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST: texture->_minification = MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_NEAREST; break;
+                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR: texture->_minification = MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_LINEAR; break;
+                default: texture->_minification = MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_LINEAR; break;
+                }
 
-            switch (model.samplers[t.sampler].minFilter) {
-            case TINYGLTF_TEXTURE_FILTER_NEAREST: texture->_minification = MINIFICATION_TYPE::MIN_NEAREST; break;
-            case TINYGLTF_TEXTURE_FILTER_LINEAR: texture->_minification = MINIFICATION_TYPE::MIN_LINEAR; break;
-            case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST: texture->_minification = MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_NEAREST; break;
-            case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST: texture->_minification = MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_NEAREST; break;
-            case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR: texture->_minification = MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_LINEAR; break;
-            default: texture->_minification = MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_LINEAR; break;
-            }
+                switch (model.samplers[t.sampler].wrapR) {
+                case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture->_wrappingR = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
+                case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture->_wrappingR = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
+                default: texture->_wrappingR = WRAPPING_TYPE::WRAP_REPEAT; break;
+                }
 
-            switch (model.samplers[t.sampler].wrapR) {
-            case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture->_wrappingR = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
-            case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture->_wrappingR = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
-            default: texture->_wrappingR = WRAPPING_TYPE::WRAP_REPEAT; break;
-            }
+                switch (model.samplers[t.sampler].wrapS) {
+                case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture->_wrappingS = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
+                case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture->_wrappingS = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
+                default: texture->_wrappingS = WRAPPING_TYPE::WRAP_REPEAT; break;
+                }
 
-            switch (model.samplers[t.sampler].wrapS) {
-            case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture->_wrappingS = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
-            case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture->_wrappingS = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
-            default: texture->_wrappingS = WRAPPING_TYPE::WRAP_REPEAT; break;
-            }
-
-            switch (model.samplers[t.sampler].wrapT) {
-            case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture->_wrappingT = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
-            case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture->_wrappingT = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
-            default: texture->_wrappingT = WRAPPING_TYPE::WRAP_REPEAT; break;
+                switch (model.samplers[t.sampler].wrapT) {
+                case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture->_wrappingT = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
+                case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture->_wrappingT = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
+                default: texture->_wrappingT = WRAPPING_TYPE::WRAP_REPEAT; break;
+                }
             }
 
             addTexture(texture);
@@ -251,7 +252,7 @@ namespace Scene
             addMaterial(new Material(
                 glm::make_vec4(m.pbrMetallicRoughness.baseColorFactor.data()),
                 glm::make_vec3(m.emissiveFactor.data()),
-                m.extensions.find("KHR_materials_emissive_strength") != m.extensions.end() && m.extensions.at("KHR_materials_emissive_strength").Has("emissiveStrength") ? (float)m.extensions.at("KHR_materials_emissive_strength").Get("emissiveStrength").GetNumberAsDouble() : 0.f,
+                m.extensions.find("KHR_materials_emissive_strength") != m.extensions.end() && m.extensions.at("KHR_materials_emissive_strength").Has("emissiveStrength") ? (float)m.extensions.at("KHR_materials_emissive_strength").Get("emissiveStrength").GetNumberAsDouble() : 1.f,
                 (float)m.pbrMetallicRoughness.metallicFactor,
                 (float)m.pbrMetallicRoughness.roughnessFactor,
                 (float)(m.alphaMode == "OPAQUE" ? 0. : (m.alphaMode == "BLEND" ? 1. : m.alphaCutoff)),

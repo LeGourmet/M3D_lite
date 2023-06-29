@@ -2,7 +2,7 @@
 
 layout (location = 0) out vec3 fragColor;
 
-uniform sampler2D srcTexture; // edge clamp + bilinear mignification + hdr
+layout( binding = 0 ) uniform sampler2D srcTexture; // edge clamp + bilinear mignification + hdr
 uniform float filterRadius;
 
 in vec2 uv;
@@ -21,5 +21,5 @@ void main()
     vec3 h = texture(srcTexture, uv+vec2( 0.,-1.)*filterRadius).xyz;
     vec3 i = texture(srcTexture, uv+vec2( 1.,-1.)*filterRadius).xyz;
 
-    fragColor = ((b+d+f+h)*2. + (a+c+g+i))/16.;
+    fragColor = (e*4. + (b+d+f+h)*2. + (a+c+g+i))/16.;
 }

@@ -129,9 +129,9 @@ namespace M3D
             if ((keyUp || keyDown) && (p_event.key.keysym.scancode >= SDL_SCANCODE_F1 && p_event.key.keysym.scancode <= SDL_SCANCODE_PRINTSCREEN)) {
                 if (keyDown)
                     switch (p_event.key.keysym.scancode) {
-                    case SDL_SCANCODE_F1: _switchFullScreen2Maximized(); break;
-                    // add hide / unhide GUI
-                    // add videoCapture
+                    case SDL_SCANCODE_F1: _switchFullScreenToMaximized(); break;
+                    case SDL_SCANCODE_F2: Application::getInstance().getGraphicalUserInterface().toggleDisplayMode();
+                    //case SDL_SCANCODE_F3+F4+F5: take video
                     case SDL_SCANCODE_PRINTSCREEN: _takeScreenShot(); break;
                     default: break;
                     }
@@ -142,7 +142,7 @@ namespace M3D
             return false;
         }
 
-        void Window::_switchFullScreen2Maximized() {
+        void Window::_switchFullScreenToMaximized() {
             Application::getInstance().pause();
             if (SDL_GetWindowFlags(_window) & SDL_WINDOW_FULLSCREEN) { 
                 SDL_SetWindowFullscreen(_window, SDL_FALSE); 

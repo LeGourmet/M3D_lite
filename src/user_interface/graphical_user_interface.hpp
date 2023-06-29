@@ -23,7 +23,12 @@ namespace UserInterface
         bool captureEvent(const SDL_Event& p_event);
         void clearEvents();
 
+        void toggleDisplayMode();
+
     private:
+        // ---------------------------------------------------- ATTRIBUTS ------------------------------------------------------
+        bool _hide = false;
+
         // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
         void _dispose();
     };

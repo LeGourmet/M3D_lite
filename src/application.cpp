@@ -9,16 +9,14 @@ namespace M3D
 {
 	Application::Application() : _width(1280), _height(720), _title("My M3D"), _running(false) {}
 
-	Application::~Application()
-	{
+	Application::~Application() {
 		delete _sceneManager;
 		delete _gui;
 		delete _renderer;
 		delete _window;
 	}
 
-	void Application::start()
-	{
+	void Application::start() {
 		_running = true;
 		
 		// decide if use ogl or vulkan and if we are on / linux / mac / android / windows

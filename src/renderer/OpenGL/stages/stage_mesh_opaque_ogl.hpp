@@ -39,8 +39,8 @@ namespace M3D
 				attachColorMap(_fbo, _normalMetalnessMap, 1);
 				generateMap(&_albedoRoughnessMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 				attachColorMap(_fbo, _albedoRoughnessMap, 2);
-				generateMap(&_emissiveAmbientMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
-				attachColorMap(_fbo, _emissiveAmbientMap, 3);
+				generateMap(&_emissiveMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
+				attachColorMap(_fbo, _emissiveMap, 3);
 				GLenum DrawBuffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
 				glNamedFramebufferDrawBuffers(_fbo, 4, DrawBuffers);
 
@@ -53,7 +53,7 @@ namespace M3D
 				glDeleteTextures(1, &_positionMap);
 				glDeleteTextures(1, &_normalMetalnessMap);
 				glDeleteTextures(1, &_albedoRoughnessMap);
-				glDeleteTextures(1, &_emissiveAmbientMap);
+				glDeleteTextures(1, &_emissiveMap);
 				glDeleteRenderbuffers(1, &_rbo);
 				glDeleteFramebuffers(1, &_fbo);
 			}
@@ -62,7 +62,7 @@ namespace M3D
 			GLuint getPositionMap() { return _positionMap; }
 			GLuint getNormalMetalnessMap() { return _normalMetalnessMap; }
 			GLuint getAlbedoRoughnessMap() { return _albedoRoughnessMap; }
-			GLuint getEmissiveAmbientMap() { return _emissiveAmbientMap; }
+			GLuint getEmissiveMap() { return _emissiveMap; }
 			GLuint getFBO() { return _fbo; }
 
 			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
@@ -70,7 +70,7 @@ namespace M3D
 				resizeColorMap(p_width, p_height, _positionMap);
 				resizeColorMap(p_width, p_height, _normalMetalnessMap);
 				resizeColorMap(p_width, p_height, _albedoRoughnessMap);
-				resizeColorMap(p_width, p_height, _emissiveAmbientMap);
+				resizeColorMap(p_width, p_height, _emissiveMap);
 
 				resizeRbo(p_width, p_height, _rbo);
 			}
@@ -134,7 +134,7 @@ namespace M3D
 			GLuint _positionMap			= GL_INVALID_INDEX;
 			GLuint _normalMetalnessMap	= GL_INVALID_INDEX;
 			GLuint _albedoRoughnessMap	= GL_INVALID_INDEX;
-			GLuint _emissiveAmbientMap  = GL_INVALID_INDEX;
+			GLuint _emissiveMap			= GL_INVALID_INDEX;
 
 			ProgramOGL _geometryPass = ProgramOGL("src/renderer/OpenGL/shaders/geometryPass.vert", "", "src/renderer/OpenGL/shaders/geometryPass.frag");
 		};

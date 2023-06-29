@@ -54,7 +54,7 @@ namespace M3D
 
             // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
             bool _captureEvent(const SDL_Event& p_event);
-            void _switchFullScreen2Maximized();
+            void _switchFullScreenToMaximized();
             void _takeScreenShot();
             void _dispose();
         };

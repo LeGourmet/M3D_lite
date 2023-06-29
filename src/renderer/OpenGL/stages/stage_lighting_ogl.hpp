@@ -22,6 +22,9 @@ namespace M3D
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 			StageLightingOGL() {
+				// ****** AMBIENT ******
+				_ambientLightingPass.addUniform("uCamPos");
+
 				// ****** LIGHTING ******
 				_directionalLightingPass.addUniform("uCamPos");
 				_directionalLightingPass.addUniform("uLightMatrix_VP");
@@ -125,6 +128,28 @@ namespace M3D
 				glNamedFramebufferReadBuffer(p_fbo, GL_COLOR_ATTACHMENT3);
 				glNamedFramebufferDrawBuffer(_fboLighting, GL_COLOR_ATTACHMENT0);
 				glBlitNamedFramebuffer(p_fbo,_fboLighting,0,0,p_width,p_height,0,0,p_width,p_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+				// ------- AMBIENT -------
+				glViewport(0, 0, p_width, p_height);
+				glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
+
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_ONE, GL_ONE);
+
+				glUseProgram(_ambientLightingPass.getProgram());
+
+				glBindTextureUnit(0, p_positionMap);
+				glBindTextureUnit(1, p_normalMetalnessMap);
+				glBindTextureUnit(2, p_albedoRoughnessMap);
+
+				glProgramUniform3fv(_ambientLightingPass.getProgram(), _ambientLightingPass.getUniform("uCamPos"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition()));
+
+				glBindVertexArray(_emptyVAO);
+				glDrawArrays(GL_TRIANGLES, 0, 3);
+				glBindVertexArray(0);
+
+				glDisable(GL_BLEND);
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 				for (Scene::Light* l : Application::getInstance().getSceneManager().getLights())
 					for (unsigned int i=0; i<l->getNumberInstances() ;i++)
@@ -321,6 +346,7 @@ namespace M3D
 
 			unsigned int _sadowMapResolution = 1024;
 
+			ProgramOGL _ambientLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/ambientLightingPass.frag");
 			ProgramOGL _directionalLightingPass = ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/directionalLightingPass.frag");
 			//ProgramOGL _ponctualLightingPass	= ProgramOGL("src/renderer/OpenGL/shaders/utils/billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/ponctualLightingPass.frag");
 			ProgramOGL _ponctualLightingPass	= ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/ponctualLightingPass.frag");

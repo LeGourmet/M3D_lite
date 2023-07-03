@@ -5,33 +5,34 @@
 
 namespace M3D
 {
-namespace UserInterface
-{
-    class GraphicalUserInterface
+    namespace UserInterface
     {
-    public:
-        // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------
-        GraphicalUserInterface();
-        GraphicalUserInterface(SDL_Window* p_window, const SDL_GLContext& p_glContext);
-        ~GraphicalUserInterface();
+        class GraphicalUserInterface
+        {
+        public:
+            // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
+            GraphicalUserInterface();
+            GraphicalUserInterface(SDL_Window* p_window, const SDL_GLContext& p_glContext);
+            ~GraphicalUserInterface();
 
-        // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-        void pause();
-        void update(unsigned long long p_deltaTime);
-        void drawFrame();
+            // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
+            void pause();
+            void update(unsigned long long p_deltaTime);
+            void drawFrame();
         
-        bool captureEvent(const SDL_Event& p_event);
-        void clearEvents();
+            bool captureEvent(const SDL_Event& p_event);
+            void clearEvents();
 
-        void toggleDisplayMode();
+            void toggleDisplayMode();
 
-    private:
-        // ---------------------------------------------------- ATTRIBUTS ------------------------------------------------------
-        bool _hide = false;
+        private:
+            // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+            bool _hide = false;
 
-        // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
-        void _dispose();
-    };
+            // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
+            void _dispose();
+        };
+    }
 }
-}
+
 #endif

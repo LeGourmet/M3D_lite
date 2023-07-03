@@ -5,13 +5,6 @@
 #include "application.hpp"
 #include "renderer/renderer.hpp"
 
-#include "scene_graph/scene_graph_node.hpp"
-
-#include "objects/lights/light.hpp"
-#include "objects/meshes/mesh.hpp"
-#include "objects/meshes/material.hpp"
-#include "objects/cameras/camera.hpp"
-
 //#include <variant>
 //#include <optional>
 #include <iostream>
@@ -21,10 +14,10 @@ namespace M3D
 namespace Scene
 {
     SceneManager::SceneManager(const int p_width, const int p_height) {
-        addMaterial(new Material(VEC4F_ONE, VEC3F_ZERO, 0.f, 0.f, 1.f, 1.f, false, nullptr, nullptr, nullptr, nullptr, nullptr));
+        addMaterial(Material(VEC4F_ONE, VEC3F_ZERO, 0.f, 0.f, 1.f, 1.f, false, nullptr, nullptr, nullptr, nullptr, nullptr));
         
-        addCamera(new Camera(PIf/2.f, 1., 1e-2f, 1e3f ,CAMERA_TYPE::PERSPECTIVE));
-        addNode(new SceneGraphNode(nullptr,VEC3F_Z,VEC3F_ONE,QUATF_ID));
+        addCamera(Camera(PIf/2.f, 1.f, 1e-2f, 1e3f ,CAMERA_TYPE::PERSPECTIVE));
+        addNode(new SceneGraphNode(nullptr, VEC3F_Z, VEC3F_ONE, QUATF_ID));
         addInstance(_cameras[0], _sceneGraph[0]);
         _mainCamera = Vec2i(0, 0);
 
@@ -32,43 +25,32 @@ namespace Scene
     }
 
     SceneManager::~SceneManager() { 
-        for (int i=0; i<_cameras.size() ;i++) delete _cameras[i];
-        for (int i=0; i<_materials.size() ;i++) delete _materials[i];
-        for (int i=0; i<_sceneGraph.size() ;i++) delete _sceneGraph[i];
-        for (int i=0; i<_meshes.size() ;i++) { Application::getInstance().getRenderer().deleteMesh(_meshes[i]); delete _meshes[i]; }
-        for (int i=0; i<_textures.size() ;i++) { Application::getInstance().getRenderer().deleteTexture(_textures[i]); delete _textures[i]; }
-        for (int i = 0; i<_images.size();i++) { delete _images[i]; }
-        for (int i=0; i<_lights.size() ;i++) delete _lights[i];
+        for (int i = 0; i < _sceneGraph.size() ;i++) delete _sceneGraph[i];
+        for (int i = 0; i < _meshes.size() ;i++) Application::getInstance().getRenderer().deleteMesh(&_meshes[i]);
+        for (int i = 0; i < _textures.size() ;i++) Application::getInstance().getRenderer().deleteTexture(&_textures[i]);
     }
 
-    Camera &SceneManager::getMainCamera() const { return *_cameras[_mainCamera.x]; }
-    SceneGraphNode* SceneManager::getMainCameraSceneGraphNode() const { return _cameras[_mainCamera.x]->getInstance(_mainCamera.y); }
-    const Mat4f SceneManager::getMainCameraTransformation() const { return _cameras[_mainCamera.x]->getInstance(_mainCamera.y)->getTransformation(); }
-    const Mat4f SceneManager::getMainCameraViewMatrix() const { return _cameras[_mainCamera.x]->getViewMatrix(_mainCamera.y); }
-    const Mat4f SceneManager::getMainCameraProjectionMatrix() const { return _cameras[_mainCamera.x]->getProjectionMatrix(); }
+    Camera& SceneManager::getMainCamera() { return _cameras[_mainCamera.x]; }
+    SceneGraphNode* SceneManager::getMainCameraSceneGraphNode() { return _cameras[_mainCamera.x].getInstance(_mainCamera.y); }
+    const Mat4f SceneManager::getMainCameraTransformation() { return _cameras[_mainCamera.x].getInstance(_mainCamera.y)->getTransformation(); }
+    const Mat4f SceneManager::getMainCameraViewMatrix() { return _cameras[_mainCamera.x].getViewMatrix(_mainCamera.y); }
+    const Mat4f SceneManager::getMainCameraProjectionMatrix() { return _cameras[_mainCamera.x].getProjectionMatrix(); }
 
     void SceneManager::loadNewScene(const std::string& p_path) { clearScene(); _loadFile(p_path); }
 
     void SceneManager::addAsset(const std::string& p_path) { _loadFile(p_path); }
-
-    void SceneManager::addCamera(Camera* p_camera) { _cameras.push_back(p_camera); }
-
-    void SceneManager::addLight(Light* p_light) { _lights.push_back(p_light); }
-
-    void SceneManager::addMesh(Mesh* p_mesh) { _meshes.push_back(p_mesh); Application::getInstance().getRenderer().createMesh(p_mesh); }
-
-    void SceneManager::addMaterial(Material* p_material) { _materials.push_back(p_material); }
-
-    void SceneManager::addTexture(Texture* p_texture) { _textures.push_back(p_texture); Application::getInstance().getRenderer().createTexture(p_texture); }
-
-    void SceneManager::addImage(Image* p_image) { _images.push_back(p_image); }
-
+    void SceneManager::addCamera(Camera p_camera) { _cameras.push_back(p_camera); }
+    void SceneManager::addLight(Light p_light) { _lights.push_back(p_light); }
+    void SceneManager::addMesh(Mesh p_mesh) { _meshes.push_back(p_mesh); Application::getInstance().getRenderer().createMesh(&_meshes[_meshes.size()-1]); }
+    void SceneManager::addMaterial(Material p_material) { _materials.push_back(p_material); }
+    void SceneManager::addTexture(Texture p_texture) { _textures.push_back(p_texture); Application::getInstance().getRenderer().createTexture(&_textures[_textures.size()-1]); }
+    void SceneManager::addImage(Image p_image) { _images.push_back(p_image); }
     void SceneManager::addNode(SceneGraphNode* p_node) { _sceneGraph.push_back(p_node); }
 
-    void SceneManager::resize(const int p_width, const int p_height) { for (int i=0; i<_cameras.size() ;i++) _cameras[i]->setScreenSize(p_width,p_height); }
+    void SceneManager::resize(const int p_width, const int p_height) { for (int i=0; i<_cameras.size() ;i++) _cameras[i].setScreenSize(p_width,p_height); }
 
     void SceneManager::update(unsigned long long p_deltaTime) {
-        SceneGraphNode* cameraInstance  = _cameras[_mainCamera.x]->getInstance(_mainCamera.y);
+        SceneGraphNode* cameraInstance  = _cameras[_mainCamera.x].getInstance(_mainCamera.y);
         
         Vec3f rotation = VEC3F_ZERO;
         Vec3f translation = VEC3F_ZERO;
@@ -93,19 +75,19 @@ namespace Scene
         if (_isKeyPressed(SDL_SCANCODE_F)) translation.y--;*/
             
         rotation *= p_deltaTime * 0.0001;
-        translation *= p_deltaTime * 0.1;
+        translation *= p_deltaTime * 0.001;
 
         cameraInstance->translate(translation);
         cameraInstance->rotate(rotation);
 
         // todo add dirty flag to not always update matrices
-        for (Mesh* mesh : _meshes)
-            for (unsigned int i=0; i<mesh->getNumberInstances() ;i++)
+        for (unsigned int i=0; i<_meshes.size() ;i++)
+            for (unsigned int j=0; j<_meshes[i].getNumberInstances() ;j++)
                 Application::getInstance().getRenderer().updateInstanceMesh(
-                    mesh, i,
-                    mesh->getInstance(i)->getTransformation(),
-                    _cameras[_mainCamera.x]->getViewMatrix(_mainCamera.y),
-                    _cameras[_mainCamera.x]->getProjectionMatrix()
+                    &_meshes[i], j,
+                    _meshes[i].getInstance(j)->getTransformation(),
+                    _cameras[_mainCamera.x].getViewMatrix(_mainCamera.y),
+                    _cameras[_mainCamera.x].getProjectionMatrix()
                 );
     }
 
@@ -121,17 +103,13 @@ namespace Scene
     }
 
     void SceneManager::clearScene() {
-        for (int i=1; i<_cameras.size() ;i++) delete _cameras[i];
-        for (int i=1; i<_materials.size() ;i++) delete _materials[i];
-        for (int i=1; i<_sceneGraph.size() ;i++) delete _sceneGraph[i];
+        for (int i = 1; i < _sceneGraph.size() ;i++) delete _sceneGraph[i];
+        for (int i = 0; i<_meshes.size() ;i++) Application::getInstance().getRenderer().deleteMesh(&_meshes[i]);
+        for (int i = 0; i<_textures.size() ;i++) Application::getInstance().getRenderer().deleteTexture(&_textures[i]);
+        
         _cameras.erase(_cameras.begin()+1,_cameras.end());
         _materials.erase(_materials.begin()+1,_materials.end());
         _sceneGraph.erase(_sceneGraph.begin()+1,_sceneGraph.end());
-
-        for (int i = 0; i < _meshes.size();i++) { Application::getInstance().getRenderer().deleteMesh(_meshes[i]); delete _meshes[i]; }
-        for (int i = 0; i < _textures.size();i++) { Application::getInstance().getRenderer().deleteTexture(_textures[i]); delete _textures[i]; }
-        for (int i = 0; i < _images.size();i++) delete _images[i];
-        for (int i = 0; i < _lights.size();i++) delete _lights[i];
         _meshes.clear();
         _textures.clear();
         _images.clear();
@@ -141,18 +119,18 @@ namespace Scene
         _mainCamera = Vec2i(0, 0); // care need to reset pos
     }
 
-    void SceneManager::addInstance(Camera* p_camera, SceneGraphNode* p_node) { p_camera->addInstance(p_node); }
+    void SceneManager::addInstance(Camera& p_camera, SceneGraphNode* p_node) { p_camera.addInstance(p_node); }
 
-    void SceneManager::addInstance(Light* p_light, SceneGraphNode* p_node) { p_light->addInstance(p_node); }
+    void SceneManager::addInstance(Light& p_light, SceneGraphNode* p_node) { p_light.addInstance(p_node); }
 
-    void SceneManager::addInstance(Mesh* p_mesh, SceneGraphNode* p_node) {
-        p_mesh->addInstance(p_node);
+    void SceneManager::addInstance(Mesh& p_mesh, SceneGraphNode* p_node) {
+        p_mesh.addInstance(p_node);
 
         Application::getInstance().getRenderer().addInstanceMesh(
-            p_mesh,
+            &p_mesh,
             p_node->getTransformation(),
-            _cameras[_mainCamera.x]->getViewMatrix(_mainCamera.y),
-            _cameras[_mainCamera.x]->getProjectionMatrix()
+            getMainCameraViewMatrix(),
+            getMainCameraProjectionMatrix()
         );
     }
 
@@ -162,6 +140,7 @@ namespace Scene
         Quatf rotation = (p_model.nodes[p_idCurrent].rotation.size() == 4) ? Quatf((float)p_model.nodes[p_idCurrent].rotation[3], (float)p_model.nodes[p_idCurrent].rotation[0], (float)p_model.nodes[p_idCurrent].rotation[1], (float)p_model.nodes[p_idCurrent].rotation[2]) : QUATF_ID;
         SceneGraphNode* current = new SceneGraphNode(p_parent, translation, scale, rotation);
         addNode(current);
+        
 
         if (p_model.nodes[p_idCurrent].mesh != -1) { addInstance(_meshes[p_meshOffset + p_model.nodes[p_idCurrent].mesh], current); }
         else if (p_model.nodes[p_idCurrent].camera != -1) { addInstance(_cameras[p_camOffset + p_model.nodes[p_idCurrent].camera], current); }
@@ -195,7 +174,7 @@ namespace Scene
         unsigned int startIdImages = (unsigned int)_images.size();
         _images.reserve(startIdImages + model.images.size());
         for (tinygltf::Image i : model.images)
-            addImage(new Image(i.width, i.height, i.component, i.bits, i.pixel_type, i.image));
+            addImage(Image(i.width, i.height, i.component, i.bits, i.pixel_type, i.image));
 
         std::cout << "images loaded: " << _images.size() - startIdImages << std::endl;
 
@@ -203,40 +182,40 @@ namespace Scene
         unsigned int startIdTextures = (unsigned int)_textures.size();
         _textures.reserve(startIdTextures + model.textures.size());
         for (tinygltf::Texture t : model.textures) {
-            Texture* texture = new Texture();
-            texture->_image = _images[startIdImages + t.source];
+            Texture texture = Texture();
+            texture._image = &_images[startIdImages + t.source];
             
             if (t.sampler != -1) {
                 switch (model.samplers[t.sampler].magFilter) {
-                case TINYGLTF_TEXTURE_FILTER_NEAREST: texture->_magnification = MAGNIFICATION_TYPE::MAG_NEAREST; break;
-                default: texture->_magnification = MAGNIFICATION_TYPE::MAG_LINEAR; break;
+                case TINYGLTF_TEXTURE_FILTER_NEAREST: texture._magnification = MAGNIFICATION_TYPE::MAG_NEAREST; break;
+                default: texture._magnification = MAGNIFICATION_TYPE::MAG_LINEAR; break;
                 }
 
                 switch (model.samplers[t.sampler].minFilter) {
-                case TINYGLTF_TEXTURE_FILTER_NEAREST: texture->_minification = MINIFICATION_TYPE::MIN_NEAREST; break;
-                case TINYGLTF_TEXTURE_FILTER_LINEAR: texture->_minification = MINIFICATION_TYPE::MIN_LINEAR; break;
-                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST: texture->_minification = MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_NEAREST; break;
-                case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST: texture->_minification = MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_NEAREST; break;
-                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR: texture->_minification = MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_LINEAR; break;
-                default: texture->_minification = MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_LINEAR; break;
+                case TINYGLTF_TEXTURE_FILTER_NEAREST: texture._minification = MINIFICATION_TYPE::MIN_NEAREST; break;
+                case TINYGLTF_TEXTURE_FILTER_LINEAR: texture._minification = MINIFICATION_TYPE::MIN_LINEAR; break;
+                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST: texture._minification = MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_NEAREST; break;
+                case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST: texture._minification = MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_NEAREST; break;
+                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR: texture._minification = MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_LINEAR; break;
+                default: texture._minification = MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_LINEAR; break;
                 }
 
                 switch (model.samplers[t.sampler].wrapR) {
-                case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture->_wrappingR = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
-                case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture->_wrappingR = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
-                default: texture->_wrappingR = WRAPPING_TYPE::WRAP_REPEAT; break;
+                case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture._wrappingR = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
+                case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture._wrappingR = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
+                default: texture._wrappingR = WRAPPING_TYPE::WRAP_REPEAT; break;
                 }
 
                 switch (model.samplers[t.sampler].wrapS) {
-                case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture->_wrappingS = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
-                case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture->_wrappingS = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
-                default: texture->_wrappingS = WRAPPING_TYPE::WRAP_REPEAT; break;
+                case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture._wrappingS = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
+                case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture._wrappingS = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
+                default: texture._wrappingS = WRAPPING_TYPE::WRAP_REPEAT; break;
                 }
 
                 switch (model.samplers[t.sampler].wrapT) {
-                case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture->_wrappingT = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
-                case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture->_wrappingT = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
-                default: texture->_wrappingT = WRAPPING_TYPE::WRAP_REPEAT; break;
+                case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture._wrappingT = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
+                case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture._wrappingT = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
+                default: texture._wrappingT = WRAPPING_TYPE::WRAP_REPEAT; break;
                 }
             }
 
@@ -249,7 +228,7 @@ namespace Scene
         unsigned int startIdMaterials = (unsigned int)_materials.size();
         _materials.reserve(startIdMaterials + model.materials.size());
         for (tinygltf::Material m : model.materials)
-            addMaterial(new Material(
+            addMaterial(Material(
                 glm::make_vec4(m.pbrMetallicRoughness.baseColorFactor.data()),
                 glm::make_vec3(m.emissiveFactor.data()),
                 m.extensions.find("KHR_materials_emissive_strength") != m.extensions.end() && m.extensions.at("KHR_materials_emissive_strength").Has("emissiveStrength") ? (float)m.extensions.at("KHR_materials_emissive_strength").Get("emissiveStrength").GetNumberAsDouble() : 1.f,
@@ -257,11 +236,11 @@ namespace Scene
                 (float)m.pbrMetallicRoughness.roughnessFactor,
                 (float)(m.alphaMode == "OPAQUE" ? 0. : (m.alphaMode == "BLEND" ? 1. : m.alphaCutoff)),
                 m.doubleSided,
-                (m.pbrMetallicRoughness.baseColorTexture.index == -1.) ? nullptr : _textures[startIdTextures + m.pbrMetallicRoughness.baseColorTexture.index],
-                (m.pbrMetallicRoughness.metallicRoughnessTexture.index == -1.) ? nullptr : _textures[startIdTextures + m.pbrMetallicRoughness.metallicRoughnessTexture.index],
-                (m.normalTexture.index == -1.) ? nullptr : _textures[startIdTextures + m.normalTexture.index],
-                (m.occlusionTexture.index == -1.) ? nullptr : _textures[startIdTextures + m.occlusionTexture.index],
-                (m.emissiveTexture.index == -1.) ? nullptr : _textures[startIdTextures + m.emissiveTexture.index]
+                (m.pbrMetallicRoughness.baseColorTexture.index == -1.) ? nullptr : &_textures[startIdTextures + m.pbrMetallicRoughness.baseColorTexture.index],
+                (m.pbrMetallicRoughness.metallicRoughnessTexture.index == -1.) ? nullptr : &_textures[startIdTextures + m.pbrMetallicRoughness.metallicRoughnessTexture.index],
+                (m.normalTexture.index == -1.) ? nullptr : &_textures[startIdTextures + m.normalTexture.index],
+                (m.occlusionTexture.index == -1.) ? nullptr : &_textures[startIdTextures + m.occlusionTexture.index],
+                (m.emissiveTexture.index == -1.) ? nullptr : &_textures[startIdTextures + m.emissiveTexture.index]
             ));
 
         std::cout << "materials loaded: " << _materials.size() - startIdMaterials << std::endl;
@@ -270,12 +249,12 @@ namespace Scene
         unsigned int startIdMeshes = (unsigned int)_meshes.size();
         _meshes.reserve(startIdMeshes + model.meshes.size());
         for (tinygltf::Mesh m : model.meshes) {
-            Mesh* newMesh = new Mesh();
-            newMesh->getPrimitives().reserve(m.primitives.size());
+            Mesh newMesh = Mesh();
+            newMesh.getSubMeshes().reserve(m.primitives.size());
             for (tinygltf::Primitive p : m.primitives) {
                 if (p.indices == -1) throw std::runtime_error("Fail to load file: primitive indices must be define.");
 
-                Primitive* newPrimitive = new Primitive(_materials[startIdMaterials + p.material]); // care default material
+                SubMesh newSubMesh = SubMesh(&_materials[startIdMaterials + p.material]); // care default material
 
                 tinygltf::Accessor a_position = model.accessors[p.attributes.at("POSITION")];
                 tinygltf::Accessor a_normal = model.accessors[p.attributes.at("NORMAL")];
@@ -293,7 +272,7 @@ namespace Scene
                 tinygltf::BufferView bv_texcoord = model.bufferViews[a_texcoord.bufferView];
                 const float* texCoord0Buffer = reinterpret_cast<const float*>(&model.buffers[bv_texcoord.buffer].data[a_texcoord.byteOffset + bv_texcoord.byteOffset]);
 
-                newPrimitive->getVertices().reserve(a_position.count);
+                newSubMesh.getVertices().reserve(a_position.count);
                 for (unsigned int i = 0; i < a_position.count;i++) {
                     Vertex v = Vertex{
                                         ._position = glm::make_vec3(&positionsBuffer[i * 3]),
@@ -304,23 +283,23 @@ namespace Scene
                     if (glm::length(v._tangent) < 0.1) v._tangent = glm::cross(v._normal, VEC3F_Y);
                     v._tangent = glm::normalize(v._tangent);
                     v._bitangent = glm::normalize(glm::cross(v._normal, v._tangent));
-                    newPrimitive->addVertex(v);
+                    newSubMesh.addVertex(v);
                 }
 
                 tinygltf::BufferView bv_indices = model.bufferViews[a_indices.bufferView];
                 switch (a_indices.componentType) {
                 case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT:
-                    newPrimitive->setIndices(reinterpret_cast<const unsigned int*>(&model.buffers[bv_indices.buffer].data[a_indices.byteOffset + bv_indices.byteOffset]), (unsigned int)a_indices.count);
+                    newSubMesh.setIndices(reinterpret_cast<const unsigned int*>(&model.buffers[bv_indices.buffer].data[a_indices.byteOffset + bv_indices.byteOffset]), (unsigned int)a_indices.count);
                     break;
                 case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT:
-                    newPrimitive->setIndices(reinterpret_cast<const unsigned short*>(&model.buffers[bv_indices.buffer].data[a_indices.byteOffset + bv_indices.byteOffset]), (unsigned int)a_indices.count);
+                    newSubMesh.setIndices(reinterpret_cast<const unsigned short*>(&model.buffers[bv_indices.buffer].data[a_indices.byteOffset + bv_indices.byteOffset]), (unsigned int)a_indices.count);
                     break;
                 case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE:
-                    newPrimitive->setIndices(reinterpret_cast<const unsigned char*>(&model.buffers[bv_indices.buffer].data[a_indices.byteOffset + bv_indices.byteOffset]), (unsigned int)a_indices.count);
+                    newSubMesh.setIndices(reinterpret_cast<const unsigned char*>(&model.buffers[bv_indices.buffer].data[a_indices.byteOffset + bv_indices.byteOffset]), (unsigned int)a_indices.count);
                     break;
                 }
 
-                newMesh->addPrimitive(newPrimitive);
+                newMesh.addSubMesh(newSubMesh);
             }
             addMesh(newMesh);
         }
@@ -332,10 +311,10 @@ namespace Scene
         _lights.reserve(startIdLights + model.lights.size());
         for (tinygltf::Light l : model.lights) {
             if (l.type == "spot") {
-                addLight(new Light(LIGHT_TYPE::SPOT, ((l.color.size() != 3) ? VEC3F_ONE : (Vec3f)glm::make_vec3(l.color.data())), (float)l.intensity, (float)l.spot.innerConeAngle, (float)l.spot.outerConeAngle));
+                addLight(Light(LIGHT_TYPE::SPOT, ((l.color.size() != 3) ? VEC3F_ONE : (Vec3f)glm::make_vec3(l.color.data())), (float)l.intensity, (float)l.spot.innerConeAngle, (float)l.spot.outerConeAngle));
             }
             else {
-                addLight(new Light((l.type == "point" ? LIGHT_TYPE::POINT : LIGHT_TYPE::DIRECTIONAL), ((l.color.size() != 3) ? VEC3F_ONE : (Vec3f)glm::make_vec3(l.color.data())), (float)l.intensity));
+                addLight(Light((l.type == "point" ? LIGHT_TYPE::POINT : LIGHT_TYPE::DIRECTIONAL), ((l.color.size() != 3) ? VEC3F_ONE : (Vec3f)glm::make_vec3(l.color.data())), (float)l.intensity));
             }
         }
 
@@ -346,10 +325,10 @@ namespace Scene
         _cameras.reserve(startIdCameras + (int)model.cameras.size());
         for (tinygltf::Camera c : model.cameras) {
             if (c.type == "perspective") {  // CHECK use aspect ratio ??
-                addCamera(new Camera((float)c.perspective.yfov, float(Application::getInstance().getWidth())/float(Application::getInstance().getHeight()), (float)c.perspective.znear, (float)c.perspective.zfar, CAMERA_TYPE::PERSPECTIVE));
+                addCamera(Camera((float)c.perspective.yfov, float(Application::getInstance().getWidth())/float(Application::getInstance().getHeight()), (float)c.perspective.znear, (float)c.perspective.zfar, CAMERA_TYPE::PERSPECTIVE));
             }
             else if (c.type == "orthographic") { // CHECK multiply by real aspect ratio ?
-                addCamera(new Camera((float)c.orthographic.xmag, (float)c.orthographic.ymag, (float)c.orthographic.znear, (float)c.orthographic.zfar, CAMERA_TYPE::ORTHOGRAPHIC));
+                addCamera(Camera((float)c.orthographic.xmag, (float)c.orthographic.ymag, (float)c.orthographic.znear, (float)c.orthographic.zfar, CAMERA_TYPE::ORTHOGRAPHIC));
             }
         }
 
@@ -364,7 +343,7 @@ namespace Scene
 
         std::cout << "nodes loaded: " << _sceneGraph.size() - startIdSceneGraph << std::endl;
 
-        if (_cameras.size() > 1 && _cameras[1]->getNumberInstances() > 0) _mainCamera = Vec2i(1, 0);
+        if (_cameras.size() > 1 && _cameras[1].getNumberInstances() > 0) _mainCamera = Vec2i(1, 0);
 
         std::cout << "Finished to load " << p_path << std::endl;
     }
@@ -425,43 +404,43 @@ namespace Scene
         for (fastgltf::Texture t : asset->textures) {
             Texture* texture = new Texture();
             if(!t.imageIndex.has_value()) throw std::runtime_error("Texture: invalud image index!");
-            texture->_image = _images[startIdImages + t.imageIndex.value()];
+            texture._image = _images[startIdImages + t.imageIndex.value()];
 
             if (t.samplerIndex.has_value()) {
                 if (asset->samplers[t.samplerIndex.value()].magFilter.has_value()) {
                     switch (asset->samplers[t.samplerIndex.value()].magFilter.value()) { // optional
-                    case fastgltf::Filter::Nearest: texture->_magnification = MAGNIFICATION_TYPE::MAG_NEAREST; break;
-                    default: texture->_magnification = MAGNIFICATION_TYPE::MAG_LINEAR; break;
+                    case fastgltf::Filter::Nearest: texture._magnification = MAGNIFICATION_TYPE::MAG_NEAREST; break;
+                    default: texture._magnification = MAGNIFICATION_TYPE::MAG_LINEAR; break;
                     }
                 }
 
                 if (asset->samplers[t.samplerIndex.value()].minFilter.has_value()) {
                     switch (asset->samplers[t.samplerIndex.value()].minFilter.value()) {
-                    case fastgltf::Filter::Nearest: texture->_minification = MINIFICATION_TYPE::MIN_NEAREST; break;
-                    case fastgltf::Filter::Linear: texture->_minification = MINIFICATION_TYPE::MIN_LINEAR; break;
-                    case fastgltf::Filter::NearestMipMapNearest: texture->_minification = MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_NEAREST; break;
-                    case fastgltf::Filter::LinearMipMapNearest: texture->_minification = MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_NEAREST; break;
-                    case fastgltf::Filter::LinearMipMapLinear: texture->_minification = MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_LINEAR; break;
-                    default: texture->_minification = MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_LINEAR; break;
+                    case fastgltf::Filter::Nearest: texture._minification = MINIFICATION_TYPE::MIN_NEAREST; break;
+                    case fastgltf::Filter::Linear: texture._minification = MINIFICATION_TYPE::MIN_LINEAR; break;
+                    case fastgltf::Filter::NearestMipMapNearest: texture._minification = MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_NEAREST; break;
+                    case fastgltf::Filter::LinearMipMapNearest: texture._minification = MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_NEAREST; break;
+                    case fastgltf::Filter::LinearMipMapLinear: texture._minification = MINIFICATION_TYPE::MIN_NEAREST_MIPMAP_LINEAR; break;
+                    default: texture._minification = MINIFICATION_TYPE::MIN_LINEAR_MIPMAP_LINEAR; break;
                     }
                 }
 
                 //switch (model.samplers[t.sampler].wrapR) {
-                //case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture->_wrappingR = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
-                //case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture->_wrappingR = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
-                //default: texture->_wrappingR = WRAPPING_TYPE::WRAP_REPEAT; break;
+                //case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: texture._wrappingR = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
+                //case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: texture._wrappingR = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
+                //default: texture._wrappingR = WRAPPING_TYPE::WRAP_REPEAT; break;
                 //}
 
                 switch (asset->samplers[t.samplerIndex.value()].wrapS) {
-                case fastgltf::Wrap::ClampToEdge: texture->_wrappingS = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
-                case fastgltf::Wrap::MirroredRepeat: texture->_wrappingS = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
-                default: texture->_wrappingS = WRAPPING_TYPE::WRAP_REPEAT; break;
+                case fastgltf::Wrap::ClampToEdge: texture._wrappingS = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
+                case fastgltf::Wrap::MirroredRepeat: texture._wrappingS = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
+                default: texture._wrappingS = WRAPPING_TYPE::WRAP_REPEAT; break;
                 }
 
                 switch (asset->samplers[t.samplerIndex.value()].wrapT) {
-                case fastgltf::Wrap::ClampToEdge: texture->_wrappingT = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
-                case fastgltf::Wrap::MirroredRepeat: texture->_wrappingT = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
-                default: texture->_wrappingT = WRAPPING_TYPE::WRAP_REPEAT; break;
+                case fastgltf::Wrap::ClampToEdge: texture._wrappingT = WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE; break;
+                case fastgltf::Wrap::MirroredRepeat: texture._wrappingT = WRAPPING_TYPE::WRAP_MIRRORED_REPEAT; break;
+                default: texture._wrappingT = WRAPPING_TYPE::WRAP_REPEAT; break;
                 }
             }
 

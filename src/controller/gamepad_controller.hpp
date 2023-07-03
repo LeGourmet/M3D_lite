@@ -17,8 +17,7 @@ namespace M3D
             // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
             void receiveEvent(const SDL_Event& p_event) {
                 switch (p_event.type) {
-                    default:
-                        break;
+                    default: break;
                 }
             }
 
@@ -28,4 +27,5 @@ namespace M3D
         };
     }
 }
+
 #endif

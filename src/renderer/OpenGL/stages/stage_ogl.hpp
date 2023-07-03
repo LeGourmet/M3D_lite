@@ -11,7 +11,6 @@ namespace M3D
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 			StageOGL() {}
-
 			~StageOGL() {}
 
 			void generateMap(GLuint* p_texture, GLenum p_min, GLenum p_mag, GLenum p_wrapS, GLenum p_wrapT) {
@@ -71,4 +70,5 @@ namespace M3D
 		};
 	}
 }
+
 #endif

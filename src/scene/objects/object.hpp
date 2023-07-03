@@ -8,30 +8,30 @@
 
 namespace M3D
 {
-namespace Scene
-{
-    class Object
+    namespace Scene
     {
-    public:
-        // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-        Object() {}
-        ~Object() {}
+        class Object
+        {
+        public:
+            // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
+            Object() {}
+            ~Object() {}
 
-        // ----------------------------------------------------- GETTERS -------------------------------------------------------
-        inline const unsigned int getNumberInstances() const { return (unsigned int)_instances.size(); }
-        SceneGraphNode* getInstance(unsigned int p_instanceId) {
-            if (p_instanceId < _instances.size()) return _instances[p_instanceId];
-            return nullptr;
-        }
+            // ------------------------------------------------------ GETTERS ------------------------------------------------------
+            inline const unsigned int getNumberInstances() const { return (unsigned int)_instances.size(); }
+            SceneGraphNode* getInstance(unsigned int p_instanceId) {
+                if (p_instanceId < _instances.size()) return _instances[p_instanceId];
+                return nullptr;
+            }
 
-        // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
-        void addInstance(SceneGraphNode* p_node) { _instances.push_back(p_node); }
+            // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
+            void addInstance(SceneGraphNode* p_node) { _instances.push_back(p_node); }
 
-    protected:
-        // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-        std::vector<SceneGraphNode*> _instances;
-    };
-}
+        protected:
+            // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+            std::vector<SceneGraphNode*> _instances;
+        };
+    }
 }
 
 #endif

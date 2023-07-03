@@ -8,8 +8,6 @@
 #include "utils/define.hpp"
 #include "utils/texture.hpp"
 
-#include <iostream>
-
 namespace M3D
 {
 	namespace Renderer
@@ -17,10 +15,9 @@ namespace M3D
 		class TextureOGL
 		{
 		public:
+			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 			TextureOGL(Texture* p_texture) {
 				glCreateTextures(GL_TEXTURE_2D, 1, &_id);
-
-				std::cout << p_texture->_image->getNbChannels() << ", " << p_texture->_image->getFormat() << std::endl;
 
 				GLenum format, internalFormat;
 				switch (p_texture->_image->getNbChannels()) {
@@ -65,13 +62,14 @@ namespace M3D
 
 			~TextureOGL() { glDeleteTextures(1, &_id); }
 
-			// ------------------------------------------------------ GETTERS --------------------------------------------------------
+			// ------------------------------------------------------ GETTERS ------------------------------------------------------
 			GLuint getId() { return _id; }
 
 		private:
-			// ----------------------------------------------------- ATTRIBUTS -------------------------------------------------------
+			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 			GLuint _id = 0;
 		};
 	}
 }
+
 #endif

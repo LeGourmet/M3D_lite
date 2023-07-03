@@ -547,8 +547,10 @@
     <ClInclude Include="src\renderer\OpenGL\stages\stage_post_processing_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\stages\stage_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\texture_ogl.hpp" />
+    <ClInclude Include="src\scene\acceleration_structures\AABB.hpp" />
+    <ClInclude Include="src\scene\acceleration_structures\BVH.hpp" />
     <ClInclude Include="src\scene\objects\meshes\material.hpp" />
-    <ClInclude Include="src\scene\objects\meshes\primitive.hpp" />
+    <ClInclude Include="src\scene\objects\meshes\sub_mesh.hpp" />
     <ClInclude Include="src\scene\objects\meshes\vertex.hpp" />
     <ClInclude Include="src\scene\objects\object.hpp" />
     <ClInclude Include="src\scene\scene_graph\scene_graph_node.hpp" />

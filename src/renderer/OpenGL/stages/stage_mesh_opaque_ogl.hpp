@@ -58,14 +58,14 @@ namespace M3D
 				glDeleteFramebuffers(1, &_fbo);
 			}
 
-			// ----------------------------------------------------- GETTERS -------------------------------------------------------
+			// ------------------------------------------------------ GETTERS ------------------------------------------------------
 			GLuint getPositionMap() { return _positionMap; }
 			GLuint getNormalMetalnessMap() { return _normalMetalnessMap; }
 			GLuint getAlbedoRoughnessMap() { return _albedoRoughnessMap; }
 			GLuint getEmissiveMap() { return _emissiveMap; }
 			GLuint getFBO() { return _fbo; }
 
-			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void resize(int p_width, int p_height) {
 				resizeColorMap(p_width, p_height, _positionMap);
 				resizeColorMap(p_width, p_height, _normalMetalnessMap);
@@ -86,37 +86,37 @@ namespace M3D
 				glUseProgram(_geometryPass.getProgram());
 
 				for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes) {
-					for (unsigned int i = 0; i < mesh.first->getPrimitives().size();i++) {
-						Scene::Primitive* primitive = mesh.first->getPrimitives()[i];
-						if (!primitive->getMaterial().isOpaque()) continue;
+					for (unsigned int i=0; i<mesh.first->getSubMeshes().size() ;i++) {
+						Scene::SubMesh subMesh = mesh.first->getSubMeshes()[i];
+						if (!subMesh.getMaterial().isOpaque()) continue;
 
 						glDisable(GL_CULL_FACE);
-						if(primitive->getMaterial().isDoubleSide()){ glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
+						if(subMesh.getMaterial().isDoubleSide()){ glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
 
-						glProgramUniform4fv(_geometryPass.getProgram(), _geometryPass.getUniform("uAlbedo"), 1, glm::value_ptr(primitive->getMaterial().getBaseColor()));
-						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasAlbedoMap"), primitive->getMaterial().getBaseColorMap() != nullptr);
-						if (primitive->getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures.at(primitive->getMaterial().getBaseColorMap())->getId());
+						glProgramUniform4fv(_geometryPass.getProgram(), _geometryPass.getUniform("uAlbedo"), 1, glm::value_ptr(subMesh.getMaterial().getBaseColor()));
+						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasAlbedoMap"), subMesh.getMaterial().getBaseColorMap() != nullptr);
+						if (subMesh.getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures.at(subMesh.getMaterial().getBaseColorMap())->getId());
 
-						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uMetalness"), primitive->getMaterial().getMetalness());
-						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uRoughness"), primitive->getMaterial().getRoughness());
-						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasMetalnessRoughnessMap"), primitive->getMaterial().getMetalnessRoughnessMap() != nullptr);
-						if (primitive->getMaterial().getMetalnessRoughnessMap() != nullptr) glBindTextureUnit(2, p_textures.at(primitive->getMaterial().getMetalnessRoughnessMap())->getId());
+						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uMetalness"), subMesh.getMaterial().getMetalness());
+						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uRoughness"), subMesh.getMaterial().getRoughness());
+						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasMetalnessRoughnessMap"), subMesh.getMaterial().getMetalnessRoughnessMap() != nullptr);
+						if (subMesh.getMaterial().getMetalnessRoughnessMap() != nullptr) glBindTextureUnit(2, p_textures.at(subMesh.getMaterial().getMetalnessRoughnessMap())->getId());
 
-						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasNormalMap"), primitive->getMaterial().getNormalMap() != nullptr);
-						if (primitive->getMaterial().getNormalMap() != nullptr) glBindTextureUnit(3, p_textures.at(primitive->getMaterial().getNormalMap())->getId());
+						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasNormalMap"), subMesh.getMaterial().getNormalMap() != nullptr);
+						if (subMesh.getMaterial().getNormalMap() != nullptr) glBindTextureUnit(3, p_textures.at(subMesh.getMaterial().getNormalMap())->getId());
 						
-						glProgramUniform3fv(_geometryPass.getProgram(), _geometryPass.getUniform("uEmissiveColor"), 1, glm::value_ptr(primitive->getMaterial().getEmissiveColor()));
-						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uEmissiveStrength"), primitive->getMaterial().getEmissiveStrength());
-						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasEmissiveMap"), primitive->getMaterial().getEmissiveMap() != nullptr);
-						if (primitive->getMaterial().getEmissiveMap() != nullptr) glBindTextureUnit(4, p_textures.at(primitive->getMaterial().getEmissiveMap())->getId());
+						glProgramUniform3fv(_geometryPass.getProgram(), _geometryPass.getUniform("uEmissiveColor"), 1, glm::value_ptr(subMesh.getMaterial().getEmissiveColor()));
+						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uEmissiveStrength"), subMesh.getMaterial().getEmissiveStrength());
+						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasEmissiveMap"), subMesh.getMaterial().getEmissiveMap() != nullptr);
+						if (subMesh.getMaterial().getEmissiveMap() != nullptr) glBindTextureUnit(4, p_textures.at(subMesh.getMaterial().getEmissiveMap())->getId());
 
-						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasOcclusionMap"), primitive->getMaterial().getOcclusionMap() != nullptr);
-						if (primitive->getMaterial().getOcclusionMap() != nullptr) glBindTextureUnit(5, p_textures.at(primitive->getMaterial().getOcclusionMap())->getId());
+						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasOcclusionMap"), subMesh.getMaterial().getOcclusionMap() != nullptr);
+						if (subMesh.getMaterial().getOcclusionMap() != nullptr) glBindTextureUnit(5, p_textures.at(subMesh.getMaterial().getOcclusionMap())->getId());
 
-						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uAlphaCutOff"), primitive->getMaterial().getAlphaCutOff());
+						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uAlphaCutOff"), subMesh.getMaterial().getAlphaCutOff());
 
 						mesh.second->bind(i);
-						glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)primitive->getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
+						glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)subMesh.getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
 						glBindVertexArray(0);
 					}
 				}
@@ -140,4 +140,5 @@ namespace M3D
 		};
 	}
 }
+
 #endif

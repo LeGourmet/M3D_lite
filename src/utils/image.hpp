@@ -5,14 +5,15 @@
 
 namespace M3D
 {
-	class Image {
+	class Image 
+	{
 	public:
 		// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 		Image(int p_width, int p_height, int p_nbChannels, int p_bitDepth, int p_format, std::vector<unsigned char> p_data) :
 			_width(p_width), _height(p_height), _nbChannels(p_nbChannels), _bitDepth(p_bitDepth), _format(p_format), _data(p_data) {}
 		~Image(){}
 
-		// ----------------------------------------------------- GETTERS -------------------------------------------------------
+		// ------------------------------------------------------ GETTERS ------------------------------------------------------
 		inline int getHeight() const { return _width; }
 		inline int getWidth() const { return _height; }
 		inline int getNbChannels() const { return _nbChannels; }

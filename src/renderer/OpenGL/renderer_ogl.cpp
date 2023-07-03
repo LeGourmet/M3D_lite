@@ -4,12 +4,6 @@
 
 #include "application.hpp"
 
-#include "renderer/OpenGL/mesh_ogl.hpp"
-#include "renderer/OpenGL/texture_ogl.hpp"
-#include "renderer/OpenGL/stages/stage_mesh_opaque_ogl.hpp"
-#include "renderer/OpenGL/stages/stage_lighting_ogl.hpp"
-#include "renderer/OpenGL/stages/stage_post_processing_ogl.hpp"
-
 #include <iostream>
 
 namespace M3D
@@ -20,8 +14,8 @@ namespace Renderer
 		if (gl3wInit()) throw std::exception("gl3wInit() failed");
 		if (!gl3wIsSupported(4, 5)) throw std::exception("OpenGL version not supported");
 
-		_stageMeshOpaqueOGL = new StageMeshOpaqueOGL();
-		_stageLightingOGL = new StageLightingOGL();
+		_stageMeshOpaqueOGL		= new StageMeshOpaqueOGL();
+		_stageLightingOGL		= new StageLightingOGL();
 		_stagePostProcessingOGL = new StagePostProcessingOGL();
 
 		resize(Application::getInstance().getWidth(), Application::getInstance().getHeight());
@@ -68,10 +62,10 @@ namespace Renderer
 
 	void RendererOGL::createMesh(Scene::Mesh* p_mesh) { _meshes.insert(std::pair<Scene::Mesh*, MeshOGL*>(p_mesh, new MeshOGL(p_mesh))); }
 	void RendererOGL::createTexture(Texture* p_texture) { _textures.insert(std::pair<Texture*, TextureOGL*>(p_texture, new TextureOGL(p_texture))); }
-	
+
 	void RendererOGL::addInstanceMesh(Scene::Mesh* p_mesh, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) { _meshes.at(p_mesh)->addInstance(p_M_matrix, p_V_matrix, p_P_matrix); }
 	void RendererOGL::updateInstanceMesh(Scene::Mesh* p_mesh, unsigned int p_id, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) { _meshes.at(p_mesh)->updateTransformMatrix(p_id, p_M_matrix, p_V_matrix, p_P_matrix); }
-	
+
 	void RendererOGL::deleteMesh(Scene::Mesh* p_mesh) { delete _meshes.at(p_mesh); _meshes.erase(_meshes.find(p_mesh)); }
 	void RendererOGL::deleteTexture(Texture* p_texture) { delete _textures.at(p_texture); _textures.erase(_textures.find(p_texture)); }
 }

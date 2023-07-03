@@ -7,39 +7,40 @@
 
 namespace M3D
 {
-namespace Controller
-{
-    class KeyboardController
+    namespace Controller
     {
-    public:
-        // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-        KeyboardController() {}
-        ~KeyboardController() {}
+        class KeyboardController
+        {
+        public:
+            // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
+            KeyboardController() {}
+            ~KeyboardController() {}
 
-        // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
-        void receiveEvent(const SDL_Event &p_event) {
-            switch (p_event.type) {
-                case SDL_EVENT_KEY_DOWN:
-                    _pressedButtons.insert(p_event.key.keysym.scancode);
-                    break;
+            // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
+            void receiveEvent(const SDL_Event &p_event) {
+                switch (p_event.type) {
+                    case SDL_EVENT_KEY_DOWN:
+                        _pressedButtons.insert(p_event.key.keysym.scancode);
+                        break;
 
-                case SDL_EVENT_KEY_UP:
-                    _pressedButtons.erase(p_event.key.keysym.scancode);
-                    break;
+                    case SDL_EVENT_KEY_UP:
+                        _pressedButtons.erase(p_event.key.keysym.scancode);
+                        break;
 
-                default: break;
+                    default: break;
+                }
             }
-        }
 
-        void clearEvents() { _pressedButtons.clear(); }
+            void clearEvents() { _pressedButtons.clear(); }
 
-    protected:
-        // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-        std::set<SDL_Scancode> _pressedButtons = std::set<SDL_Scancode>();
+        protected:
+            // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+            std::set<SDL_Scancode> _pressedButtons = std::set<SDL_Scancode>();
 
-        // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
-        bool _isKeyPressed(const SDL_Scancode &p_key) { return _pressedButtons.find(p_key) != _pressedButtons.end(); }
-    };
+            // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
+            bool _isKeyPressed(const SDL_Scancode &p_key) { return _pressedButtons.find(p_key) != _pressedButtons.end(); }
+        };
+    }
 }
-}
+
 #endif

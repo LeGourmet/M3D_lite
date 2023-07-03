@@ -17,6 +17,8 @@ namespace M3D
 		class ProgramOGL {
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
+			ProgramOGL() = default;
+
 			ProgramOGL(std::string p_pathCompute) {
 				_program = glCreateProgram();
 				
@@ -59,7 +61,7 @@ namespace M3D
 				glDeleteProgram(_program); 
 			}
 
-			// ----------------------------------------------------- GETTERS -------------------------------------------------------
+			// ------------------------------------------------------ GETTERS ------------------------------------------------------
 			inline GLuint getProgram() { return _program; }
 			inline GLuint getUniform(std::string p_uniform) { return _uniformsLoc.at(p_uniform); }
 
@@ -91,4 +93,5 @@ namespace M3D
 		};
 	}
 }
+
 #endif

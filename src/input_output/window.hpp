@@ -11,11 +11,11 @@ namespace M3D
         class Window
         {
         public:
-            // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ---------------------------------------------
+            // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
             Window(SDL_WindowFlags p_rendererTypeFlag);
             ~Window();
 
-            // ----------------------------------------------------- GETTERS -------------------------------------------------------
+            // ------------------------------------------------------ GETTERS ------------------------------------------------------
             inline SDL_Window& get() const { return *_window; }
             inline unsigned long long getTime() { return _time; }
             inline bool getVSync() { return _vSync; }
@@ -24,11 +24,11 @@ namespace M3D
             inline SDL_GLContext getGLContext() { return _glContext; }// todo virer !
 
 
-            // ----------------------------------------------------- SETTERS -------------------------------------------------------
+            // ------------------------------------------------------ SETTERS ------------------------------------------------------
             void setVSync(bool p_vSync);
             void setTargetFPS(unsigned int p_targetFPS);
 
-            // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+            // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
             void captureEvents();
             
             void chronoUpdate();
@@ -41,7 +41,7 @@ namespace M3D
             // add swap renderer type
 
         private:
-            // ----------------------------------------------------- ATTRIBUTS ----------------------------------------------------
+            // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
             SDL_Window* _window = nullptr;
             SDL_WindowFlags _rendererType;
             SDL_GLContext _glContext = nullptr; // todo virer pas bien !!
@@ -52,7 +52,7 @@ namespace M3D
             bool _vSync = true;
             unsigned int _targetFPS = 120;
 
-            // ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+            // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
             bool _captureEvent(const SDL_Event& p_event);
             void _switchFullScreenToMaximized();
             void _takeScreenShot();
@@ -60,4 +60,5 @@ namespace M3D
         };
     }
 }
+
 #endif

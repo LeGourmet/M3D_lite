@@ -12,7 +12,7 @@ namespace M3D
 
 	class Application final
 	{
-		public:
+	public:
 		static Application& getInstance()
 		{
 			static Application instance;
@@ -26,7 +26,7 @@ namespace M3D
 		Application(const Application&) = delete;
 		Application& operator=(const Application&) = delete;
 
-		// ----------------------------------------------------- GETTERS -------------------------------------------------------
+		// ------------------------------------------------------ GETTERS ------------------------------------------------------
 		inline std::string getTitle() const { return _title; }
 		inline int getWidth() const { return _width; }
 		inline int getHeight() const { return _height; }
@@ -37,14 +37,14 @@ namespace M3D
 		inline Scene::SceneManager& getSceneManager() const { return *_sceneManager; }
 		inline Renderer::Renderer& getRenderer() const { return *_renderer; }
 
-		// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+		// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 		void start();
 		void stop();
 		void pause();
 		void resume();
 		void resize(int p_width, int p_height);
 
-		private:
+	private:
 		// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 		std::string _title;
 		int		    _width;
@@ -56,8 +56,9 @@ namespace M3D
 		Scene::SceneManager*					_sceneManager{};
 		Renderer::Renderer*						_renderer{};
 
-		// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+		// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 		void _update() const;
 	};
 }
+
 #endif

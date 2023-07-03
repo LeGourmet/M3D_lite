@@ -10,50 +10,50 @@ namespace M3D
 {
 	enum LIGHT_TYPE { POINT, SPOT, DIRECTIONAL };
 
-namespace Scene
-{
-	class Light : public Object
+	namespace Scene
 	{
-	public:
-		// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-		// blender exporter just divide multiply it's unitless/w light by 683 to have some lm (we need candela in the spec normaly)
-		Light(LIGHT_TYPE p_type, const Vec3f& p_color, const float p_intensity, const float p_innerConeAngle, const float p_outerConeAngle ) 
-			: _type(p_type), _color(p_color), _intensity(p_intensity/683) {
-			_cosInnerConeAngle = glm::cos(p_innerConeAngle);
-			_cosOuterConeAngle = glm::cos(p_outerConeAngle);
-			_range = (float)glm::sqrt(256.*_intensity*glm::max<float>(_color.x,glm::max<float>(_color.y,_color.z)));
-		}
+		class Light : public Object
+		{
+		public:
+			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
+			// blender exporter just divide multiply it's unitless/w light by 683 to have some lm (we need candela in the spec normaly)
+			Light(LIGHT_TYPE p_type, const Vec3f& p_color, const float p_intensity, const float p_innerConeAngle, const float p_outerConeAngle ) 
+				: _type(p_type), _color(p_color), _intensity(p_intensity/683.f) {
+				_cosInnerConeAngle = glm::cos(p_innerConeAngle);
+				_cosOuterConeAngle = glm::cos(p_outerConeAngle);
+				_range = (float)glm::sqrt(256.f*_intensity*glm::max<float>(_color.x,glm::max<float>(_color.y,_color.z)));
+			}
 
-		Light(LIGHT_TYPE p_type, const Vec3f& p_color, const float p_intensity) 
-			: _type(p_type), _color(p_color), _intensity(p_intensity/683) {
-			_range = (float)glm::sqrt(256.*_intensity*glm::max<float>(_color.x,glm::max<float>(_color.y,_color.z)));
-		}
+			Light(LIGHT_TYPE p_type, const Vec3f& p_color, const float p_intensity) 
+				: _type(p_type), _color(p_color), _intensity(p_intensity/683.f) {
+				_range = (float)glm::sqrt(256.f*_intensity*glm::max<float>(_color.x,glm::max<float>(_color.y,_color.z)));
+			}
 
-		~Light(){}
+			~Light(){}
 
-		// ----------------------------------------------------- GETTERS -------------------------------------------------------
-		inline LIGHT_TYPE getType() const { return _type; }
+			// ------------------------------------------------------ GETTERS ------------------------------------------------------
+			inline LIGHT_TYPE	getType()		const { return _type; }
 
-		inline const Vec3f& getColor() const { return _color; }
-		inline float getIntensity() const { return _intensity; }
-		inline const Vec3f getEmissivity() const { return _color*_intensity; }
-		inline float getRange() const { return _range; }
+			inline const Vec3f& getColor()		const { return _color; }
+			inline		 float	getIntensity()	const { return _intensity; }
+			inline const Vec3f	getEmissivity() const { return _color*_intensity; }
+			inline		 float	getRange()		const { return _range; }
 
-		inline float getCosInnerConeAngle() const { return _cosInnerConeAngle; }
-		inline float getCosOuterConeAngle() const { return _cosOuterConeAngle; }
+			inline float getCosInnerConeAngle() const { return _cosInnerConeAngle; }
+			inline float getCosOuterConeAngle() const { return _cosOuterConeAngle; }
 
-	protected:
-		// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-		LIGHT_TYPE _type;
+		private:
+			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+			LIGHT_TYPE _type;
 
-		Vec3f _color = VEC3F_ONE;
-		float _intensity = 0.;
-		float _range = 0.;
+			Vec3f _color = VEC3F_ONE;
+			float _intensity = 0.f;
+			float _range = 0.f;
 
-		float _cosInnerConeAngle = -1.;
-		float _cosOuterConeAngle = -1.;
-	};
-}
+			float _cosInnerConeAngle = -1.f;
+			float _cosOuterConeAngle = -1.f;
+		};
+	}
 }
 
 #endif

@@ -3,19 +3,17 @@
 
 #include "renderer/renderer.hpp"
 
+#include "renderer/OpenGL/mesh_ogl.hpp"
+#include "renderer/OpenGL/texture_ogl.hpp"
+
+#include "renderer/OpenGL/stages/stage_mesh_opaque_ogl.hpp"
+#include "renderer/OpenGL/stages/stage_lighting_ogl.hpp"
+#include "renderer/OpenGL/stages/stage_post_processing_ogl.hpp"
+
 #include <map>
 
 namespace M3D
 {
-	namespace Renderer
-	{
-		class MeshOGL;
-		class TextureOGL;
-		class StageMeshOpaqueOGL;
-		class StageLightingOGL;
-		class StagePostProcessingOGL;
-	}
-
 	namespace Renderer
 	{
 		class RendererOGL : public Renderer
@@ -25,7 +23,7 @@ namespace M3D
 			RendererOGL(SDL_Window* p_window);
 			~RendererOGL();
 
-			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void resize(const int p_width, const int p_height)  override;
 			void drawFrame() override;
 			
@@ -49,4 +47,5 @@ namespace M3D
 		};
 	}
 }
+
 #endif

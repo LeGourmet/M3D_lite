@@ -23,7 +23,7 @@ namespace M3D
             }
             ~SceneGraphNode() {}
 
-            // ----------------------------------------------------- GETTERS -------------------------------------------------------
+            // ------------------------------------------------------ GETTERS ------------------------------------------------------
             inline const SceneGraphNode* getParent() const { return _parent; }
             inline const std::vector<SceneGraphNode*> getChilds() const { return _childs; }
 
@@ -41,8 +41,8 @@ namespace M3D
             inline const Mat4f& getLocalTransformation() const { return _localTransformation; }
             
             inline const Mat4f& getTransformation() const { return _transformation; }
-
-            // ----------------------------------------------------- SETTERS -------------------------------------------------------
+            
+            // ------------------------------------------------------ SETTERS ------------------------------------------------------
             void setRotation(const Quatf& p_rotation) {
                 _rotation = p_rotation;             // CHECK normalize
                 update();
@@ -58,7 +58,7 @@ namespace M3D
                 update();
             }
 
-            // ---------------------------------------------------- FONCTIONS ------------------------------------------------------        
+            // ----------------------------------------------------- FONCTIONS -----------------------------------------------------      
             void addChild(SceneGraphNode* child){
                 _childs.push_back(child);
             }

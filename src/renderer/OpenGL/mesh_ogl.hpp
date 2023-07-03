@@ -4,7 +4,7 @@
 #include "GL/gl3w.h"
 
 #include "scene/objects/meshes/mesh.hpp"
-#include "scene/objects/meshes/primitive.hpp"
+#include "scene/objects/meshes/sub_mesh.hpp"
 #include "scene/objects/meshes/vertex.hpp"
 
 namespace M3D
@@ -18,48 +18,48 @@ namespace M3D
 			MeshOGL(Scene::Mesh* p_mesh) {
 				glCreateBuffers(1, &_ssbo_transform_matrix);
 
-				_vaoPrimitives.resize(p_mesh->getPrimitives().size());
-				_vboPrimitives.resize(p_mesh->getPrimitives().size());
-				_eboPrimitives.resize(p_mesh->getPrimitives().size());
+				_vaoSubMeshes.resize(p_mesh->getSubMeshes().size());
+				_vboSubMeshes.resize(p_mesh->getSubMeshes().size());
+				_eboSubMeshes.resize(p_mesh->getSubMeshes().size());
 
-				glCreateVertexArrays((GLsizei)p_mesh->getPrimitives().size(), _vaoPrimitives.data());
-				glCreateBuffers((GLsizei)p_mesh->getPrimitives().size(), _vboPrimitives.data());
-				glCreateBuffers((GLsizei)p_mesh->getPrimitives().size(), _eboPrimitives.data());
+				glCreateVertexArrays((GLsizei)p_mesh->getSubMeshes().size(), _vaoSubMeshes.data());
+				glCreateBuffers((GLsizei)p_mesh->getSubMeshes().size(), _vboSubMeshes.data());
+				glCreateBuffers((GLsizei)p_mesh->getSubMeshes().size(), _eboSubMeshes.data());
 
-				for (int i=0; i<p_mesh->getPrimitives().size() ;i++) {
-					glVertexArrayVertexBuffer(_vaoPrimitives[i], 0, _vboPrimitives[i], 0, sizeof(Scene::Vertex));
-					_bindValue(_vaoPrimitives[i], 0, 3, offsetof(Scene::Vertex, _position), 0);
-					_bindValue(_vaoPrimitives[i], 1, 3, offsetof(Scene::Vertex, _normal), 0);
-					_bindValue(_vaoPrimitives[i], 2, 2, offsetof(Scene::Vertex, _uv), 0);
-					_bindValue(_vaoPrimitives[i], 3, 3, offsetof(Scene::Vertex, _tangent), 0);
-					_bindValue(_vaoPrimitives[i], 4, 3, offsetof(Scene::Vertex, _bitangent), 0);
+				for (int i=0; i<p_mesh->getSubMeshes().size() ;i++) {
+					glVertexArrayVertexBuffer(_vaoSubMeshes[i], 0, _vboSubMeshes[i], 0, sizeof(Scene::Vertex));
+					_bindValue(_vaoSubMeshes[i], 0, 3, offsetof(Scene::Vertex, _position), 0);
+					_bindValue(_vaoSubMeshes[i], 1, 3, offsetof(Scene::Vertex, _normal), 0);
+					_bindValue(_vaoSubMeshes[i], 2, 2, offsetof(Scene::Vertex, _uv), 0);
+					_bindValue(_vaoSubMeshes[i], 3, 3, offsetof(Scene::Vertex, _tangent), 0);
+					_bindValue(_vaoSubMeshes[i], 4, 3, offsetof(Scene::Vertex, _bitangent), 0);
 
-					glNamedBufferData(_vboPrimitives[i], p_mesh->getPrimitives()[i]->getVertices().size() * sizeof(Scene::Vertex), p_mesh->getPrimitives()[i]->getVertices().data(), GL_STATIC_DRAW);
-					glNamedBufferData(_eboPrimitives[i], p_mesh->getPrimitives()[i]->getIndices().size() * sizeof(unsigned int), p_mesh->getPrimitives()[i]->getIndices().data(), GL_STATIC_DRAW);
+					glNamedBufferData(_vboSubMeshes[i], p_mesh->getSubMeshes()[i].getVertices().size() * sizeof(Scene::Vertex), p_mesh->getSubMeshes()[i].getVertices().data(), GL_STATIC_DRAW);
+					glNamedBufferData(_eboSubMeshes[i], p_mesh->getSubMeshes()[i].getIndices().size() * sizeof(unsigned int), p_mesh->getSubMeshes()[i].getIndices().data(), GL_STATIC_DRAW);
 					
-					glVertexArrayElementBuffer(_vaoPrimitives[i], _eboPrimitives[i]);
+					glVertexArrayElementBuffer(_vaoSubMeshes[i], _eboSubMeshes[i]);
 				}
 			}
 
 			~MeshOGL() {
-				for (int i=0; i<_vaoPrimitives.size() ;i++) {
-					glDisableVertexArrayAttrib(_vaoPrimitives[i], 0);
-					glDisableVertexArrayAttrib(_vaoPrimitives[i], 1);
-					glDisableVertexArrayAttrib(_vaoPrimitives[i], 2);
-					glDisableVertexArrayAttrib(_vaoPrimitives[i], 3);
-					glDisableVertexArrayAttrib(_vaoPrimitives[i], 4);
+				for (int i=0; i<_vaoSubMeshes.size() ;i++) {
+					glDisableVertexArrayAttrib(_vaoSubMeshes[i], 0);
+					glDisableVertexArrayAttrib(_vaoSubMeshes[i], 1);
+					glDisableVertexArrayAttrib(_vaoSubMeshes[i], 2);
+					glDisableVertexArrayAttrib(_vaoSubMeshes[i], 3);
+					glDisableVertexArrayAttrib(_vaoSubMeshes[i], 4);
 				}
-				glDeleteVertexArrays((GLsizei)_vaoPrimitives.size(), _vaoPrimitives.data());
+				glDeleteVertexArrays((GLsizei)_vaoSubMeshes.size(), _vaoSubMeshes.data());
 
-				glDeleteBuffers((GLsizei)_vboPrimitives.size(), _vboPrimitives.data());
-				glDeleteBuffers((GLsizei)_eboPrimitives.size(), _eboPrimitives.data());
+				glDeleteBuffers((GLsizei)_vboSubMeshes.size(), _vboSubMeshes.data());
+				glDeleteBuffers((GLsizei)_eboSubMeshes.size(), _eboSubMeshes.data());
 				glDeleteBuffers(1, &_ssbo_transform_matrix);
 			}
 
-			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void bind(unsigned int p_i) {
 				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _ssbo_transform_matrix);
-				glBindVertexArray(_vaoPrimitives[p_i]);
+				glBindVertexArray(_vaoSubMeshes[p_i]);
 			}
 
 			void addInstance(Mat4f p_M_matrix, Mat4f p_V_matrix, Mat4f p_P_matrix) {
@@ -86,11 +86,11 @@ namespace M3D
 			GLuint			   _ssbo_transform_matrix;
 			std::vector<Mat4f> _instance_transformation;
 			
-			std::vector<GLuint> _vaoPrimitives;
-			std::vector<GLuint> _vboPrimitives;
-			std::vector<GLuint> _eboPrimitives;
+			std::vector<GLuint> _vaoSubMeshes;
+			std::vector<GLuint> _vboSubMeshes;
+			std::vector<GLuint> _eboSubMeshes;
 
-			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void _bindValue(GLuint p_vao, GLuint p_id, GLint p_size, GLuint p_offset, unsigned int p_updateFrequency) {
 				glEnableVertexArrayAttrib(p_vao, p_id);
 				glVertexArrayAttribFormat(p_vao, p_id, p_size, GL_FLOAT, GL_FALSE, p_offset);
@@ -100,4 +100,5 @@ namespace M3D
 		};
 	}
 }
+
 #endif

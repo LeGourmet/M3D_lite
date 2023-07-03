@@ -38,10 +38,10 @@ namespace M3D
 				glDeleteVertexArrays(1, &_emptyVAO);
 			}
 
-			// ----------------------------------------------------- GETTERS -------------------------------------------------------
+			// ------------------------------------------------------ GETTERS ------------------------------------------------------
 			GLuint getShadingMap() { return _shadingMap; }
 
-			// ---------------------------------------------------- FONCTIONS ------------------------------------------------------
+			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void resize(int p_width, int p_height) { }
 
 			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_HDRMap) {
@@ -79,4 +79,5 @@ namespace M3D
 		};
 	}
 }
+
 #endif

@@ -30,7 +30,6 @@ namespace M3D
 				_geometryPass.addUniform("uHasMetalnessRoughnessMap");
 				_geometryPass.addUniform("uHasNormalMap");
 				_geometryPass.addUniform("uHasEmissiveMap");
-				_geometryPass.addUniform("uHasOcclusionMap");
 
 				glCreateFramebuffers(1, &_fbo);
 				generateMap(&_positionMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
@@ -59,11 +58,11 @@ namespace M3D
 			}
 
 			// ------------------------------------------------------ GETTERS ------------------------------------------------------
-			GLuint getPositionMap() { return _positionMap; }
+			GLuint getPositionMap()		   { return _positionMap; }
 			GLuint getNormalMetalnessMap() { return _normalMetalnessMap; }
 			GLuint getAlbedoRoughnessMap() { return _albedoRoughnessMap; }
-			GLuint getEmissiveMap() { return _emissiveMap; }
-			GLuint getFBO() { return _fbo; }
+			GLuint getEmissiveMap()		   { return _emissiveMap; }
+			GLuint getFBO()				   { return _fbo; }
 
 			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void resize(int p_width, int p_height) {
@@ -90,8 +89,8 @@ namespace M3D
 						Scene::SubMesh subMesh = mesh.first->getSubMeshes()[i];
 						if (!subMesh.getMaterial().isOpaque()) continue;
 
-						glDisable(GL_CULL_FACE);
 						if(subMesh.getMaterial().isDoubleSide()){ glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
+						else { glDisable(GL_CULL_FACE); }
 
 						glProgramUniform4fv(_geometryPass.getProgram(), _geometryPass.getUniform("uAlbedo"), 1, glm::value_ptr(subMesh.getMaterial().getBaseColor()));
 						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasAlbedoMap"), subMesh.getMaterial().getBaseColorMap() != nullptr);
@@ -109,9 +108,6 @@ namespace M3D
 						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uEmissiveStrength"), subMesh.getMaterial().getEmissiveStrength());
 						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasEmissiveMap"), subMesh.getMaterial().getEmissiveMap() != nullptr);
 						if (subMesh.getMaterial().getEmissiveMap() != nullptr) glBindTextureUnit(4, p_textures.at(subMesh.getMaterial().getEmissiveMap())->getId());
-
-						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasOcclusionMap"), subMesh.getMaterial().getOcclusionMap() != nullptr);
-						if (subMesh.getMaterial().getOcclusionMap() != nullptr) glBindTextureUnit(5, p_textures.at(subMesh.getMaterial().getOcclusionMap())->getId());
 
 						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uAlphaCutOff"), subMesh.getMaterial().getAlphaCutOff());
 

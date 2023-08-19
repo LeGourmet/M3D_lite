@@ -34,7 +34,7 @@ namespace M3D
 				BVH() { }
 				~BVH() { delete _root; }
 
-				//virtual void build(std::vector<TriangleMeshGeometry>* p_triangles) override;
+				//void build(std::vector<TriangleMeshGeometry>* p_triangles) override;
 
 			private:
 				/*void _buildRec(BVHNode* p_node,

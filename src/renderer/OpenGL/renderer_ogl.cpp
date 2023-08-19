@@ -19,7 +19,6 @@ namespace Renderer
 		_stagePostProcessingOGL = new StagePostProcessingOGL();
 
 		resize(Application::getInstance().getWidth(), Application::getInstance().getHeight());
-
 		glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.a);
 	}
 

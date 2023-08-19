@@ -22,4 +22,4 @@ void main()
 	vec3 V = normalize(uCamPos-position.xyz);
 	float cosNV = dot(N,V);
 
-	fragColor = vec4(albedo_roughness.xyz*vec3(0.01)*cosNV,1.);}
+	fragColor = vec4(albedo_roughness.xyz*vec3(0.01),1.);}

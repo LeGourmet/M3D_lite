@@ -48,14 +48,34 @@ namespace M3D
 											  return 2;
 			}
 
-			// inside frutum ?
-			// collide ?
-			// intersect ray ?
+			// attention faux positifs
+			// warning need to be ref
+			bool insideFrustum(Vec3f p_frustumPlaneN[6], Vec3f p_frustumPlaneO[6], Mat4f& p_transformations) {
+				//Vec4f tmp = Vec4f(_min, 1.) * p_transformations;
+				//Vec3f min = min
+
+				for (int i=0; i<6 ;i++)
+					if( _isInsidePlane(p_frustumPlaneN[i], p_frustumPlaneO[i], Vec3f(_min.x,_min.y,_min.z)) &&
+						_isInsidePlane(p_frustumPlaneN[i], p_frustumPlaneO[i], Vec3f(_max.x,_min.y,_min.z)) &&
+						_isInsidePlane(p_frustumPlaneN[i], p_frustumPlaneO[i], Vec3f(_min.x,_max.y,_min.z)) &&
+						_isInsidePlane(p_frustumPlaneN[i], p_frustumPlaneO[i], Vec3f(_max.x,_max.y,_min.z)) &&
+						_isInsidePlane(p_frustumPlaneN[i], p_frustumPlaneO[i], Vec3f(_min.x,_min.y,_max.z)) &&
+						_isInsidePlane(p_frustumPlaneN[i], p_frustumPlaneO[i], Vec3f(_max.x,_min.y,_max.z)) &&
+						_isInsidePlane(p_frustumPlaneN[i], p_frustumPlaneO[i], Vec3f(_min.x,_max.y,_max.z)) &&
+						_isInsidePlane(p_frustumPlaneN[i], p_frustumPlaneO[i], Vec3f(_max.x,_max.y,_max.z)) )
+							return false;
+
+				return true;
+			}
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 			Vec3f _min = Vec3f(FLT_MAX);
 			Vec3f _max = Vec3f(-FLT_MAX);
+
+			bool _isInsidePlane(Vec3f p_planeN, Vec3f p_planeO, Vec3f p_point) {
+				return glm::dot(p_planeN, p_point - p_planeO) < 0.;
+			}
 		};
 	}
 }

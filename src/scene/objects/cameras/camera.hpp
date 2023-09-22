@@ -4,6 +4,7 @@
 #include "glm/detail/_fixes.hpp"
 #include "glm/gtx/quaternion.hpp"
 
+#include "fov_box.hpp"
 #include "utils/define.hpp"
 #include "scene/objects/object.hpp"
 
@@ -23,52 +24,64 @@ namespace M3D
             */
             Camera(float p_arg1, float p_arg2, float p_znear, float p_zfar, CAMERA_TYPE p_type) : _type(p_type) {
                 switch (p_type) {
-                    case CAMERA_TYPE::PERSPECTIVE:  setFovy(p_arg1); setAspectRatio(p_arg2); break;
-                    case CAMERA_TYPE::ORTHOGRAPHIC: setXMag(p_arg1); setYMag(p_arg2);        break;
+                    case CAMERA_TYPE::PERSPECTIVE:  _fovy = p_arg1; _aspectRatio = p_arg2; break;
+                    case CAMERA_TYPE::ORTHOGRAPHIC: _xmag = p_arg1; _ymag = p_arg2;        break;
                 }
 
-                setZNear(p_znear);
-                setZFar(p_zfar);
+                _znear = p_znear;
+                _zfar = p_zfar;
+
+                _updateProjectionMatrix();
             }
             ~Camera() {}
 
             // ------------------------------------------------------ GETTERS ------------------------------------------------------
-            inline CAMERA_TYPE getType() { return _type; }
-            inline float getZNear() { return _znear; }
-            inline float getZFar() { return _zfar; }
-            inline float getFovy() { return _fovy; }
+            inline CAMERA_TYPE getType()  { return _type; }
+            inline float getZNear()       { return _znear; }
+            inline float getZFar()        { return _zfar; }
+            inline float getFovy()        { return _fovy; }
             inline float getAspectRatio() { return _aspectRatio; }
-            inline float getXMag() { return _xmag; }
-            inline float getYMag() { return _ymag; }
-        
+            inline float getXMag()        { return _xmag; }
+            inline float getYMag()        { return _ymag; }
+            inline bool  isDirty()        { return _dirty; }
+
+            inline const Mat4f& getProjectionMatrix() const { return _projectionMatrix; }
+            
             const Mat4f getViewMatrix(const unsigned int p_instanceId) const {
                 if (p_instanceId < _instances.size())
                     return glm::lookAt(_instances[p_instanceId]->getPosition(),
-                                       _instances[p_instanceId]->getPosition() + _instances[p_instanceId]->getFront(), 
-                                       _instances[p_instanceId]->getUp());
-                return MAT4F_ID;
-            }
-
-            const Mat4f getProjectionMatrix() const {
-                switch (_type) {
-                    case CAMERA_TYPE::PERSPECTIVE:  return glm::perspective(_fovy, _aspectRatio, _znear, _zfar);
-                    case CAMERA_TYPE::ORTHOGRAPHIC: return glm::ortho(-0.5f*_xmag, 0.5f*_xmag, -0.5f*_ymag, 0.5f*_ymag, _znear, _zfar);
-                }
+                        _instances[p_instanceId]->getPosition() + _instances[p_instanceId]->getFront(),
+                        _instances[p_instanceId]->getUp());
                 return MAT4F_ID;
             }
 
             // ------------------------------------------------------ SETTERS ------------------------------------------------------
-            inline void setCameraType(CAMERA_TYPE p_type) { _type = p_type; }
+            void setCameraType(CAMERA_TYPE p_type) { _type = p_type; _updateProjectionMatrix();}
 
-            inline void setZNear(const float p_znear) { _znear = glm::max<float>(1e-2f, p_znear); }
-            inline void setZFar(const float p_zfar) { _zfar = glm::max<float>(1e-2f, p_zfar); }
+            void setZNear(const float p_znear) { _znear = glm::max<float>(1e-2f, p_znear); _updateProjectionMatrix(); }
+            void setZFar(const float p_zfar)   { _zfar  = glm::max<float>(1e-2f, p_zfar);  _updateProjectionMatrix(); }
 
-            inline void setFovy(const float p_fovy) { _fovy = p_fovy; }
-            inline void setAspectRatio(const float p_aspectRatio) { _aspectRatio = p_aspectRatio; }
-            inline void setScreenSize(const unsigned int p_width, const unsigned int p_height) { _aspectRatio = float(p_width) / float(p_height); }
+            void setFovy(const float p_fovy)               { _fovy = p_fovy;               if(_type==CAMERA_TYPE::PERSPECTIVE) _updateProjectionMatrix(); }
+            void setAspectRatio(const float p_aspectRatio) { _aspectRatio = p_aspectRatio; if(_type==CAMERA_TYPE::PERSPECTIVE) _updateProjectionMatrix(); }
+            void setScreenSize(const unsigned int p_width, const unsigned int p_height) { setAspectRatio(float(p_width) / float(p_height)); }
         
-            inline void setXMag(const float p_xmag) { _xmag = glm::max<float>(1e-2f, p_xmag); }
-            inline void setYMag(const float p_ymag) { _ymag = glm::max<float>(1e-2f, p_ymag); }
+            void setXMag(const float p_xmag) { _xmag = glm::max<float>(1e-2f, p_xmag); if(_type==CAMERA_TYPE::ORTHOGRAPHIC) _updateProjectionMatrix(); }
+            void setYMag(const float p_ymag) { _ymag = glm::max<float>(1e-2f, p_ymag); if(_type==CAMERA_TYPE::ORTHOGRAPHIC) _updateProjectionMatrix(); }
+
+            void setDirtyFalse() { _dirty = false; }
+
+            // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
+            void addInstance(SceneGraphNode* p_node) override {
+                Object::addInstance(p_node);
+                _instancesFovBox.push_back(FovBox());
+                updateIntanceFovBox((unsigned int)_instances.size() - 1);
+            }
+
+            void updateIntanceFovBox(unsigned int p_instanceId) {
+                if (p_instanceId >= _instances.size()) return;
+                Mat4f invVP = glm::inverse(getProjectionMatrix() * getViewMatrix(p_instanceId));
+                _instancesFovBox[p_instanceId].update(invVP);
+            }
 
         private:
             // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
@@ -84,6 +97,25 @@ namespace M3D
             // --- ORTHOGRAPHIC ---
             float _xmag = 1.f;
             float _ymag = 1.f;
+            
+            Mat4f _projectionMatrix = MAT4F_ID;
+
+            bool  _dirty = false;
+
+            std::vector<FovBox> _instancesFovBox;
+
+            void _updateProjectionMatrix(){
+                switch (_type) {
+                    case CAMERA_TYPE::PERSPECTIVE:  _projectionMatrix = glm::perspective(_fovy, _aspectRatio, _znear, _zfar); break;
+                    case CAMERA_TYPE::ORTHOGRAPHIC: _projectionMatrix = glm::ortho(-0.5f * _xmag, 0.5f * _xmag, -0.5f * _ymag, 0.5f * _ymag, _znear, _zfar); break;
+                    default: _projectionMatrix = MAT4F_ID;
+                }
+
+                for (int i = 0; i < _instances.size();i++)
+                    updateIntanceFovBox(i);
+                
+                _dirty = true;
+            }
         };
     }
 }

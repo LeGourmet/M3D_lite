@@ -6,12 +6,12 @@ layout( binding = 0 ) uniform sampler2D uTexture;
 layout( binding = 1 ) uniform sampler2D uBloom;
 
 uniform float uGamma; 
+uniform float uBloomPower;
 
 in vec2 uv;
 
 void main(){
-	vec3 col = mix(texture2D(uTexture,uv).xyz,texture2D(uBloom,uv).xyz,0.04); 
-	//vec3 col = texture2D(uTexture,uv).xyz; 
+	vec3 col = texture(uTexture,uv).xyz+uBloomPower*texture(uBloom,uv).xyz;
 	//col = col / (col + vec3(1.));																// Reinhard tone mapping
 	//col = vec3(1.) - exp(-col * 5.);															// exposure tone mapping	(exposure = 5 here)
 	col = clamp((col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14), 0., 1.);		// ACES filmic tone mapping

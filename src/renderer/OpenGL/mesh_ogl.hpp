@@ -17,6 +17,7 @@ namespace M3D
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 			MeshOGL(Scene::Mesh* p_mesh) {
 				glCreateBuffers(1, &_ssbo_transform_matrix);
+				glCreateBuffers(1, &_ssbo_culling_instance);
 
 				_vaoSubMeshes.resize(p_mesh->getSubMeshes().size());
 				_vboSubMeshes.resize(p_mesh->getSubMeshes().size());
@@ -54,23 +55,29 @@ namespace M3D
 				glDeleteBuffers((GLsizei)_vboSubMeshes.size(), _vboSubMeshes.data());
 				glDeleteBuffers((GLsizei)_eboSubMeshes.size(), _eboSubMeshes.data());
 				glDeleteBuffers(1, &_ssbo_transform_matrix);
+				glDeleteBuffers(1, &_ssbo_culling_instance);
 			}
 
 			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void bind(unsigned int p_i) {
 				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _ssbo_transform_matrix);
+				//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _ssbo_culling_instance);
 				glBindVertexArray(_vaoSubMeshes[p_i]);
 			}
 
 			void addInstance(Mat4f p_M_matrix, Mat4f p_V_matrix, Mat4f p_P_matrix) {
 				glDeleteBuffers(1, &_ssbo_transform_matrix);
-				
+
 				_instance_transformation.push_back(p_M_matrix);
 				_instance_transformation.push_back(p_P_matrix * p_V_matrix * p_M_matrix);
 				_instance_transformation.push_back(glm::transpose(glm::inverse(p_M_matrix)));
 
 				glCreateBuffers(1, &_ssbo_transform_matrix);
 				glNamedBufferStorage(_ssbo_transform_matrix, _instance_transformation.size() * sizeof(Mat4f), _instance_transformation.data(), GL_DYNAMIC_STORAGE_BIT);
+
+				glDeleteBuffers(1, &_ssbo_culling_instance);
+				glCreateBuffers(1, &_ssbo_culling_instance);
+				glNamedBufferStorage(_ssbo_culling_instance, _instance_transformation.size() * sizeof(Mat4f), nullptr, GL_DYNAMIC_STORAGE_BIT);
 			}
 
 			void updateTransformMatrix(unsigned int p_id, Mat4f p_M_matrix, Mat4f p_V_matrix, Mat4f p_P_matrix) {
@@ -81,9 +88,16 @@ namespace M3D
 				glNamedBufferSubData(_ssbo_transform_matrix, p_id * 3 * sizeof(Mat4f), sizeof(Mat4f) * 3, &_instance_transformation[p_id]);
 			}
 
+			void updateCullingInstance(std::vector<bool> p_instance_culling, int p_instanceNotCullNb) {
+				if (p_instanceNotCullNb == 0) return;
+				//glNamedBufferSubData(_ssbo_culling_instance, 0, sizeof(bool)*p_instanceNotCullNb, &p_instance_culling[0]);
+			}
+
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 			GLuint			   _ssbo_transform_matrix;
+			GLuint			   _ssbo_culling_instance;
+
 			std::vector<Mat4f> _instance_transformation;
 			
 			std::vector<GLuint> _vaoSubMeshes;

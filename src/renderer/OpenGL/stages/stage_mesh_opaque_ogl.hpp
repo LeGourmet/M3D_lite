@@ -40,12 +40,16 @@ namespace M3D
 				attachColorMap(_fbo, _albedoRoughnessMap, 2);
 				generateMap(&_emissiveMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 				attachColorMap(_fbo, _emissiveMap, 3);
+				generateMap(&_depthMap, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
+				attachDepthMap(_fbo, _depthMap);
 				GLenum DrawBuffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
 				glNamedFramebufferDrawBuffers(_fbo, 4, DrawBuffers);
 
-				glCreateRenderbuffers(1, &_rbo);
-				glNamedRenderbufferStorage(_rbo, GL_DEPTH_COMPONENT, 1, 1);
-				glNamedFramebufferRenderbuffer(_fbo, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _rbo);
+				generateMap(&_rootTransparency, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
+				glCreateBuffers(1, &_ssboTransparency);
+				glCreateBuffers(1, &_counterTransparency);
+
+				glNamedBufferStorage(_counterTransparency, sizeof(unsigned int), nullptr, GL_DYNAMIC_STORAGE_BIT);
 			}
 
 			~StageMeshOpaqueOGL() {
@@ -53,8 +57,12 @@ namespace M3D
 				glDeleteTextures(1, &_normalMetalnessMap);
 				glDeleteTextures(1, &_albedoRoughnessMap);
 				glDeleteTextures(1, &_emissiveMap);
-				glDeleteRenderbuffers(1, &_rbo);
+				glDeleteTextures(1, &_depthMap);
 				glDeleteFramebuffers(1, &_fbo);
+
+				glDeleteTextures(1, &_rootTransparency);
+				glDeleteBuffers(1, &_ssboTransparency);
+				glDeleteBuffers(1, &_counterTransparency);
 			}
 
 			// ------------------------------------------------------ GETTERS ------------------------------------------------------
@@ -62,7 +70,7 @@ namespace M3D
 			GLuint getNormalMetalnessMap() { return _normalMetalnessMap; }
 			GLuint getAlbedoRoughnessMap() { return _albedoRoughnessMap; }
 			GLuint getEmissiveMap()		   { return _emissiveMap; }
-			GLuint getFBO()				   { return _fbo; }
+			GLuint getDepthMap()		   { return _depthMap; }
 
 			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void resize(int p_width, int p_height) {
@@ -70,8 +78,18 @@ namespace M3D
 				resizeColorMap(p_width, p_height, _normalMetalnessMap);
 				resizeColorMap(p_width, p_height, _albedoRoughnessMap);
 				resizeColorMap(p_width, p_height, _emissiveMap);
+				resizeDepthMap(p_width, p_height, _depthMap);
+				
+				glBindTexture(GL_TEXTURE_2D, _rootTransparency);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, p_width, p_height, 0, GL_RED, GL_UNSIGNED_INT, 0);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				//glTextureStorage2D(_rootTransparency, 1, GL_R32UI, p_width, p_height);
 
-				resizeRbo(p_width, p_height, _rbo);
+				glDeleteBuffers(1, &_ssboTransparency);
+				glCreateBuffers(1, &_ssboTransparency);
+				glNamedBufferStorage(_ssboTransparency, (1+25*p_width*p_height*6)*sizeof(float), nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+				_clearRoot = std::vector<unsigned int>(p_width * p_height, 0xffffffff);
 			}
 
 			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures) {
@@ -84,6 +102,14 @@ namespace M3D
 
 				glUseProgram(_geometryPass.getProgram());
 
+				// todo clear root
+				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, _ssboTransparency);
+				glBindTextureUnit(6, _rootTransparency); // glBindImageTexture(2,_root,0,GL_FALSE,0,GL_READ_WRITE,GL_R32UI);
+				
+				glNamedBufferSubData(_counterTransparency, 0, 0, &_clearCounter);
+				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 7, _counterTransparency); 
+
+				// TODO frustum culling
 				for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes) {
 					for (unsigned int i=0; i<mesh.first->getSubMeshes().size() ;i++) {
 						Scene::SubMesh subMesh = mesh.first->getSubMeshes()[i];
@@ -125,14 +151,21 @@ namespace M3D
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 			GLuint _fbo					= GL_INVALID_INDEX;
-			GLuint _rbo					= GL_INVALID_INDEX;
+
+			unsigned int _clearCounter	= 0;
+			std::vector<unsigned int> _clearRoot;
+
+			GLuint _rootTransparency	= GL_INVALID_INDEX;
+			GLuint _ssboTransparency	= GL_INVALID_INDEX;
+			GLuint _counterTransparency = GL_INVALID_INDEX;
 
 			GLuint _positionMap			= GL_INVALID_INDEX;
 			GLuint _normalMetalnessMap	= GL_INVALID_INDEX;
 			GLuint _albedoRoughnessMap	= GL_INVALID_INDEX;
 			GLuint _emissiveMap			= GL_INVALID_INDEX;
+			GLuint _depthMap			= GL_INVALID_INDEX;
 
-			ProgramOGL _geometryPass = ProgramOGL("src/renderer/OpenGL/shaders/geometryPass.vert", "", "src/renderer/OpenGL/shaders/geometryPass.frag");
+			ProgramOGL _geometryPass = ProgramOGL("src/renderer/OpenGL/shaders/geometry/opaquePass.vert", "", "src/renderer/OpenGL/shaders/geometry/opaquePass.frag");
 		};
 	}
 }

@@ -41,6 +41,8 @@ namespace M3D
             inline const Mat4f& getLocalTransformation() const { return _localTransformation; }
             
             inline const Mat4f& getTransformation() const { return _transformation; }
+
+            inline const bool isDirty() const { return _dirty; }
             
             // ------------------------------------------------------ SETTERS ------------------------------------------------------
             void setRotation(const Quatf& p_rotation) {
@@ -58,6 +60,7 @@ namespace M3D
                 update();
             }
 
+            void setDirtyFalse() { _dirty = false; }
             // ----------------------------------------------------- FONCTIONS -----------------------------------------------------      
             void addChild(SceneGraphNode* child){
                 _childs.push_back(child);
@@ -66,6 +69,7 @@ namespace M3D
             void clearChilds() { _childs.clear(); }
 
             void update() {
+                _dirty = true;
                 _localTransformation = glm::translate(MAT4F_ID, _translation) * glm::mat4_cast(_rotation) * glm::scale(MAT4F_ID, _scale);
                 _transformation = ((_parent==nullptr) ? MAT4F_ID : _parent->getTransformation()) * _localTransformation;
                 for (SceneGraphNode* child : _childs) child->update();
@@ -110,6 +114,8 @@ namespace M3D
             
             Mat4f _localTransformation = MAT4F_ID;
             Mat4f _transformation = MAT4F_ID;
+
+            bool _dirty;
         };
     }
 }

@@ -809,7 +809,7 @@ bool    ImGui_ImplOpenGL3_CreateDeviceObjects()
         "varying vec4 Frag_Color;\n"
         "void main()\n"
         "{\n"
-        "    gl_FragColor = Frag_Color * texture2D(Texture, Frag_UV.st);\n"
+        "    gl_FragColor = Frag_Color * texture(Texture, Frag_UV.st);\n"
         "}\n";
 
     const GLchar* fragment_shader_glsl_130 =

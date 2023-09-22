@@ -27,7 +27,7 @@ namespace M3D
 		int _height;
 		int _nbChannels;
 		int _bitDepth;		// les cannaux peuvent avoir des profondeur différentes ?  
-		int _format;		// quel canal correspond à quoi => ozef ??
+		int _format;		// quel canal correspond à quoi
 		std::vector<unsigned char> _data;
 	};
 }

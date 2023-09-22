@@ -47,6 +47,7 @@ namespace M3D
             SDL_GLContext _glContext = nullptr; // todo virer pas bien !!
             
             // add audio => liste de piste preload au lancerment de la window + celles qui vont s'add ==> use set
+            // todo use cycle CPU pour fps et time plus précis
             unsigned long long _time = 0;
             
             bool _vSync = true;

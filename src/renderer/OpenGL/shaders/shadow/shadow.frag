@@ -10,5 +10,5 @@ in vec2 uv;
 
 void main()
 {
-	if((uHasAlbedoMap ? texture2D(uAlbedoMap,uv) : uAlbedo).a<uAlphaCutOff) discard;
+	if((uHasAlbedoMap ? texture(uAlbedoMap,uv) : uAlbedo).a<uAlphaCutOff) discard;
 }

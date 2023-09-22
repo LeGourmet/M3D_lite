@@ -14,8 +14,6 @@
 #include "renderer/OpenGL/texture_ogl.hpp"
 #include "renderer/OpenGL/program_ogl.hpp"
 
-#include <iostream>
-
 namespace M3D
 {
 	namespace Renderer
@@ -28,11 +26,15 @@ namespace M3D
 				generateMap(&_lightingMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 				attachColorMap(_fboLighting, _lightingMap, 0);
 				
+				glCreateFramebuffers(1, &_fboDirectLighting);
+				generateMap(&_directLightingMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
+				attachColorMap(_fboDirectLighting, _directLightingMap, 0);
+				
 				// --- ambient lighting ---
 				_ambientLightingPass.addUniform("uCamPos");
-								
+					
 				// --- directional lighting ---
-				_directionalLightingPass.addUniform("uCamPos");
+				_directionalLightingPass.addUniform("uCamData");
 				_directionalLightingPass.addUniform("uLightMatrix_VP");
 				_directionalLightingPass.addUniform("uLightDirection");
 				_directionalLightingPass.addUniform("uLightEmissivity");
@@ -49,7 +51,7 @@ namespace M3D
 				glTextureParameteri(_shadowMap, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 				glTextureParameteri(_shadowMap, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 				attachDepthMap(_fboShadow, _shadowMap);
-				resizeDepthMap(_sadowMapResolution, _sadowMapResolution, _shadowMap);
+				resizeDepthMap(_shadowMapResolution, _shadowMapResolution, _shadowMap);
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboShadow);
 				glDrawBuffer(GL_NONE);
 				glReadBuffer(GL_NONE);
@@ -74,7 +76,7 @@ namespace M3D
 				//glTextureParameteri(_shadowCubeMap, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 				//glTextureParameteri(_shadowCubeMap, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 				attachDepthMap(_fboShadowCube, _shadowCubeMap);
-				resizeDepthCubeMap(_sadowMapResolution, _sadowMapResolution, _shadowCubeMap);
+				resizeDepthCubeMap(_shadowMapResolution, _shadowMapResolution, _shadowCubeMap);
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboShadowCube);
 				glDrawBuffer(GL_NONE);
 				glReadBuffer(GL_NONE);
@@ -90,10 +92,12 @@ namespace M3D
 				glDeleteTextures(1, &_lightingMap);
 				glDeleteTextures(1, &_shadowCubeMap);
 				glDeleteTextures(1, &_shadowMap);
+				glDeleteTextures(1, &_directLightingMap);
 
 				glDeleteFramebuffers(1, &_fboLighting);
 				glDeleteFramebuffers(1, &_fboShadowCube);
 				glDeleteFramebuffers(1, &_fboShadow);
+				glDeleteFramebuffers(1, &_fboDirectLighting);
 
 				glDeleteVertexArrays(1, &_emptyVAO);
 				glDeleteBuffers(1, &_billboardSSBO);
@@ -105,35 +109,16 @@ namespace M3D
 			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void resize(int p_width, int p_height) {
 				resizeColorMap(p_width, p_height, _lightingMap);
+				resizeColorMap(p_width, p_height, _directLightingMap);
 			}
 
-			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_positionMap, GLuint p_normalMetalnessMap, GLuint p_albedoRoughnessMap, GLuint p_fbo) {
-				glNamedFramebufferReadBuffer(p_fbo, GL_COLOR_ATTACHMENT3);
-				glNamedFramebufferDrawBuffer(_fboLighting, GL_COLOR_ATTACHMENT0);
-				glBlitNamedFramebuffer(p_fbo,_fboLighting,0,0,p_width,p_height,0,0,p_width,p_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-				// --- ambient lighting ---
-				glViewport(0, 0, p_width, p_height);
+			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_positionMap, GLuint p_normalMetalnessMap, GLuint p_albedoRoughnessMap, GLuint p_emissiveMap) {
+				// --- emissive object ---
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
+				glClear(GL_COLOR_BUFFER_BIT);
+				glCopyImageSubData(p_emissiveMap, GL_TEXTURE_2D, 0, 0, 0, 0, _directLightingMap, GL_TEXTURE_2D, 0, 0, 0, 0, p_width, p_height, 1);
 
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_ONE, GL_ONE);
-
-				glUseProgram(_ambientLightingPass.getProgram());
-
-				glBindTextureUnit(0, p_positionMap);
-				glBindTextureUnit(1, p_normalMetalnessMap);
-				glBindTextureUnit(2, p_albedoRoughnessMap);
-
-				glProgramUniform3fv(_ambientLightingPass.getProgram(), _ambientLightingPass.getUniform("uCamPos"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition()));
-
-				glBindVertexArray(_emptyVAO);
-				glDrawArrays(GL_TRIANGLES, 0, 3);
-				glBindVertexArray(0);
-
-				glDisable(GL_BLEND);
-				glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+				// --- direct lighting ---
 				for (Scene::Light l : Application::getInstance().getSceneManager().getLights())
 					for (unsigned int i=0; i<l.getNumberInstances() ;i++)
 						switch (l.getType()) {
@@ -145,7 +130,7 @@ namespace M3D
 									Vec3f lightPos = l.getInstance(i)->getPosition();
 
 									// --- shadow cube ---
-									glViewport(0, 0, _sadowMapResolution, _sadowMapResolution);
+									glViewport(0, 0, _shadowMapResolution, _shadowMapResolution);
 
 									glBindFramebuffer(GL_FRAMEBUFFER, _fboShadowCube);
 
@@ -169,6 +154,7 @@ namespace M3D
 									glProgramUniform1f(_shadowCubePass.getProgram(), _shadowCubePass.getUniform("uZfar"), zfar);
 
 									for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes)
+										// compute for each instance if they are cull or not => they id inside SSBO => render instance number = size SSBO => in shader read this ssbo with instance count
 										for (unsigned int j=0; j < mesh.first->getSubMeshes().size(); j++) {
 											Scene::SubMesh subMesh = mesh.first->getSubMeshes()[j];
 											if (!subMesh.getMaterial().isOpaque()) continue;
@@ -193,7 +179,7 @@ namespace M3D
 									// --- lighting ---
 									glViewport(0, 0, p_width, p_height);
 
-									glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
+									glBindFramebuffer(GL_FRAMEBUFFER, _fboDirectLighting);
 
 									glEnable(GL_BLEND);
 									glBlendFunc(GL_ONE, GL_ONE);
@@ -244,7 +230,7 @@ namespace M3D
 							case LIGHT_TYPE::DIRECTIONAL:
 								{
 									// ****** SHADOW ******
-									glViewport(0, 0, _sadowMapResolution, _sadowMapResolution);
+									glViewport(0, 0, _shadowMapResolution, _shadowMapResolution);
 
 									glBindFramebuffer(GL_FRAMEBUFFER, _fboShadow);
 
@@ -286,7 +272,7 @@ namespace M3D
 									// ****** LIGHTING ******
 									glViewport(0, 0, p_width, p_height);
 
-									glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
+									glBindFramebuffer(GL_FRAMEBUFFER, _fboDirectLighting);
 
 									glEnable(GL_BLEND);
 									glBlendFunc(GL_ONE, GL_ONE);
@@ -300,7 +286,7 @@ namespace M3D
 
 									lightMatrix_VP = Mat4f(0.5,0.,0.,0.,0.,0.5,0.,0.,0.,0.,0.5,0.,0.5,0.5,0.5,1.) * lightMatrix_VP;
 									glProgramUniformMatrix4fv(_directionalLightingPass.getProgram(), _directionalLightingPass.getUniform("uLightMatrix_VP"), 1, false, glm::value_ptr(lightMatrix_VP));
-									glProgramUniform3fv(_directionalLightingPass.getProgram(), _directionalLightingPass.getUniform("uCamPos"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition()));
+									glProgramUniform4fv(_directionalLightingPass.getProgram(), _directionalLightingPass.getUniform("uCamData"), 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition(), zfar)));
 									glProgramUniform3fv(_directionalLightingPass.getProgram(), _directionalLightingPass.getUniform("uLightDirection"), 1, glm::value_ptr(l.getInstance(i)->getFront()));
 									glProgramUniform3fv(_directionalLightingPass.getProgram(), _directionalLightingPass.getUniform("uLightEmissivity"), 1, glm::value_ptr(l.getEmissivity()));
 
@@ -314,23 +300,53 @@ namespace M3D
 									break;
 								}
 						}
+
+				// --- indirect lighting ---
+				/*glNamedFramebufferReadBuffer(_fboDirectLighting, GL_COLOR_ATTACHMENT0);
+				glNamedFramebufferDrawBuffer(_fboLighting, GL_COLOR_ATTACHMENT0);
+				glBlitNamedFramebuffer(_fboDirectLighting,_fboLighting,0,0,p_width,p_height,0,0,p_width,p_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);*/
+				glCopyImageSubData(_directLightingMap, GL_TEXTURE_2D, 0, 0, 0, 0, _lightingMap, GL_TEXTURE_2D, 0, 0, 0, 0, p_width, p_height, 1);
+
+				glViewport(0, 0, p_width, p_height);
+				glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
+
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_ONE, GL_ONE);
+
+				glUseProgram(_ambientLightingPass.getProgram());
+
+				glBindTextureUnit(0, p_positionMap);
+				glBindTextureUnit(1, p_normalMetalnessMap);
+				glBindTextureUnit(2, p_albedoRoughnessMap);
+				glBindTextureUnit(3, _directLightingMap);
+
+				glProgramUniform3fv(_ambientLightingPass.getProgram(), _ambientLightingPass.getUniform("uCamPos"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition()));
+
+				glBindVertexArray(_emptyVAO);
+				glDrawArrays(GL_TRIANGLES, 0, 3);
+				glBindVertexArray(0);
+
+				glDisable(GL_BLEND);
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			}
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-			GLuint _fboLighting		= GL_INVALID_INDEX;
-			GLuint _fboShadowCube	= GL_INVALID_INDEX;
-			GLuint _fboShadow		= GL_INVALID_INDEX;
+			GLuint _fboLighting			= GL_INVALID_INDEX;
+			GLuint _fboShadowCube		= GL_INVALID_INDEX;
+			GLuint _fboShadow			= GL_INVALID_INDEX;
+			GLuint _fboDirectLighting	= GL_INVALID_INDEX;
 
-			GLuint _lightingMap		= GL_INVALID_INDEX;
-			GLuint _shadowCubeMap	= GL_INVALID_INDEX;
-			GLuint _shadowMap		= GL_INVALID_INDEX;
+			GLuint _lightingMap			= GL_INVALID_INDEX;
+			GLuint _shadowCubeMap		= GL_INVALID_INDEX;
+			GLuint _shadowMap			= GL_INVALID_INDEX;
+			GLuint _directLightingMap	= GL_INVALID_INDEX;
 
-			Vec4f  _billBoardCoords[4] = {VEC4F_ZERO, VEC4F_ZERO, VEC4F_ZERO, VEC4F_ZERO};
-			GLuint _billboardSSBO   = GL_INVALID_INDEX;
-			GLuint _emptyVAO		= GL_INVALID_INDEX;
+			Vec4f  _billBoardCoords[4]	= {VEC4F_ZERO, VEC4F_ZERO, VEC4F_ZERO, VEC4F_ZERO};
+			GLuint _billboardSSBO		= GL_INVALID_INDEX;
+			GLuint _emptyVAO			= GL_INVALID_INDEX;
 
-			unsigned int _sadowMapResolution = 1024;
+			unsigned int _shadowMapResolution = 1024;
 
 			ProgramOGL _ambientLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/ambientLightingPass.frag");
 			ProgramOGL _directionalLightingPass = ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/directionalLightingPass.frag");

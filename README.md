@@ -1,26 +1,21 @@
-BUGS
-	- les trois classes controller à revoir => parfois avec la perte de focus ne capte pas la fin d'un event
-	- rotation de quaternion à tendance à faire tourner un objet sur lui même au recalcule de ses vecteurs
-	- mauvaise gestion de la conversion d'unité de la lumière (material emissivity + light constructor)
-	- target fps pas parfait => use frame count
-	- auto intersection ombre (tangent - bitangent ?)
-	- mauvaise calcule near/far shadow
-	- emissive.glb won't load ??
+# M3D_lite
 
-TODO
-	- enlever tous les news inutile
-	- remplacer tinygltf par fastgltf
-	- revoir la classe image
-	- revoir le constructeur de la camera
-	- revoir les controllers
-	- ajouter la gestion du son dans window
-	- coder screenshot + take video
-	- ajouter les animations
-	- ajouter une ui
-	- revoir toutes les fonctions de scene_graph_node
-	- scene_graph_node, ajouter possibilité de changer de parent (penser à remove le child chez le parent)
-	- implement shadow volume : stencil + genereate geometry "shadow volulme"
+## Présentation
 
-WARNING
-	- ne prend pas en compte l'aspect ratio des cameras perspective
-	- regler pb de mipmap avec alpha des images
+## Résulats
+
+## Améliorations
+
+- meilleur calcule de la lumière ambient et ajout d'ambient occlusion par effet screen space aproximant la global illumination (implémentation du papier : "")
+- gestion de la transparence par "per pixel linked list methode" 
+- calcule d'ombre projeté des objets transparent
+- ajout de volumes englobant au objet et hierachie de scène
+- ajout de cascade shadow map et filtre pcss aux ombres
+- ajout frutum culling et occlusion culling
+- anti-alliasing par temporal methodes (taa - tssaa - txaa)
+- amélioration de la brdf ( ajout de clearcoat, ior, anisotropie, thin/sheen)
+- ajout de screen space reflection/refraction pour les objets très peut rugeux
+- alpha to coverage
+- alpha distribution for alpha testing
+- athmospherique rendering (sebastian hillaire)
+- bones and riggings

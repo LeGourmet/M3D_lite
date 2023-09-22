@@ -50,8 +50,8 @@ namespace UserInterface
 			_dispose();
 		}
 
-		Application::getInstance().getSceneManager().loadNewScene("assets/musee.glb");
-		//Application::getInstance().getSceneManager().loadNewScene("assets/sponza.glb");
+		//Application::getInstance().getSceneManager().loadNewScene("assets/musee.glb");
+		Application::getInstance().getSceneManager().loadNewScene("assets/sponza.glb");
 		//Application::getInstance().getSceneManager().loadNewScene("assets/emissive.glb");
 	}
 
@@ -164,6 +164,10 @@ namespace UserInterface
 
 	void GraphicalUserInterface::clearEvents() {
 		//(set screen pause / do nothing if scene isn't display)
+	}
+
+	void GraphicalUserInterface::resize(const int p_width, const int p_height) {
+		// nothing
 	}
 
 	void GraphicalUserInterface::_dispose() {

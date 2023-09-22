@@ -19,13 +19,14 @@ namespace M3D
 
             // ------------------------------------------------------ GETTERS ------------------------------------------------------
             inline const unsigned int getNumberInstances() const { return (unsigned int)_instances.size(); }
+            
             SceneGraphNode* getInstance(unsigned int p_instanceId) {
                 if (p_instanceId < _instances.size()) return _instances[p_instanceId];
                 return nullptr;
             }
 
-            // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
-            void addInstance(SceneGraphNode* p_node) { _instances.push_back(p_node); }
+            // ----------------------------------------------------- FONCTIONS -----------------------------------------------------           
+            virtual void addInstance(SceneGraphNode* p_node) { _instances.push_back(p_node); }
 
         protected:
             // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------

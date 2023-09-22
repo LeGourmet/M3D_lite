@@ -47,8 +47,8 @@ namespace M3D
             const Mat4f getMainCameraProjectionMatrix();
 
             // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
-            void loadNewScene(const std::string& p_path);
-            void addAsset(const std::string& p_path);
+            void loadNewScene(const std::string& p_path); // todo BVH recompute
+            void addAsset(const std::string& p_path); // todo BVH recompute 
 
             void addCamera(Camera p_camera);
             void addLight(Light p_light);
@@ -63,7 +63,7 @@ namespace M3D
             void addInstance(Mesh& p_mesh, SceneGraphNode* p_node);
 
             void resize(const int p_width, const int p_height);
-            void update(unsigned long long p_deltaTime);
+            void update(unsigned long long p_deltaTime);            // BVH RECOMPUTE
             bool captureEvent(const SDL_Event& p_event);
         
             void clearEvents();

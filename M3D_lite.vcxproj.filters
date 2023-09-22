@@ -1664,6 +1664,9 @@
     <ClInclude Include="src\scene\acceleration_structures\BVH.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="src\scene\objects\cameras\fov_box.hpp">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\SDL3\src\hidapi\windows\ddk_build\hidapi.def">

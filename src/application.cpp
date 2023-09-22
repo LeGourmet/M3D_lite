@@ -33,8 +33,9 @@ namespace M3D
 
 	void Application::pause() {
 		_sceneManager->clearEvents();
+		//_sceneManager->pause();
 		_gui->clearEvents();
-		_gui->pause();
+		//_gui->pause();
 	}
 	
 	void Application::resume() { _window->chronoUpdate(); }
@@ -44,7 +45,7 @@ namespace M3D
 		_height = p_height;
 		_sceneManager->resize(p_width,p_height);
 		_renderer->resize(p_width,p_height);
-		//_gui->resize(p_width, p_height);
+		_gui->resize(p_width, p_height);
 	}
 
 	void Application::_update() const {

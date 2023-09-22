@@ -80,15 +80,23 @@ namespace Scene
         cameraInstance->translate(translation);
         cameraInstance->rotate(rotation);
 
-        // todo add dirty flag to not always update matrices
         for (unsigned int i=0; i<_meshes.size() ;i++)
-            for (unsigned int j=0; j<_meshes[i].getNumberInstances() ;j++)
-                Application::getInstance().getRenderer().updateInstanceMesh(
-                    &_meshes[i], j,
-                    _meshes[i].getInstance(j)->getTransformation(),
-                    _cameras[_mainCamera.x].getViewMatrix(_mainCamera.y),
-                    _cameras[_mainCamera.x].getProjectionMatrix()
-                );
+            for (unsigned int j=0; j<_meshes[i].getNumberInstances() ;j++){
+                if (_meshes[i].getInstance(j)->isDirty() || cameraInstance->isDirty() || _cameras[_mainCamera.x].isDirty())
+                    Application::getInstance().getRenderer().updateInstanceMesh(
+                        &_meshes[i], j,
+                        _meshes[i].getInstance(j)->getTransformation(),
+                        _cameras[_mainCamera.x].getViewMatrix(_mainCamera.y),
+                        _cameras[_mainCamera.x].getProjectionMatrix()
+                    );
+              
+                
+                if(_meshes[i].getInstance(j)->isDirty()) _meshes[i].updateIntanceAABB(j);
+                _meshes[i].getInstance(j)->setDirtyFalse();
+            }
+        cameraInstance->setDirtyFalse();
+        _cameras[_mainCamera.x].setDirtyFalse();
+        // if just one mesh instance is dirty BVH
     }
 
     bool SceneManager::captureEvent(const SDL_Event& p_event) { 
@@ -110,18 +118,19 @@ namespace Scene
         _cameras.erase(_cameras.begin()+1,_cameras.end());
         _materials.erase(_materials.begin()+1,_materials.end());
         _sceneGraph.erase(_sceneGraph.begin()+1,_sceneGraph.end());
+
         _meshes.clear();
         _textures.clear();
         _images.clear();
         _lights.clear();
-
+        
         _sceneGraph[0]->clearChilds();
-        _mainCamera = Vec2i(0, 0); // care need to reset pos
+        _mainCamera = Vec2i(0, 0); // need to reset pos ?
     }
 
     void SceneManager::addInstance(Camera& p_camera, SceneGraphNode* p_node) { p_camera.addInstance(p_node); }
 
-    void SceneManager::addInstance(Light& p_light, SceneGraphNode* p_node) { p_light.addInstance(p_node); }
+    void SceneManager::addInstance(Light& p_light, SceneGraphNode* p_node) { p_light.addInstance(p_node); } // sphere for point / cone for spot and infinity for directionnal
 
     void SceneManager::addInstance(Mesh& p_mesh, SceneGraphNode* p_node) {
         p_mesh.addInstance(p_node);
@@ -132,6 +141,8 @@ namespace Scene
             getMainCameraViewMatrix(),
             getMainCameraProjectionMatrix()
         );
+
+        p_node->setDirtyFalse();
     }
 
     void SceneManager::_createSceneGraph(int p_idCurrent, SceneGraphNode* p_parent, unsigned int p_meshOffset, unsigned int p_lightOffset, unsigned int p_camOffset, tinygltf::Model& p_model) {
@@ -161,7 +172,7 @@ namespace Scene
         tinygltf::TinyGLTF loader;
         tinygltf::Model model;
 
-        loader.SetPreserveImageChannels(true);
+        //loader.SetPreserveImageChannels(true);
 
         if (p_path.extension() == ".gltf") {
             if (!loader.LoadASCIIFromFile(&model, nullptr, nullptr, p_path.string())) throw std::runtime_error("Fail to load file: " + p_path.string());
@@ -249,12 +260,10 @@ namespace Scene
         unsigned int startIdMeshes = (unsigned int)_meshes.size();
         _meshes.reserve(startIdMeshes + model.meshes.size());
         for (tinygltf::Mesh m : model.meshes) {
-            Mesh newMesh = Mesh();
-            newMesh.getSubMeshes().reserve(m.primitives.size());
+            std::vector<SubMesh> subMeshes;
+            subMeshes.reserve(m.primitives.size());
             for (tinygltf::Primitive p : m.primitives) {
                 if (p.indices == -1) throw std::runtime_error("Fail to load file: primitive indices must be define.");
-
-                SubMesh newSubMesh = SubMesh(&_materials[startIdMaterials + p.material]); // care default material
 
                 tinygltf::Accessor a_position = model.accessors[p.attributes.at("POSITION")];
                 tinygltf::Accessor a_normal = model.accessors[p.attributes.at("NORMAL")];
@@ -272,7 +281,8 @@ namespace Scene
                 tinygltf::BufferView bv_texcoord = model.bufferViews[a_texcoord.bufferView];
                 const float* texCoord0Buffer = reinterpret_cast<const float*>(&model.buffers[bv_texcoord.buffer].data[a_texcoord.byteOffset + bv_texcoord.byteOffset]);
 
-                newSubMesh.getVertices().reserve(a_position.count);
+                std::vector<Vertex> vertices;
+                vertices.reserve(a_position.count);
                 for (unsigned int i = 0; i < a_position.count;i++) {
                     Vertex v = Vertex{
                                         ._position = glm::make_vec3(&positionsBuffer[i * 3]),
@@ -283,25 +293,23 @@ namespace Scene
                     if (glm::length(v._tangent) < 0.1) v._tangent = glm::cross(v._normal, VEC3F_Y);
                     v._tangent = glm::normalize(v._tangent);
                     v._bitangent = glm::normalize(glm::cross(v._normal, v._tangent));
-                    newSubMesh.addVertex(v);
+                    vertices.push_back(v);
                 }
 
                 tinygltf::BufferView bv_indices = model.bufferViews[a_indices.bufferView];
                 switch (a_indices.componentType) {
                 case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT:
-                    newSubMesh.setIndices(reinterpret_cast<const unsigned int*>(&model.buffers[bv_indices.buffer].data[a_indices.byteOffset + bv_indices.byteOffset]), (unsigned int)a_indices.count);
+                    subMeshes.push_back(SubMesh(&_materials[(p.material == -1) ? 0 : startIdMaterials + p.material],vertices,reinterpret_cast<const unsigned int*>(&model.buffers[bv_indices.buffer].data[a_indices.byteOffset + bv_indices.byteOffset]), (unsigned int)a_indices.count));
                     break;
                 case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT:
-                    newSubMesh.setIndices(reinterpret_cast<const unsigned short*>(&model.buffers[bv_indices.buffer].data[a_indices.byteOffset + bv_indices.byteOffset]), (unsigned int)a_indices.count);
+                    subMeshes.push_back(SubMesh(&_materials[(p.material == -1) ? 0 : startIdMaterials + p.material],vertices,reinterpret_cast<const unsigned short*>(&model.buffers[bv_indices.buffer].data[a_indices.byteOffset + bv_indices.byteOffset]), (unsigned int)a_indices.count));
                     break;
                 case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE:
-                    newSubMesh.setIndices(reinterpret_cast<const unsigned char*>(&model.buffers[bv_indices.buffer].data[a_indices.byteOffset + bv_indices.byteOffset]), (unsigned int)a_indices.count);
+                    subMeshes.push_back(SubMesh(&_materials[(p.material == -1) ? 0 : startIdMaterials + p.material],vertices,reinterpret_cast<const unsigned char*>(&model.buffers[bv_indices.buffer].data[a_indices.byteOffset + bv_indices.byteOffset]), (unsigned int)a_indices.count));
                     break;
                 }
-
-                newMesh.addSubMesh(newSubMesh);
             }
-            addMesh(newMesh);
+            addMesh(Mesh(subMeshes));
         }
 
         std::cout << "meshes loaded: " << _meshes.size() - startIdMeshes << std::endl;

@@ -57,14 +57,14 @@ namespace M3D
 
 			void resizeDepthMap(int p_width, int p_height, GLuint p_texture) {
 				glBindTexture(GL_TEXTURE_2D, p_texture);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, p_width, p_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, p_width, p_height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
 				glBindTexture(GL_TEXTURE_2D, 0);
 			}
 
 			void resizeDepthCubeMap(int p_width, int p_height, GLuint p_texture) {
 				glBindTexture(GL_TEXTURE_CUBE_MAP, p_texture);
 				for (unsigned int i = 0; i < 6; i++)
-					glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, p_width, p_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+					glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, p_width, p_height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
 				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 			}
 		};

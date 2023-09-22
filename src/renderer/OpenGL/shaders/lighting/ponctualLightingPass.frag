@@ -36,17 +36,14 @@ vec3 schlick(in vec3 f0, in vec3 f90, in float cosT){
 
 void main()
 {
-	vec4 position = texture2D(uPositionMap,uv);
+	vec4 position = texture(uPositionMap,uv);
 	if(position.a<0.5) discard;
 
-	vec4 albedo_roughness = texture2D(uAlbedo_RoughnessMap,uv);
-	vec4 normal_metalness = texture2D(uNormal_MetalnessMap,uv);
+	vec4 albedo_roughness = texture(uAlbedo_RoughnessMap,uv);
+	vec4 normal_metalness = texture(uNormal_MetalnessMap,uv);
 
 	vec3 N = normal_metalness.xyz;
 	vec3 V = normalize(uCamData.xyz-position.xyz);
-	float cosNV = dot(N,V);
-
-	//fragColor = vec4(vec3(max(0.,cosNV)),1.); return;
 
 	// ---------- LIGHT ----------
 	vec3 L = uLightPosition-position.xyz;
@@ -54,11 +51,15 @@ void main()
 	L = normalize(L);
 	vec3 Light_Componant = uLightEmissivity * 
 						   clamp((dot(-L,uLightDirection)-uLightCosAngles.y) / (uLightCosAngles.x-uLightCosAngles.y), 0., 1.) /
-						   max(lightDepth_sq,EPS); 
+						   max(lightDepth_sq,EPS);
 
 	float cosNL = dot(N,L);
-	if(cosNL<0. && cosNV<0.) { N*=-1.; cosNV=dot(N,V); cosNL=dot(N,L);}
-	if(cosNL<0. || cosNV<0.) discard;
+	float cosNV = dot(N,V);
+	/*if(cosNL<0. && cosNV<0.) {N*=-1.; cosNV=-1.; cosNL*=-1.;}
+	if(cosNL<0. || cosNV<0.) discard;*/
+	if(cosNL<0. && cosNV<0.) N=-N;
+	cosNL = abs(cosNL);
+	cosNV = abs(cosNV);
 
 	// --- SHADOW ---
 	vec3 T = cross(N,vec3(1.,0.,0.));

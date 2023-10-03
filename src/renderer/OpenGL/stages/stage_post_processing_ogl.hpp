@@ -22,11 +22,6 @@ namespace M3D
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 			StagePostProcessingOGL() {
-				// --- blend ---
-				glCreateFramebuffers(1, &_fboHDR);
-				generateMap(&_HDRMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
-				attachColorMap(_fboHDR, _HDRMap, 0);
-
 				// --- fxaa ---
 				_fxaaPass.addUniform("uInvSrcRes");
 				
@@ -38,13 +33,19 @@ namespace M3D
 				_toneMappingPass.addUniform("uGamma");
 				_toneMappingPass.addUniform("uBloomPower");
 
+				glCreateFramebuffers(1, &_fboAA);
+				generateMap(&_aaMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
+				attachColorMap(_fboAA, _aaMap, 0);
+				GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0};
+				glNamedFramebufferDrawBuffers(_fboAA, 1, DrawBuffers);
+
 				glCreateVertexArrays(1, &_emptyVAO);
 				glCreateFramebuffers(1, &_fboBloom);
 			}
 
-			~StagePostProcessingOGL() { 
-				glDeleteTextures(1, &_HDRMap);
-				glDeleteFramebuffers(1, &_fboHDR);
+			~StagePostProcessingOGL() {
+				glDeleteTextures(1, &_aaMap);
+				glDeleteFramebuffers(1, &_fboAA);
 
 				glDeleteFramebuffers(1, &_fboBloom);
 				for(int i=1; i<_bloomMaps.size(); i++) glDeleteTextures(1, &_bloomMaps[i]);
@@ -53,7 +54,7 @@ namespace M3D
 
 			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void resize(int p_width, int p_height) {
-				resizeColorMap(p_width, p_height, _HDRMap);
+				resizeColorMap(p_width, p_height, _aaMap);
 
 				for(int i=1; i<_bloomMaps.size(); i++) glDeleteTextures(1, &_bloomMaps[i]);
 
@@ -77,24 +78,9 @@ namespace M3D
 				}
 			}
 
-			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_opaqueMap, GLuint p_transparentMap) {
-				//GLuint p_HDRMap = p_opaqueMap;
-				
-				glViewport(0, 0, p_width, p_height);
-
-				glBindFramebuffer(GL_FRAMEBUFFER, _fboHDR);
-
-				glUseProgram(_blendOpaqueAndTransparent.getProgram());
-
-				glBindTextureUnit(0, p_opaqueMap);
-				glBindTextureUnit(1, p_transparentMap);
-
-				glBindVertexArray(_emptyVAO);
-				glDrawArrays(GL_TRIANGLES, 0, 3);
-				glBindVertexArray(0);
-
+			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_HDRMap) {
 				// --- fxaa ---
-				/*glViewport(0, 0, p_width, p_height);
+				glViewport(0, 0, p_width, p_height);
 
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboAA);
 
@@ -109,14 +95,13 @@ namespace M3D
 				glDrawArrays(GL_TRIANGLES, 0, 3);
 				glBindVertexArray(0);
 
-				glBindFramebuffer(GL_FRAMEBUFFER, 0);*/
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 				// --- bloom ---
 				// todo use bloom for computing lens flare and lens ghosting
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboBloom);
 
-				//_bloomMaps[0] = _aaMap;
-				_bloomMaps[0] = _HDRMap;
+				_bloomMaps[0] = _aaMap;
 
 				// --- Down sample ---
 				glUseProgram(_bloomDownSamplePass.getProgram());
@@ -162,8 +147,7 @@ namespace M3D
 
 				glProgramUniform1f(_toneMappingPass.getProgram(), _toneMappingPass.getUniform("uGamma"), Application::getInstance().getRenderer().getGamma());
 				glProgramUniform1f(_toneMappingPass.getProgram(), _toneMappingPass.getUniform("uBloomPower"), Application::getInstance().getRenderer().getBloomPower());
-				//glBindTextureUnit(0, _aaMap);
-				glBindTextureUnit(0, _HDRMap);
+				glBindTextureUnit(0, _aaMap);
 				glBindTextureUnit(1, _bloomMaps[_bloomMaps.size()-1]);
 
 				glBindVertexArray(_emptyVAO);
@@ -173,16 +157,16 @@ namespace M3D
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-			GLuint _fboHDR		= GL_INVALID_INDEX;
 			GLuint _fboBloom	= GL_INVALID_INDEX;
+			GLuint _fboAA		= GL_INVALID_INDEX;
 
-			GLuint _HDRMap		= GL_INVALID_INDEX;
+			GLuint _aaMap		= GL_INVALID_INDEX;
+
 			std::vector<GLuint> _bloomMaps;
 			std::vector<Vec2f>	_bloomMapsDims;
 
 			GLuint _emptyVAO	= GL_INVALID_INDEX;
 
-			ProgramOGL _blendOpaqueAndTransparent	= ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert", "", "src/renderer/OpenGL/shaders/utils/blend.frag");
 			ProgramOGL _fxaaPass					= ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/fxaaPass.frag");
 			ProgramOGL _bloomDownSamplePass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/bloomDownSamplePass.frag");
 			ProgramOGL _bloomUpSamplePass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/quadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/bloomUpSamplePass.frag");

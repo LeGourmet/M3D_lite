@@ -14,36 +14,36 @@ namespace Renderer
 		if (gl3wInit()) throw std::exception("gl3wInit() failed");
 		if (!gl3wIsSupported(4, 5)) throw std::exception("OpenGL version not supported");
 
+		_stageGeometryOGL			= new StageGeometryOGL();
 		_stageMeshOpaqueOGL			= new StageMeshOpaqueOGL();
 		_stageMeshTransparentOGL	= new StageMeshTransparentOGL();
-		_stageLightingOGL			= new StageLightingOGL();
 		_stagePostProcessingOGL		= new StagePostProcessingOGL();
 
 		resize(Application::getInstance().getWidth(), Application::getInstance().getHeight());
 	}
 
 	RendererOGL::~RendererOGL() {
+		delete _stageGeometryOGL;
 		delete _stageMeshOpaqueOGL;
 		delete _stageMeshTransparentOGL;
-		delete _stageLightingOGL;
 		delete _stagePostProcessingOGL;
 		for (std::pair<Scene::Mesh*, MeshOGL*> pair : _meshes) delete pair.second;
 		for (std::pair<Texture*, TextureOGL*> pair : _textures) delete pair.second;
 	}
 
 	void RendererOGL::resize(const int p_width, const int p_height) {
+		_stageGeometryOGL->resize(p_width, p_height);
 		_stageMeshOpaqueOGL->resize(p_width, p_height);
 		_stageMeshTransparentOGL->resize(p_width, p_height);
-		_stageLightingOGL->resize(p_width, p_height);
 		_stagePostProcessingOGL->resize(p_width, p_height);
 	}
 
 	void RendererOGL::drawFrame() {
 		glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.a);
-		_stageMeshOpaqueOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures);
-		_stageMeshTransparentOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageMeshOpaqueOGL->getDepthMap());
-		_stageLightingOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageMeshOpaqueOGL->getPositionMap(), _stageMeshOpaqueOGL->getNormalMetalnessMap(), _stageMeshOpaqueOGL->getAlbedoRoughnessMap(), _stageMeshOpaqueOGL->getEmissiveMap());
-		_stagePostProcessingOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageLightingOGL->getLightingMap(), _stageMeshTransparentOGL->getTransparencyMap());
+		_stageGeometryOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures);
+		_stageMeshOpaqueOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageGeometryOGL->getPositionMap(), _stageGeometryOGL->getNormalMetalnessMap(), _stageGeometryOGL->getAlbedoRoughnessMap(), _stageGeometryOGL->getEmissiveMap());
+		_stageMeshTransparentOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageMeshOpaqueOGL->getOpaqueMap(), _stageGeometryOGL->getDepthMap(), _stageGeometryOGL->getRootTransparency(), _stageGeometryOGL->getSSBOTransparency(), _stageGeometryOGL->getCounterTransparency());
+		_stagePostProcessingOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageMeshTransparentOGL->getTransparencyMap()); // transparency => +reflected lights
 
 		GLenum err;
 		while ((err = glGetError()) != GL_NO_ERROR)

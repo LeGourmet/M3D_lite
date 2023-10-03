@@ -1,5 +1,11 @@
 #version 450
 
+struct fragNode {
+  vec4 albedo;
+  float depth;
+  uint nextId;
+};
+
 layout( location = 0 ) out vec4 position;
 layout( location = 1 ) out vec4 normal_metalness;
 layout( location = 2 ) out vec4 albedo_roughness;
@@ -10,10 +16,11 @@ layout( binding = 2 ) uniform sampler2D uMetalnessRoughnessMap;
 layout( binding = 3 ) uniform sampler2D uNormalMap;
 layout( binding = 4 ) uniform sampler2D uEmissiveMap;
 
-layout( binding = 5, std430)	buffer uSSBOTransparency { float LinkedList[]; };
-layout( binding = 6, r32ui)		uniform uimage2D uRootTransparency;
+layout( binding = 5, r32ui)		uniform uimage2D uRootTransparency;				// add counter per pixels;
+layout( binding = 6, std430)	buffer uLinkedListTransparency { fragNode nodes[]; };
 layout( binding = 7, offset=0)	uniform atomic_uint uCounterTransparency;
 uniform uint uNbFragmentsMax;
+uniform uint uNbFragmentsMaxPerPixel;
 
 uniform vec4 uAlbedo;
 uniform vec3 uEmissiveColor;
@@ -50,14 +57,13 @@ void main(){
 		uint currentId = atomicCounterIncrement(uCounterTransparency);
 
 		if( currentId < uNbFragmentsMax ) {
-			uint previousId = imageAtomicExchange(uRootTransparency, ivec2(gl_FragCoord.xy), currentId); // wtf ivec2 ???
+			uint nextId = imageAtomicExchange(uRootTransparency, ivec2(gl_FragCoord.xy), currentId);
+			// update counter per pixel
+			// compare counter with nb max per pixel
 
-			LinkedList[currentId*5  ] = albedo.x;
-			LinkedList[currentId*5+1] = albedo.y;
-			LinkedList[currentId*5+2] = albedo.z;
-			LinkedList[currentId*5+3] = gl_FragCoord.z;
-			LinkedList[currentId*5+4] = previousId;	
-			// emissive + normal + metal + rough
+			nodes[currentId].albedo = albedo;
+			nodes[currentId].depth = gl_FragCoord.z;
+			nodes[currentId].nextId = nextId;
 		}
 
 		discard;

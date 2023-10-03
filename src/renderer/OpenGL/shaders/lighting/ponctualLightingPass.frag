@@ -55,11 +55,11 @@ void main()
 
 	float cosNL = dot(N,L);
 	float cosNV = dot(N,V);
-	/*if(cosNL<0. && cosNV<0.) {N*=-1.; cosNV=-1.; cosNL*=-1.;}
-	if(cosNL<0. || cosNV<0.) discard;*/
 	if(cosNL<0. && cosNV<0.) N=-N;
 	cosNL = abs(cosNL);
 	cosNV = abs(cosNV);
+	//if(cosNV<0.) { N=-N; cosNV=-cosNV; cosNL=-cosNL; }
+	//if(cosNL<0.) { return; }
 
 	// --- SHADOW ---
 	vec3 T = cross(N,vec3(1.,0.,0.));
@@ -93,15 +93,10 @@ void main()
 	float r = albedo_roughness.a * albedo_roughness.a;
     float r2 = r*r;
     
-    // use fresnel normal incidence for m.ior and 1.
-    //vec3 F0 = mix(vec3(0.04),albedo_roughness.xyz,normal_metalness.a);
-    //vec3 F = schlick(F0,vec3(1.),cosHL);
 	vec3 F = schlick(albedo_roughness.xyz,vec3(1.),cosHL);
-    float D = r2/(PI*pow2(cosHN*cosHN*(r2-1.)+1.));
-    float V2 = 0.5/(cosNL*sqrt((cosNV-cosNV*r2)*cosNV+r2) + cosNV*sqrt((cosNL-cosNL*r2)*cosNL+r2));
+    float D = r2/max(1e-5,(PI*pow2(cosHN*cosHN*(r2-1.)+1.)));
+    float V2 = 0.5/max(1e-5,(cosNL*sqrt((cosNV-cosNV*r2)*cosNV+r2) + cosNV*sqrt((cosNL-cosNL*r2)*cosNL+r2)));
     vec3 conductor = F*D*V2;
 
-	//fragColor = vec4(mix(dielectric,conductor,normal_metalness.a) * Light_Componant * shadow * cosNL,1.);
-	//fragColor = vec4(((1.-F)*dielectric+conductor) * Light_Componant * shadow * cosNL,1.);
-	fragColor = vec4( mix(mix(dielectric,conductor,schlick(0.04,1.,cosHL)),conductor,normal_metalness.a) * Light_Componant * shadow * cosNL, 1.); 
+	fragColor = vec4(mix(dielectric,conductor,normal_metalness.a) * Light_Componant * shadow * cosNL,1.);
 }

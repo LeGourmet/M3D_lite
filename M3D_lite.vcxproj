@@ -541,7 +541,7 @@
     <ClInclude Include="lib\tinygltf\stb_image_write.h" />
     <ClInclude Include="lib\tinygltf\tiny_gltf.h" />
     <ClInclude Include="src\application.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\stages\stage_lighting_ogl.hpp" />
+    <ClInclude Include="src\renderer\OpenGL\stages\stage_geometry_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\stages\stage_mesh_opaque_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\stages\stage_mesh_transparent_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\stages\stage_post_processing_ogl.hpp" />

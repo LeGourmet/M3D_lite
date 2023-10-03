@@ -1,23 +1,24 @@
 #version 450
 
 // adapted from: https://github.com/kosua20/Rendu/blob/master/resources/common/shaders/screens/fxaa.frag
+// and http://blog.simonrodriguez.fr/articles/2016/07/implementing_fxaa.html
 
 layout( location = 0 ) out vec3 fragColor;
 
-layout( binding = 0 ) uniform sampler2D uSrcTexture;
+layout( binding = 0 ) uniform sampler2D uSrcTexture; // bilinear !!
 
 uniform vec2 uInvSrcRes;
 
 in vec2 uv;
 
-#define EDGE_THRESHOLD_MIN 0.0624
+#define EDGE_THRESHOLD_MIN 0.0624 // recoment 0.0312
 #define EDGE_THRESHOLD_MAX 0.125
 #define SUBPIXEL_QUALITY   0.75
 #define NB_SEARCH_STEPS	   12
 const float AA_QUALITY[ 12 ]	= {1.,1.,1.,1.,1.,1.5,2.,2.,2.,2.,4.,8.};
 
-const vec3 luma = vec3(0.299,0.587,0.114);
-float rgb2luma(const vec3 rgb){ return dot(rgb,luma); }
+//float rgb2luma(const vec3 rgb){ return dot(rgb,vec3(0.299,0.587,0.114)); }
+float rgb2luma(const vec3 rgb){ return sqrt(dot(rgb,vec3(0.299,0.587,0.114))); }
 
 void main()
 {
@@ -73,8 +74,7 @@ void main()
 	vec2 uv1 = currentUV - offset*AA_QUALITY[0];
 	vec2 uv2 = currentUV + offset*AA_QUALITY[0];
 	
-	float lumaVar1 = rgb2luma( texture(uSrcTexture, uv1).xyz ) - lumaLocalAvg;
-	float lumaVar2 = rgb2luma( texture(uSrcTexture, uv2).xyz ) - lumaLocalAvg;
+	float lumaVar1,lumaVar2;;
 	bool isDone1=false, isDone2=false, isDoneBoth=false;
 	
 	for(int i=1; i<NB_SEARCH_STEPS && !isDoneBoth ;i++){
@@ -83,9 +83,10 @@ void main()
 			
 		isDone1 = abs(lumaVar1) >= gradientScaled;
 		isDone2 = abs(lumaVar2) >= gradientScaled;
+		isDoneBoth = isDone1 && isDone2;
+
 		if(!isDone1) uv1 -= offset*AA_QUALITY[i];
 		if(!isDone2) uv2 += offset*AA_QUALITY[i];
-		isDoneBoth = isDone1 && isDone2;
 	}
 
 	float dist1 = (isHorizontal) ? uv.x-uv1.x : uv.y-uv1.y;
@@ -97,7 +98,7 @@ void main()
 	float subPixelOffset2 = (3.-2.*subPixelOffset1)*subPixelOffset1*subPixelOffset1;
 	float subPixelOffset  = subPixelOffset2*subPixelOffset2*SUBPIXEL_QUALITY;
 
-	bool correctVariation = (dist1<dist2) ? ((lumaVar1<0.) != (lumaC<lumaLocalAvg)) : ((lumaVar2<0.) != (lumaC<lumaLocalAvg));
+	bool correctVariation = (((dist1<dist2) ? lumaVar1 : lumaVar2)<0.) != (lumaC<lumaLocalAvg);
 	float pixelOffset = (correctVariation) ? 0.5-min(dist1,dist2)/(dist1+dist2) : 0.;
 
 	vec2 finalUV = uv + max(pixelOffset,subPixelOffset) * ((isHorizontal) ? vec2(0.,stepLength) : vec2(stepLength,0.));

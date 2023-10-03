@@ -70,13 +70,12 @@ namespace M3D
 				_uniformsLoc.insert(std::pair<std::string, GLuint>(p_uniform, glGetUniformLocation(_program, p_uniform.c_str())));
 			}
 
-		protected:
+		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 			GLuint _program = GL_INVALID_INDEX;
 
 			std::map<std::string, GLuint> _uniformsLoc;
 
-		private:
 			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void _compileShader(GLuint p_shader, std::string p_path) {
 				std::ifstream ifstream(p_path, std::ifstream::in);

@@ -42,7 +42,7 @@ namespace Renderer
 		glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.a);
 		_stageGeometryOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures);
 		_stageMeshOpaqueOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageGeometryOGL->getPositionMap(), _stageGeometryOGL->getNormalMetalnessMap(), _stageGeometryOGL->getAlbedoRoughnessMap(), _stageGeometryOGL->getEmissiveMap());
-		_stageMeshTransparentOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageMeshOpaqueOGL->getOpaqueMap(), _stageGeometryOGL->getDepthMap(), _stageGeometryOGL->getRootTransparency(), _stageGeometryOGL->getSSBOTransparency(), _stageGeometryOGL->getCounterTransparency());
+		_stageMeshTransparentOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageMeshOpaqueOGL->getOpaqueMap(), _stageGeometryOGL->getDepthMap(), _stageGeometryOGL->getRootTransparency(), _stageGeometryOGL->getSSBOTransparency());
 		_stagePostProcessingOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageMeshTransparentOGL->getTransparencyMap()); // transparency => +reflected lights
 
 		GLenum err;

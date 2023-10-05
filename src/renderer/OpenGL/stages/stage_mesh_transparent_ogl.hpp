@@ -48,7 +48,7 @@ namespace M3D
 				resizeColorMap(p_width, p_height, _transparencyMap);
 			}
 
-			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_opaqueMap, GLuint p_depthMapOpaque, GLuint p_rootTransparency, GLuint p_ssboTransparency, GLuint p_counterTransparency) {
+			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_opaqueMap, GLuint p_depthMapOpaque, GLuint p_rootTransparency, GLuint p_ssboTransparency) {
 				glViewport(0, 0, p_width, p_height);
 
 				glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
@@ -62,7 +62,6 @@ namespace M3D
 
 				glBindImageTexture(2, p_rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
 				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, p_ssboTransparency);
-				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 4, p_counterTransparency);
 
 				glProgramUniform1ui(_transparencyPass.getProgram(), _transparencyPass.getUniform("uNbFragmentsMaxPerPixel"), Application::getInstance().getRenderer().getTransparencyMaxDepth());
 			

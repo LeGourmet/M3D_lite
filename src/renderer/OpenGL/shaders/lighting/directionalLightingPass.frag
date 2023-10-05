@@ -22,32 +22,9 @@ uniform vec3 uLightEmissivity;
 
 in vec2 uv;
 
-
-
-/*float shadow_slope_bias_get(vec2 atlas_size, LightData light, vec3 lNg, vec3 lP, vec2 uv, uint lod)
-{
-  // Compute coordinate inside the pixel we are sampling.
-  vec2 uv_subpixel_coord = fract(uv * atlas_size);
-  // Bias uv sample for LODs since custom raster aligns LOD pixels instead of centering them.
-  uv_subpixel_coord += (lod > 0) ? -exp2(-1.0 - float(lod)) : 0.0;
-  // Compute delta to the texel center (where the sample is).
-  vec2 ndc_texel_center_delta = uv_subpixel_coord * 2.0 - 1.0;
-  // Create a normal plane equation and go through the normal projection matrix.
-  vec4 lNg_plane = vec4(lNg, -dot(lNg, lP));
-  vec4 ndc_Ng = shadow_load_normal_matrix(light) * lNg_plane;
-  // Get slope from normal vector. Note that this is signed.
-  vec2 ndc_slope = ndc_Ng.xy / abs(ndc_Ng.z);
-  // Clamp out to avoid the bias going to infinity. Remember this is in NDC space.
-  ndc_slope = clamp(ndc_slope, -100.0, 100.0);
-  // Compute slope to where the receiver should be by extending the plane to the texel center.
-  float bias = dot(ndc_slope, ndc_texel_center_delta);
-  // Bias for 1 pixel of the sampled LOD.
-  bias /= ((SHADOW_TILEMAP_RES * SHADOW_PAGE_RES) >> lod);
-  return bias;
-}*/
-
-
-
+// use slope scale bias => dot(L,N)
+// use adaptive Bias Based on Depth => base on difference znear/zfar for light source
+// use bias that scale on resalution of the shadow map
 
 
 // ------------- fresnel -------------	:	schilk

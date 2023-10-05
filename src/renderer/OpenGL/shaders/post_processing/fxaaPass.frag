@@ -5,20 +5,19 @@
 
 layout( location = 0 ) out vec3 fragColor;
 
-layout( binding = 0 ) uniform sampler2D uSrcTexture; // bilinear !!
+layout( binding = 0 ) uniform sampler2D uSrcTexture; // the texture need to have bilinear filtering enable
 
 uniform vec2 uInvSrcRes;
 
 in vec2 uv;
 
-#define EDGE_THRESHOLD_MIN 0.0624 // recoment 0.0312
+#define EDGE_THRESHOLD_MIN 0.0624
 #define EDGE_THRESHOLD_MAX 0.125
 #define SUBPIXEL_QUALITY   0.75
 #define NB_SEARCH_STEPS	   12
 const float AA_QUALITY[ 12 ]	= {1.,1.,1.,1.,1.,1.5,2.,2.,2.,2.,4.,8.};
 
-//float rgb2luma(const vec3 rgb){ return dot(rgb,vec3(0.299,0.587,0.114)); }
-float rgb2luma(const vec3 rgb){ return sqrt(dot(rgb,vec3(0.299,0.587,0.114))); }
+float rgb2luma(const vec3 rgb){ return sqrt(dot(rgb,vec3(0.299,0.587,0.114))); } // better results with sqrt
 
 void main()
 {

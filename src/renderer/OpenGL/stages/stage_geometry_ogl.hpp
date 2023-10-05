@@ -78,7 +78,6 @@ namespace M3D
 			GLuint getDepthMap() { return _depthMap; }
 			GLuint getRootTransparency() { return _rootTransparency; }
 			GLuint getSSBOTransparency() { return _ssboTransparency; }
-			GLuint getCounterTransparency() { return _counterTransparency; }
 
 			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void resize(int p_width, int p_height) {

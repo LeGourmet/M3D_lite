@@ -1,6 +1,6 @@
 #version 450
 
-struct fragNode {
+struct FragNode {
   vec4 albedo;
   float depth;
   uint nextId;
@@ -17,7 +17,7 @@ layout( binding = 3 ) uniform sampler2D uNormalMap;
 layout( binding = 4 ) uniform sampler2D uEmissiveMap;
 
 layout( binding = 5, r32ui)		uniform uimage2D uRootTransparency;				// add counter per pixels;
-layout( binding = 6, std430)	buffer uLinkedListTransparency { fragNode nodes[]; };
+layout( binding = 6, std430)	buffer uLinkedListTransparency { FragNode nodes[]; };
 layout( binding = 7, offset=0)	uniform atomic_uint uCounterTransparency;
 uniform uint uNbFragmentsMax;
 uniform uint uNbFragmentsMaxPerPixel;

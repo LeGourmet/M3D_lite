@@ -21,20 +21,19 @@ namespace M3D
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 			StageGeometryOGL() {
-				_geometryPass.addUniform("uAlbedo");
-				_geometryPass.addUniform("uEmissiveColor");
-				_geometryPass.addUniform("uEmissiveStrength");
-				_geometryPass.addUniform("uMetalness");
-				_geometryPass.addUniform("uRoughness");
-				_geometryPass.addUniform("uAlphaCutOff");
+				_GeometryPass.addUniform("uAlbedo");
+				_GeometryPass.addUniform("uEmissiveColor");
+				_GeometryPass.addUniform("uEmissiveStrength");
+				_GeometryPass.addUniform("uMetalness");
+				_GeometryPass.addUniform("uRoughness");
+				_GeometryPass.addUniform("uAlphaCutOff");
 
-				_geometryPass.addUniform("uHasAlbedoMap");
-				_geometryPass.addUniform("uHasMetalnessRoughnessMap");
-				_geometryPass.addUniform("uHasNormalMap");
-				_geometryPass.addUniform("uHasEmissiveMap");
+				_GeometryPass.addUniform("uHasAlbedoMap");
+				_GeometryPass.addUniform("uHasMetalnessRoughnessMap");
+				_GeometryPass.addUniform("uHasNormalMap");
+				_GeometryPass.addUniform("uHasEmissiveMap");
 
-				_geometryPass.addUniform("uNbFragmentsMax");
-				_geometryPass.addUniform("uNbFragmentsMaxPerPixel");
+				_GeometryPass.addUniform("uNbFragmentsMax");
 
 				glCreateFramebuffers(1, &_fbo);
 				generateMap(&_positionMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
@@ -45,7 +44,7 @@ namespace M3D
 				attachColorMap(_fbo, _albedoRoughnessMap, 2);
 				generateMap(&_emissiveMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 				attachColorMap(_fbo, _emissiveMap, 3);
-				generateMap(&_depthMap, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
+				generateMap(&_depthMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
 				attachDepthMap(_fbo, _depthMap);
 				GLenum DrawBuffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
 				glNamedFramebufferDrawBuffers(_fbo, 4, DrawBuffers);
@@ -55,6 +54,8 @@ namespace M3D
 				glCreateBuffers(1, &_counterTransparency);
 
 				glNamedBufferStorage(_counterTransparency, sizeof(unsigned int), nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+				glCreateVertexArrays(1, &_emptyVAO);
 			}
 
 			~StageGeometryOGL() {
@@ -68,16 +69,17 @@ namespace M3D
 				glDeleteTextures(1, &_rootTransparency);
 				glDeleteBuffers(1, &_ssboTransparency);
 				glDeleteBuffers(1, &_counterTransparency);
+
+				glDeleteVertexArrays(1, &_emptyVAO);
 			}
 
 			// ------------------------------------------------------ GETTERS ------------------------------------------------------
-			GLuint getPositionMap() { return _positionMap; }
+			GLuint getPositionMap()		   { return _positionMap; }
 			GLuint getNormalMetalnessMap() { return _normalMetalnessMap; }
 			GLuint getAlbedoRoughnessMap() { return _albedoRoughnessMap; }
-			GLuint getEmissiveMap() { return _emissiveMap; }
-			GLuint getDepthMap() { return _depthMap; }
-			GLuint getRootTransparency() { return _rootTransparency; }
-			GLuint getSSBOTransparency() { return _ssboTransparency; }
+			GLuint getEmissiveMap()		   { return _emissiveMap; }
+			GLuint getRootTransparency()   { return _rootTransparency; }
+			GLuint getSSBOTransparency()   { return _ssboTransparency; }
 
 			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void resize(int p_width, int p_height) {
@@ -91,10 +93,10 @@ namespace M3D
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, p_width, p_height, 0, GL_RED, GL_FLOAT, 0);
 				glBindTexture(GL_TEXTURE_2D, 0);
 
-				_maxTransparentFragments = 25 * p_width * p_height; // todo scale on transparencymaxdepth
+				_maxTransparentFragments = 25 * p_width * p_height;
 				glDeleteBuffers(1, &_ssboTransparency);
 				glCreateBuffers(1, &_ssboTransparency);
-				glNamedBufferStorage(_ssboTransparency, _maxTransparentFragments * (5*sizeof(float)+sizeof(unsigned int)), nullptr, GL_DYNAMIC_STORAGE_BIT);
+				glNamedBufferStorage(_ssboTransparency, _maxTransparentFragments * (15*sizeof(float)+sizeof(unsigned int)), nullptr, GL_DYNAMIC_STORAGE_BIT);
 			}
 
 			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures) {
@@ -105,7 +107,7 @@ namespace M3D
 				glEnable(GL_DEPTH_TEST);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-				glUseProgram(_geometryPass.getProgram());
+				glUseProgram(_GeometryPass.getProgram());
 
 				glClearTexImage(_rootTransparency,0,GL_RED,GL_UNSIGNED_INT,&_clearValue);
 				glBindImageTexture(5,_rootTransparency,0,GL_FALSE,0,GL_READ_WRITE,GL_R32UI);
@@ -115,8 +117,7 @@ namespace M3D
 				glNamedBufferSubData(_counterTransparency, 0, sizeof(unsigned int), &_clearValue);
 				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 7, _counterTransparency);
 
-				glProgramUniform1ui(_geometryPass.getProgram(), _geometryPass.getUniform("uNbFragmentsMax"), _maxTransparentFragments);
-				glProgramUniform1ui(_geometryPass.getProgram(), _geometryPass.getUniform("uNbFragmentsMaxPerPixel"), Application::getInstance().getRenderer().getTransparencyMaxDepth());
+				glProgramUniform1ui(_GeometryPass.getProgram(), _GeometryPass.getUniform("uNbFragmentsMax"), _maxTransparentFragments);
 
 				// TODO frustum culling
 				for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes) {
@@ -126,24 +127,24 @@ namespace M3D
 						if (subMesh.getMaterial().isDoubleSide()) { glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
 						else { glDisable(GL_CULL_FACE); }
 
-						glProgramUniform4fv(_geometryPass.getProgram(), _geometryPass.getUniform("uAlbedo"), 1, glm::value_ptr(subMesh.getMaterial().getBaseColor()));
-						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasAlbedoMap"), subMesh.getMaterial().getBaseColorMap() != nullptr);
+						glProgramUniform4fv(_GeometryPass.getProgram(), _GeometryPass.getUniform("uAlbedo"), 1, glm::value_ptr(subMesh.getMaterial().getBaseColor()));
+						glProgramUniform1i(_GeometryPass.getProgram(), _GeometryPass.getUniform("uHasAlbedoMap"), subMesh.getMaterial().getBaseColorMap() != nullptr);
 						if (subMesh.getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures.at(subMesh.getMaterial().getBaseColorMap())->getId());
 
-						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uMetalness"), subMesh.getMaterial().getMetalness());
-						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uRoughness"), subMesh.getMaterial().getRoughness());
-						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasMetalnessRoughnessMap"), subMesh.getMaterial().getMetalnessRoughnessMap() != nullptr);
+						glProgramUniform1f(_GeometryPass.getProgram(), _GeometryPass.getUniform("uMetalness"), subMesh.getMaterial().getMetalness());
+						glProgramUniform1f(_GeometryPass.getProgram(), _GeometryPass.getUniform("uRoughness"), subMesh.getMaterial().getRoughness());
+						glProgramUniform1i(_GeometryPass.getProgram(), _GeometryPass.getUniform("uHasMetalnessRoughnessMap"), subMesh.getMaterial().getMetalnessRoughnessMap() != nullptr);
 						if (subMesh.getMaterial().getMetalnessRoughnessMap() != nullptr) glBindTextureUnit(2, p_textures.at(subMesh.getMaterial().getMetalnessRoughnessMap())->getId());
 
-						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasNormalMap"), subMesh.getMaterial().getNormalMap() != nullptr);
+						glProgramUniform1i(_GeometryPass.getProgram(), _GeometryPass.getUniform("uHasNormalMap"), subMesh.getMaterial().getNormalMap() != nullptr);
 						if (subMesh.getMaterial().getNormalMap() != nullptr) glBindTextureUnit(3, p_textures.at(subMesh.getMaterial().getNormalMap())->getId());
 
-						glProgramUniform3fv(_geometryPass.getProgram(), _geometryPass.getUniform("uEmissiveColor"), 1, glm::value_ptr(subMesh.getMaterial().getEmissiveColor()));
-						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uEmissiveStrength"), subMesh.getMaterial().getEmissiveStrength());
-						glProgramUniform1i(_geometryPass.getProgram(), _geometryPass.getUniform("uHasEmissiveMap"), subMesh.getMaterial().getEmissiveMap() != nullptr);
+						glProgramUniform3fv(_GeometryPass.getProgram(), _GeometryPass.getUniform("uEmissiveColor"), 1, glm::value_ptr(subMesh.getMaterial().getEmissiveColor()));
+						glProgramUniform1f(_GeometryPass.getProgram(), _GeometryPass.getUniform("uEmissiveStrength"), subMesh.getMaterial().getEmissiveStrength());
+						glProgramUniform1i(_GeometryPass.getProgram(), _GeometryPass.getUniform("uHasEmissiveMap"), subMesh.getMaterial().getEmissiveMap() != nullptr);
 						if (subMesh.getMaterial().getEmissiveMap() != nullptr) glBindTextureUnit(4, p_textures.at(subMesh.getMaterial().getEmissiveMap())->getId());
 
-						glProgramUniform1f(_geometryPass.getProgram(), _geometryPass.getUniform("uAlphaCutOff"), subMesh.getMaterial().getAlphaCutOff());
+						glProgramUniform1f(_GeometryPass.getProgram(), _GeometryPass.getUniform("uAlphaCutOff"), subMesh.getMaterial().getAlphaCutOff());
 
 						mesh.second->bind(i);
 						glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)subMesh.getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
@@ -154,10 +155,22 @@ namespace M3D
 				glDisable(GL_CULL_FACE);
 				glDisable(GL_DEPTH_TEST);
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+				glUseProgram(_FilterAndSortTranspFragsPass.getProgram());
+
+				glBindTextureUnit(0, _depthMap);
+				glBindImageTexture(1, _rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
+				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, _ssboTransparency);
+
+				glBindVertexArray(_emptyVAO);
+				glDrawArrays(GL_TRIANGLES, 0, 3);
+				glBindVertexArray(0);
 			}
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+			GLuint _emptyVAO = GL_INVALID_INDEX;
+			
 			GLuint _fbo = GL_INVALID_INDEX;
 
 			unsigned int _maxTransparentFragments = 0;
@@ -173,7 +186,8 @@ namespace M3D
 			GLuint _emissiveMap = GL_INVALID_INDEX;
 			GLuint _depthMap = GL_INVALID_INDEX;
 
-			ProgramOGL _geometryPass = ProgramOGL("src/renderer/OpenGL/shaders/geometry/geometryPass.vert", "", "src/renderer/OpenGL/shaders/geometry/geometryPass.frag");
+			ProgramOGL _GeometryPass = ProgramOGL("src/renderer/OpenGL/shaders/geometry/GeometryPass.vert", "", "src/renderer/OpenGL/shaders/geometry/GeometryPass.frag");
+			ProgramOGL _FilterAndSortTranspFragsPass = ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/geometry/FilterAndSortTranspFragsPass.frag");
 		};
 	}
 }

@@ -23,7 +23,6 @@ namespace M3D
             // ------------------------------------------------------ GETTERS ------------------------------------------------------
             inline float getGamma() { return _gamma; }
             inline float getBloomPower() { return _bloomPower; }
-            inline unsigned int getTransparencyMaxDepth() { return _transparencyMaxDepth; }
             inline Vec4f& getClearColor() { return _clearColor; }
 
             // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
@@ -42,7 +41,6 @@ namespace M3D
         protected:
             float _gamma = 2.2f; 
             float _bloomPower = 0.04f;
-            unsigned int _transparencyMaxDepth = 100;
             Vec4f _clearColor = VEC4F_ZERO;
         };
     }

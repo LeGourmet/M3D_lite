@@ -7,8 +7,7 @@
 #include "renderer/OpenGL/texture_ogl.hpp"
 
 #include "renderer/OpenGL/stages/stage_geometry_ogl.hpp"
-#include "renderer/OpenGL/stages/stage_mesh_opaque_ogl.hpp"
-#include "renderer/OpenGL/stages/stage_mesh_transparent_ogl.hpp"
+#include "renderer/OpenGL/stages/stage_lighting_ogl.hpp"
 #include "renderer/OpenGL/stages/stage_post_processing_ogl.hpp"
 
 #include <map>
@@ -40,8 +39,7 @@ namespace M3D
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 			StageGeometryOGL*		 _stageGeometryOGL;
-			StageMeshOpaqueOGL*		 _stageMeshOpaqueOGL;
-			StageMeshTransparentOGL* _stageMeshTransparentOGL;
+			StageLightingOGL*		 _stageLightingOGL;
 			StagePostProcessingOGL*  _stagePostProcessingOGL;
 
 			std::map<Scene::Mesh*, MeshOGL*> _meshes;

@@ -7,6 +7,7 @@
 #define EPS				0.0001
 
 #define pow2(a) (a)*(a)
+#define pow5(a) (a)*(a)*(a)*(a)*(a)
 
 layout( location = 0 ) out vec4 fragColor;
 
@@ -23,16 +24,8 @@ uniform vec2 uLightCosAngles;
 
 in vec2 uv;
 
-// ------------- fresnel -------------	:	schilk
-float schlick(in float f0, in float f90, in float cosT){
-    float tmp = 1.-cosT;
-    return f0 + (f90 - f0) * tmp*tmp*tmp*tmp*tmp;
-} 
-
-vec3 schlick(in vec3 f0, in vec3 f90, in float cosT){ 
-	float tmp = 1.-cosT;
-	return f0 + (f90-f0) * tmp*tmp*tmp*tmp*tmp;
-}
+float schlick(in float f0, in float f90, in float cosT){return f0 + (f90-f0) * pow5(1.-cosT); } 
+vec3 schlick(in vec3 f0, in vec3 f90, in float cosT){ return f0 + (f90-f0) * pow5(1.-cosT); }
 
 void main()
 {
@@ -53,13 +46,29 @@ void main()
 						   clamp((dot(-L,uLightDirection)-uLightCosAngles.y) / (uLightCosAngles.x-uLightCosAngles.y), 0., 1.) /
 						   max(lightDepth_sq,EPS);
 
-	float cosNL = dot(N,L);
-	float cosNV = dot(N,V);
-	if(cosNL<0. && cosNV<0.) N=-N;
-	cosNL = abs(cosNL);
-	cosNV = abs(cosNV);
-	//if(cosNV<0.) { N=-N; cosNV=-cosNV; cosNL=-cosNL; }
-	//if(cosNL<0.) { return; }
+	// ---------- SHADING ----------
+	vec3 H = normalize(V+L);
+	if(dot(N,V)<0. && dot(N,L)<0.) N = -N;
+
+	float cosNV = max(1e-5,abs(dot(N,V)));
+	float cosNL = max(0.,dot(N,L));
+	float cosHL = max(0.,dot(H,L));
+	float cosHN = max(0.,dot(H,N));
+
+	float r = albedo_roughness.a * albedo_roughness.a;
+    float r2 = r*r;
+	
+	// --- dielectic ---
+	float Rr = r*2.f*cosHL*cosHL+0.5f;
+    float Fl = pow5(1.f-cosNL);
+    float Fv = pow5(1.f-cosNV);
+	vec3 dielectric = albedo_roughness.xyz * ((1.f-0.5f*Fl) * (1.f-0.5f*Fv) + Rr*(Fl+Fv+Fl*Fv*(Rr-1.f)))/PI;
+
+	// --- conductor ---
+    vec3 F = schlick(mix(vec3(schlick(0.04,1.,max(0.,cosHL))), albedo_roughness.xyz, normal_metalness.a), vec3(1.), cosHL);
+	float D = r2/max(1e-5,(PI*pow2(cosHN*cosHN*(r2-1.)+1.)));
+    float V2 = 0.5/max(1e-5,(cosNL*sqrt((cosNV-cosNV*r2)*cosNV+r2) + cosNV*sqrt((cosNL-cosNL*r2)*cosNL+r2)));
+    vec3 conductor = F*D*V2;
 
 	// --- SHADOW ---
 	vec3 T = cross(N,vec3(1.,0.,0.));
@@ -78,25 +87,6 @@ void main()
 				shadow += (lightDepth > shadowDepth) ? 0. : 1.;
 			}
 	shadow /= (PCF_SAMPLES * PCF_SAMPLES);
-
-	// ---------- SHADING ----------
-	vec3 H = normalize(V+L);
-	float cosHV = dot(H,V);
-	float cosHL = dot(H,L);
-	float cosHN = dot(H,N);
-
-	// --- dielectic ---
-	float f90 = albedo_roughness.a * (2.*cosHL*cosHL+0.5);
-    vec3 dielectric = albedo_roughness.xyz * schlick(1.,f90,cosNL) * schlick(1.,f90,cosNV) * (1.-albedo_roughness.a*0.51/1.51) / PI;
-
-	// --- conductor ---   
-	float r = albedo_roughness.a * albedo_roughness.a;
-    float r2 = r*r;
-    
-	vec3 F = schlick(albedo_roughness.xyz,vec3(1.),cosHL);
-    float D = r2/max(1e-5,(PI*pow2(cosHN*cosHN*(r2-1.)+1.)));
-    float V2 = 0.5/max(1e-5,(cosNL*sqrt((cosNV-cosNV*r2)*cosNV+r2) + cosNV*sqrt((cosNL-cosNL*r2)*cosNL+r2)));
-    vec3 conductor = F*D*V2;
 
 	fragColor = vec4(mix(dielectric,conductor,normal_metalness.a) * Light_Componant * shadow * cosNL,1.);
 }

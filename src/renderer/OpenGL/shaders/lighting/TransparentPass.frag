@@ -7,6 +7,7 @@ struct FragNode {
     vec3 position;
     vec3 normal;
     vec3 emissive;
+    float metalness;
     float roughness;
     float depth;
     uint nextId;

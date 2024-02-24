@@ -5,6 +5,7 @@ struct FragNode {
     vec3 position;
     vec3 normal;
     vec3 emissive;
+	float metalness;
     float roughness;
     float depth;
     uint nextId;
@@ -48,8 +49,7 @@ void main(){
 	vec3 normal = normalize(uHasNormalMap ? (TBN*(texture(uNormalMap,uv).xyz*2.-1.)) : fragNormal);
 	vec2 MetalnessRoughness = (uHasMetalnessRoughnessMap ? texture(uMetalnessRoughnessMap,uv).zy : vec2(uMetalness,uRoughness));
 	vec3 emissive_componant = (uHasEmissiveMap ? texture(uEmissiveMap,uv).xyz : uEmissiveColor) * uEmissiveStrength;
-
-
+	
 	if(uAlphaCutOff<1.){ // opaque
 		if(albedo.a<uAlphaCutOff) discard;
 
@@ -66,6 +66,7 @@ void main(){
 			nodes[currentId].position = fragPosition;
 			nodes[currentId].normal = normal;
 			nodes[currentId].emissive = emissive_componant;
+			nodes[currentId].metalness = MetalnessRoughness.x;
 			nodes[currentId].roughness = MetalnessRoughness.y;
 			nodes[currentId].depth = gl_FragCoord.z;
 			nodes[currentId].nextId = nextId;

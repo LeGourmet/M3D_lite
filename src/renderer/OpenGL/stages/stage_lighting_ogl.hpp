@@ -142,6 +142,7 @@ namespace M3D
 							case LIGHT_TYPE::POINT:
 							case LIGHT_TYPE::SPOT:
 								{
+									// todo better compute
 									float znear = 1e-3f;
 									float zfar = glm::max(znear,l.getRange()); // TODO frustum culling and bounding sphere objects to compute zfar
 									Vec3f lightPos = l.getInstance(i)->getPosition();
@@ -214,23 +215,44 @@ namespace M3D
 									glProgramUniform3fv(_OpaquePunctualPass.getProgram(), _OpaquePunctualPass.getUniform("uLightEmissivity"), 1, glm::value_ptr(l.getEmissivity()));
 									glProgramUniform2fv(_OpaquePunctualPass.getProgram(), _OpaquePunctualPass.getUniform("uLightCosAngles"), 1, glm::value_ptr(Vec2f(l.getCosInnerConeAngle(), l.getCosOuterConeAngle())));
 									
-									/*Mat4f p_matrixVP = Application::getInstance().getSceneManager().getMainCameraViewMatrix() * Application::getInstance().getSceneManager().getMainCameraProjectionMatrix();
-
-									Vec4f minBillboard = p_matrixVP * Vec4f((Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getUp() + Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getRight())*l.getRange() + lightPos,1.f);
-									minBillboard /= minBillboard.a;
 									
-									Vec4f maxBillboard = p_matrixVP * Vec4f((Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getDown() + Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getLeft())*l.getRange() + lightPos,1.f);
-									maxBillboard /= maxBillboard.a;
+									Mat4f p_matrixVP = Application::getInstance().getSceneManager().getMainCameraProjectionMatrix()*Application::getInstance().getSceneManager().getMainCameraViewMatrix();
 
-									_billBoardCoords[0] = glm::clamp(Vec4f(minBillboard.x, minBillboard.y, minBillboard.z, 1.), -VEC4F_ONE, VEC4F_ONE);
-									_billBoardCoords[1] = glm::clamp(Vec4f(maxBillboard.x, minBillboard.y, (minBillboard.z + maxBillboard.z) * 0.5, 1.), -VEC4F_ONE, VEC4F_ONE);
-									_billBoardCoords[2] = glm::clamp(Vec4f(minBillboard.x, maxBillboard.y, (minBillboard.z + maxBillboard.z) * 0.5, 1.), -VEC4F_ONE, VEC4F_ONE);
-									_billBoardCoords[3] = glm::clamp(Vec4f(maxBillboard.x, maxBillboard.y, maxBillboard.z, 1.), -VEC4F_ONE, VEC4F_ONE);*/
+									float range = 0.1f;
+
+									Vec4f a = p_matrixVP * 
+										Vec4f((
+												Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getUp() + 
+												Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getLeft()) * range + lightPos, 1.f);
+									//a /= a.a;
+
+									Vec4f b = p_matrixVP * 
+										Vec4f((
+												Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getUp() + 
+												Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getRight()) * range + lightPos, 1.f);
+									//b /= b.a;
 									
-									_billBoardCoords[0] = Vec4f(-1.,-1.,0.,1.);
-									_billBoardCoords[1] = Vec4f( 1.,-1.,0.,1.);
-									_billBoardCoords[2] = Vec4f(-1., 1.,0.,1.);
-									_billBoardCoords[3] = Vec4f( 1., 1.,0.,1.);
+									Vec4f c = p_matrixVP *
+										Vec4f((
+											Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getDown() +
+											Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getLeft()) * range + lightPos, 1.f);
+									//c /= c.a;
+
+									Vec4f d = p_matrixVP *
+										Vec4f((
+											Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getDown() +
+											Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getRight()) * range + lightPos, 1.f);
+									//d /= d.a;
+
+									_billBoardCoords[0] = glm::clamp(Vec4f(a.x, a.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);
+									_billBoardCoords[1] = glm::clamp(Vec4f(b.x, b.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);
+									_billBoardCoords[2] = glm::clamp(Vec4f(c.x, c.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);
+									_billBoardCoords[3] = glm::clamp(Vec4f(d.x, d.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);
+
+									//_billBoardCoords[0] = Vec4f(-1.,-1.,0.,1.);
+									//_billBoardCoords[1] = Vec4f( 1.,-1.,0.,1.);
+									//_billBoardCoords[2] = Vec4f(-1., 1.,0.,1.);
+									//_billBoardCoords[3] = Vec4f( 1., 1.,0.,1.);
 									
 									glNamedBufferSubData(_billboardSSBO, 0, 4*sizeof(Vec4f), &_billBoardCoords);
 									glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _billboardSSBO);
@@ -286,11 +308,14 @@ namespace M3D
 								}
 							case LIGHT_TYPE::DIRECTIONAL:
 								{
+								continue;
+
 									// todo better compute
 									float znear = 1e-3f;
 									float xmag = 50.f, ymag = 50.f, zfar = 50.f;
 									Vec3f centerFrustum = VEC3F_ZERO;
 									Mat4f lightMatrix_VP = glm::ortho(-0.5f*xmag, 0.5f*xmag, -0.5f*ymag, 0.5f*ymag, znear, zfar) * glm::lookAt(centerFrustum+l.getInstance(i)->getBack()*0.5f*zfar, centerFrustum, l.getInstance(i)->getUp());
+									Mat4f homogeneousLightMatrix_VP = Mat4f(0.5f, 0.f, 0.f, 0.f, 0.f, 0.5f, 0.f, 0.f, 0.f, 0.f, 0.5f, 0.f, 0.5f, 0.5f, 0.5f, 1.f) * lightMatrix_VP;
 									
 									// --- shadow ---
 									glViewport(0, 0, _shadowMapResolution, _shadowMapResolution);
@@ -341,8 +366,7 @@ namespace M3D
 									glBindTextureUnit(2, p_albedoRoughnessMap);
 									glBindTextureUnit(3, _shadowMap);
 
-									lightMatrix_VP = Mat4f(0.5,0.,0.,0.,0.,0.5,0.,0.,0.,0.,0.5,0.,0.5,0.5,0.5,1.) * lightMatrix_VP;
-									glProgramUniformMatrix4fv(_OpaqueDirectionalPass.getProgram(), _OpaqueDirectionalPass.getUniform("uLightMatrix_VP"), 1, false, glm::value_ptr(lightMatrix_VP));
+									glProgramUniformMatrix4fv(_OpaqueDirectionalPass.getProgram(), _OpaqueDirectionalPass.getUniform("uLightMatrix_VP"), 1, false, glm::value_ptr(homogeneousLightMatrix_VP));
 									glProgramUniform4fv(_OpaqueDirectionalPass.getProgram(), _OpaqueDirectionalPass.getUniform("uCamData"), 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition(), zfar)));
 									glProgramUniform3fv(_OpaqueDirectionalPass.getProgram(), _OpaqueDirectionalPass.getUniform("uLightDirection"), 1, glm::value_ptr(l.getInstance(i)->getFront()));
 									glProgramUniform3fv(_OpaqueDirectionalPass.getProgram(), _OpaqueDirectionalPass.getUniform("uLightEmissivity"), 1, glm::value_ptr(l.getEmissivity()));
@@ -359,10 +383,9 @@ namespace M3D
 
 									glBindImageTexture(0, p_rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
 									glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, p_ssboTransparency);
-									glBindTextureUnit(2, _shadowCubeMap);
+									glBindTextureUnit(2, _shadowMap);
 
-									lightMatrix_VP = Mat4f(0.5, 0., 0., 0., 0., 0.5, 0., 0., 0., 0., 0.5, 0., 0.5, 0.5, 0.5, 1.) * lightMatrix_VP;
-									glProgramUniformMatrix4fv(_TransparentDirectionalPass.getProgram(), _TransparentDirectionalPass.getUniform("uLightMatrix_VP"), 1, false, glm::value_ptr(lightMatrix_VP));
+									glProgramUniformMatrix4fv(_TransparentDirectionalPass.getProgram(), _TransparentDirectionalPass.getUniform("uLightMatrix_VP"), 1, false, glm::value_ptr(homogeneousLightMatrix_VP));
 									glProgramUniform4fv(_TransparentDirectionalPass.getProgram(), _TransparentDirectionalPass.getUniform("uCamData"), 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition(), zfar)));
 									glProgramUniform3fv(_TransparentDirectionalPass.getProgram(), _TransparentDirectionalPass.getUniform("uLightDirection"), 1, glm::value_ptr(l.getInstance(i)->getFront()));
 									glProgramUniform3fv(_TransparentDirectionalPass.getProgram(), _TransparentDirectionalPass.getUniform("uLightEmissivity"), 1, glm::value_ptr(l.getEmissivity()));

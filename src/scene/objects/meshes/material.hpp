@@ -46,8 +46,6 @@ namespace M3D
 
         private:
             // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-            // add ior
-        
             Vec4f _baseColor = VEC4F_ONE;
             Vec3f _emissiveColor = VEC3F_ZERO;
 
@@ -64,7 +62,7 @@ namespace M3D
             Texture* _baseColorMap = nullptr;
             Texture* _metalnessRoughnessMap = nullptr;
             Texture* _normalMap = nullptr;
-            Texture* _occlusionMap = nullptr;
+            Texture* _occlusionMap = nullptr; // ???
             Texture* _emissiveMap = nullptr;
         };
     }

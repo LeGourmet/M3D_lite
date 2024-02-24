@@ -96,7 +96,7 @@ namespace M3D
 				_maxTransparentFragments = 25 * p_width * p_height;
 				glDeleteBuffers(1, &_ssboTransparency);
 				glCreateBuffers(1, &_ssboTransparency);
-				glNamedBufferStorage(_ssboTransparency, _maxTransparentFragments * (15*sizeof(float)+sizeof(unsigned int)), nullptr, GL_DYNAMIC_STORAGE_BIT);
+				glNamedBufferStorage(_ssboTransparency, _maxTransparentFragments * (16*sizeof(float)+sizeof(unsigned int)), nullptr, GL_DYNAMIC_STORAGE_BIT);
 			}
 
 			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures) {

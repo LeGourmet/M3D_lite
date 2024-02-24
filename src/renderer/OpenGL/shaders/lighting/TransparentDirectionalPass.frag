@@ -1,6 +1,9 @@
 #version 450
 
 #define PI				3.1415926535
+#define PCF_SAMPLES     8
+#define PCF_OFFSET      0.1
+#define EPS				0.0001
 
 #define pow2(a) (a)*(a)
 #define pow5(a) (a)*(a)*(a)*(a)*(a)
@@ -10,6 +13,7 @@ struct FragNode {
     vec3 position;
     vec3 normal;
     vec3 emissive;
+    float metalness;
     float roughness;
     float depth;
     uint nextId;
@@ -35,11 +39,10 @@ void main(){
         
         // ---------- LIGHT ----------
         vec3 L = -uLightDirection;
-        float shadow = 1.;
         
         // ---------- SHADING ----------
 	    vec3 H = normalize(V+L);
-        vec3 N = nodes[i].normal * ((dot(nodes[i].normal,V)<0.) ? -1. : 1.);
+        vec3 N = nodes[i].normal * ((dot(nodes[i].normal,V)<0.) ? -1. : 1.); // if double side not discard than flip before compute
 	    //if(dot(N,V)<0. && dot(N,L)<0.) N = -N;
 
 	    float cosNV = max(1e-5,abs(dot(N,V)));
@@ -47,21 +50,52 @@ void main(){
 	    float cosHL = max(0.,dot(H,L));
 	    float cosHN = max(0.,dot(H,N));
 
-	    float r = nodes[i].roughness * nodes[i].roughness;
-        float r2 = r*r;
+        float r = clamp(nodes[i].roughness, 0.01, 0.99);
+			  r = pow(r,1.75); //pow2(r*r);
+        float r2 = pow2(r);
 	
 	    // --- dielectic ---
-	    float Rr = r*2.f*cosHL*cosHL+0.5f;
-        float Fl = pow5(1.f-cosNL);
-        float Fv = pow5(1.f-cosNV);
-	    vec3 dielectric = nodes[i].albedo.xyz * ((1.f-0.5f*Fl) * (1.f-0.5f*Fv) + Rr*(Fl+Fv+Fl*Fv*(Rr-1.f)))/PI;
+	    float Rr = r*2.*cosHL*cosHL+0.5;
+        float Fl = pow5(1.-cosNL);
+        float Fv = pow5(1.-cosNV);
+	    vec3 dielectric = nodes[i].albedo.xyz * ((1.-0.5*Fl) * (1.-0.5*Fv) + Rr*(Fl+Fv+Fl*Fv*(Rr-1.)))/PI;
 
 	    // --- conductor ---
-	    vec3 F = schlick(mix(vec3(schlick(0.04,1.,max(0.,cosHL))), nodes[i].albedo.xyz, 0.), vec3(1.), cosHL); // todo use metalness
-        float D = r2/max(1e-5,(PI*pow2(cosHN*cosHN*(r2-1.)+1.)));
+        vec3 f0 = mix(vec3(schlick(0.04,1.,cosHL)), nodes[i].albedo.xyz, nodes[i].metalness);
+        vec3 F = schlick(f0, vec3(1.), cosHL);
+	    float D = r2/max(1e-5,(PI*pow2(cosHN*cosHN*(r2-1.)+1.)));
         float V2 = 0.5/max(1e-5,(cosNL*sqrt((cosNV-cosNV*r2)*cosNV+r2) + cosNV*sqrt((cosNL-cosNL*r2)*cosNL+r2)));
         vec3 conductor = F*D*V2;
 
-        nodes[i].emissive += mix(dielectric,conductor,0.) * uLightEmissivity * shadow * cosNL; // todo use metalness
+		// ---------- SHADOW ----------
+		// use slope scale bias => dot(L,N)
+		// use adaptive Bias Based on Depth => base on difference znear/zfar for light source
+		// use bias that scale on resalution of the shadow map
+		// use pcf and/or pcss
+
+		float shadow  = 0.;
+
+		#if PCF_SAMPLES < 2
+			vec3 fp = nodes[i].position + L*clamp(0.05*cosNL,0.05,0.1); // offset => use N or L ; factors should depend of something  // N*EPS + L*max(0.5,cosNL)*1000./uCamData.a;
+			vec3 fpLS = (uLightMatrix_VP * vec4(fp,1.)).xyz;
+			shadow = (fpLS.z < 1.) ? texture(uShadowMap,fpLS) : 1.; // pcss => facteur compris entre 0 et 1 compute
+		#else
+			vec3 T = cross(N,vec3(1.,0.,0.));
+			if(length(T)<0.1) T = cross(N,vec3(0.,1.,0.));
+			T = normalize(T);
+			vec3 B = normalize(cross(N,T));
+
+			float pcf_step = 2.*PCF_OFFSET/float(PCF_SAMPLES-1);
+			for(int i=0; i<PCF_SAMPLES ;i++)
+				for(int j=0; j<PCF_SAMPLES ;j++){
+					vec3 fp = nodes[i].position + T*(float(i)*pcf_step-PCF_OFFSET) + B*(float(j)*pcf_step-PCF_OFFSET);
+						 fp += L*clamp(0.05*cosNL,0.05,0.1); // offset => use N or L ; factors should depend of something  // N*EPS + L*max(0.5,cosNL)*1000./uCamData.a;
+					vec3 fpLS = (uLightMatrix_VP * vec4(fp,1.)).xyz;
+					shadow += (fpLS.z < 1.) ? texture(uShadowMap,fpLS) : 1.; // pcss => facteur compris entre 0 et 1 compute
+				}
+			shadow /= float(pow2(PCF_SAMPLES));
+		#endif
+
+        nodes[i].emissive += mix(dielectric,conductor,nodes[i].metalness) * uLightEmissivity * shadow * cosNL;
     }
 }

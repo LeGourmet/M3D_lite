@@ -21,12 +21,12 @@ namespace M3D
 				: _type(p_type), _color(p_color), _intensity(p_intensity/683.f) {
 				_cosInnerConeAngle = glm::cos(p_innerConeAngle);
 				_cosOuterConeAngle = glm::cos(p_outerConeAngle);
-				_range = (float)glm::sqrt(256.f*_intensity*glm::max<float>(_color.x,glm::max<float>(_color.y,_color.z)));
+				_range = (float)glm::sqrt(256.f*_intensity*glm::max<float>(_color.x,glm::max<float>(_color.y,_color.z))); // bad range ??
 			}
 
 			Light(LIGHT_TYPE p_type, const Vec3f& p_color, const float p_intensity) 
 				: _type(p_type), _color(p_color), _intensity(p_intensity/683.f) {
-				_range = (float)glm::sqrt(256.f*_intensity*glm::max<float>(_color.x,glm::max<float>(_color.y,_color.z)));
+				_range = (float)glm::sqrt(256.f*_intensity*glm::max<float>(_color.x,glm::max<float>(_color.y,_color.z))); // bad range ??
 			}
 
 			~Light(){}

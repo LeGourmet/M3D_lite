@@ -5,6 +5,7 @@ struct FragNode {
     vec3 position;
     vec3 normal;
     vec3 emissive;
+    float metalness;
     float roughness;
     float depth;
     uint nextId;
@@ -20,8 +21,7 @@ bool insert( inout uint headId, in uint currentId ){
     uint iPreviousId = 0;
 
     for(uint i=headId; i!=currentId ;i=nodes[i].nextId) {    
-        if(nodes[currentId].depth>=nodes[i].depth){     
-        //if(nodes[currentId].depth<=nodes[i].depth){     
+        if(nodes[currentId].depth>=nodes[i].depth){ 
             if(iPreviousId==0){
                 imageStore(uRootTransparency, ivec2(gl_FragCoord.xy), uvec4(currentId));
                 headId = currentId;

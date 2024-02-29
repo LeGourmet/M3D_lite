@@ -73,6 +73,20 @@ void main(){
         float V2 = 0.5/max(1e-5,(cosNL*sqrt((cosNV-cosNV*r2)*cosNV+r2) + cosNV*sqrt((cosNL-cosNL*r2)*cosNL+r2)));
         vec3 conductor = F*D*V2;
 
+		// --- transmit ---
+		/*
+		float cosNL = max(0.,dot(-N, transmitRay.getDirection()));
+		float DielF = schlick(0., 1., max(0.,dot(H,V)));
+                    
+        float XL = sqrt(r2 + (1. - r2) * cosNL * cosNL);
+        float XV = sqrt(r2 + (1. - r2) * cosNV * cosNV);
+        float G1L = 2. * cosNL / max(1e-5, (cosNL + XL));
+        float G1V = 2. * cosNV / max(1e-5, (cosNV + XV));
+        float G2 = 2. * cosNL * cosNV / max(1e-5, (cosNV * XL + cosNL * XV));
+		*/
+        //vec3 transmit = sqrt(vec3(albedo)) * (1.-DielF)*G2/**pow2(p_ni/p_no)*//max(1e-5,G1L); 
+		//vec3 transmit = sqrt(vec3(albedo)) * (1.-DielF) * D *
+
 		// ---------- SHADOW ----------
 		// use slope scale bias => dot(L,N)
 		// use adaptive Bias Based on Depth => base on difference znear/zfar for light source

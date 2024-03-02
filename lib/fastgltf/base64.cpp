@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 - 2023 spnda
+ * Copyright (C) 2022 - 2024 spnda
  * This file is part of fastgltf <https://github.com/spnda/fastgltf>.
  *
  * Permission is hereby granted, free of charge, to any person
@@ -32,9 +32,24 @@
 #include <cmath>
 #include <functional>
 
-#if defined(__x86_64__) || defined(_M_AMD64) || defined(_M_IX86)
+#include "simdjson.h"
+
+#include <fastgltf/base64.hpp>
+
+#if defined(FASTGLTF_IS_X86)
+#if defined(__clang__) || defined(__GNUC__)
+// The idea behind manually including all headers with the required intrinsics
+// is that the usual intrin.h will only include these under Clang when -mavx or
+// -mavx2 is specified, which in turn would have the entire program be compiled
+// with these instructions used in optimisations.
 #include <immintrin.h>
-#elif defined(__aarch64__) || defined(__ARM_NEON) || defined(_M_ARM64)
+#include <smmintrin.h>
+#include <avxintrin.h>
+#include <avx2intrin.h>
+#else
+#include <intrin.h>
+#endif
+#elif defined(FASTGLTF_IS_A64)
 #include <arm_neon.h> // Includes arm64_neon.h on MSVC
 #endif
 
@@ -43,21 +58,19 @@
 #pragma warning(disable : 5030)
 #endif
 
-#include "simdjson.h"
-
-#include "base64_decode.hpp"
-
 namespace fg = fastgltf;
 
 #if defined(_MSC_VER)
 #define FORCEINLINE __forceinline
 #else
+// On other compilers we need the inline specifier, so that the functions in this compilation unit
+// can be properly inlined without the "function body can be overwritten at link time" error.
 #define FORCEINLINE inline
 #endif
 
 namespace fastgltf::base64 {
     using DecodeFunctionInplace = std::function<void(std::string_view, std::uint8_t*, std::size_t)>;
-    using DecodeFunction = std::function<std::vector<std::uint8_t>(std::string_view)>;
+    using DecodeFunction = std::function<fg::StaticVector<std::uint8_t>(std::string_view)>;
 
     struct DecodeFunctionGetter {
         DecodeFunction func;
@@ -67,16 +80,16 @@ namespace fastgltf::base64 {
             // We use simdjson's helper functions to determine which SIMD intrinsics are available at runtime.
             // The different implementations, because they're SIMD based, require a minimum amount of chars, as
             // they load multiple at once.
-            auto& impls = simdjson::get_available_implementations();
-#if defined(__x86_64__) || defined(_M_AMD64) || defined(_M_IX86)
-            if (const auto* avx2 = impls["haswell"]; avx2 && avx2->supported_by_runtime_system()) {
+            const auto& impls = simdjson::get_available_implementations();
+#if defined(FASTGLTF_IS_X86)
+            if (const auto* avx2 = impls["haswell"]; avx2 != nullptr && avx2->supported_by_runtime_system()) {
                 func = avx2_decode;
                 inplace = avx2_decode_inplace;
-            } else if (const auto* sse4 = impls["westmere"]; sse4 && sse4->supported_by_runtime_system()) {
+            } else if (const auto* sse4 = impls["westmere"]; sse4 != nullptr && sse4->supported_by_runtime_system()) {
                 func = sse4_decode;
                 inplace = sse4_decode_inplace;
             }
-#elif defined(_M_ARM64) || defined(__ARM_NEON) || defined(__aarch64__)
+#elif defined(FASTGLTF_IS_A64)
             // _M_ARM64 always guarantees 64-bit ARM processors that support NEON, defined by MSVC.
             // __aarch64__ always guarantees 64-bit ARMv8 processors that support NEON, defined by Clang.
             // __ARM_NEON always guarantees NEON support, defined by Clang and GCC.
@@ -98,9 +111,9 @@ namespace fastgltf::base64 {
             return &getter;
         }
     };
-};
+} // namespace fastgltf::base64
 
-#if defined(__x86_64__) || defined(_M_AMD64) || defined(_M_IX86)
+#if defined(FASTGLTF_IS_X86)
 // The AVX and SSE decoding functions are based on http://0x80.pl/notesen/2016-01-17-sse-base64-decoding.html.
 // It covers various methods of en-/decoding base64 using SSE and AVX and also shows their
 // performance metrics.
@@ -140,12 +153,11 @@ namespace fastgltf::base64 {
     // allocate any new memory to hold the encoded data and let the fallback decoder decode the
     // remaining data.
     const auto encodedSize = encoded.size();
-    const auto outputSize = getOutputSize(encodedSize, padding);
-    const auto alignedSize = outputSize - (outputSize % dataOutputSize);
+    const auto alignedSize = encodedSize - (encodedSize % dataOutputSize);
     auto* out = output;
 
-    // _mm256_setr_epi8 accepts only 'char' but 0xff would overflow a signed char.
-    // This gets optimised to the same assembly as a call to the aformentioned intrinsic.
+    // _mm256_setr_epi8 accepts only 'char' but 0xff would overflow a signed char, which makes some compilers unhappy.
+    // This gets optimised to the same assembly as a call to the aforementioned intrinsic.
     static const std::array<std::uint8_t, 32> shuffleData = {{
         2,  1,  0,
         6,  5,  4,
@@ -177,14 +189,14 @@ namespace fastgltf::base64 {
     }
 
     // Decode the last chunk traditionally
-    fallback_decode_inplace(encoded.substr(pos, encodedSize), out, padding);
+    fallback_decode_inplace(encoded.substr(pos, encodedSize - pos), out, padding);
 }
 
-[[gnu::target("avx2")]] std::vector<std::uint8_t> fg::base64::avx2_decode(std::string_view encoded) {
+[[gnu::target("avx2")]] fg::StaticVector<std::uint8_t> fg::base64::avx2_decode(std::string_view encoded) {
     const auto encodedSize = encoded.size();
     const auto padding = getPadding(encoded);
 
-    std::vector<std::uint8_t> ret(getOutputSize(encodedSize, padding));
+    fg::StaticVector<std::uint8_t> ret(getOutputSize(encodedSize, padding));
     avx2_decode_inplace(encoded, ret.data(), padding);
 
     return ret;
@@ -221,13 +233,12 @@ namespace fastgltf::base64 {
     // We align the size to the highest size divisible by 16. By doing this, we don't need to
     // allocate any new memory to hold the encoded data and let the fallback decoder decode the
     // remaining data.
-    const auto encodedSize = encoded.size();
-    const auto outputSize = getOutputSize(encodedSize, padding);
-    const auto alignedSize = outputSize - (outputSize % dataOutputSize);
+	const auto encodedSize = encoded.size();
+	const auto alignedSize = encodedSize - (encodedSize % dataOutputSize);
     auto* out = output;
 
-    // _mm_setr_epi8 accepts only 'char' but 0xff would overflow a signed char.
-    // This gets optimised to the same assembly as a call to the aformentioned intrinsic.
+    // _mm_setr_epi8 accepts only 'char' but 0xff would overflow a signed char, which makes some compilers unhappy.
+    // This gets optimised to the same assembly as a call to the aforementioned intrinsic.
     static const std::array<std::uint8_t, 16> shuffleData = {{
         2,  1,  0,
         6,  5,  4,
@@ -253,19 +264,19 @@ namespace fastgltf::base64 {
     }
 
     // Decode the last chunk traditionally
-    fallback_decode_inplace(encoded.substr(pos, encodedSize), out, padding);
+    fallback_decode_inplace(encoded.substr(pos, encodedSize - pos), out, padding);
 }
 
-[[gnu::target("sse4.1")]] std::vector<std::uint8_t> fg::base64::sse4_decode(std::string_view encoded) {
+[[gnu::target("sse4.1")]] fg::StaticVector<std::uint8_t> fg::base64::sse4_decode(std::string_view encoded) {
     const auto encodedSize = encoded.size();
     const auto padding = getPadding(encoded);
 
-    std::vector<std::uint8_t> ret(getOutputSize(encodedSize, padding));
+    fg::StaticVector<std::uint8_t> ret(getOutputSize(encodedSize, padding));
     sse4_decode_inplace(encoded, ret.data(), padding);
 
     return ret;
 }
-#elif defined(_M_ARM64) || defined(__ARM_NEON) || defined(__aarch64__)
+#elif defined(FASTGLTF_IS_A64)
 [[gnu::always_inline]] FORCEINLINE int8x16_t neon_lookup_pshufb_bitmask(const uint8x16_t input) {
     // clang-format off
     constexpr std::array<int8_t, 16> shiftLUTdata = {
@@ -301,7 +312,7 @@ namespace fastgltf::base64 {
 }
 
 // clang-format off
-[[gnu::aligned(16)]] static constexpr std::array<uint8_t, 16> shuffleData = {
+[[gnu::aligned(16)]] static constexpr std::array<std::uint8_t, 16> shuffleData = {
         2,  1,  0,
         6,  5,  4,
         10,  9,  8,
@@ -345,14 +356,14 @@ void fg::base64::neon_decode_inplace(std::string_view encoded, std::uint8_t* out
     }
 
     // Decode the last chunk traditionally
-    fallback_decode_inplace(encoded.substr(pos, encodedSize), out, padding);
+    fallback_decode_inplace(encoded.substr(pos, encodedSize - pos), out, padding);
 }
 
-std::vector<std::uint8_t> fg::base64::neon_decode(std::string_view encoded) {
+fg::StaticVector<std::uint8_t> fg::base64::neon_decode(std::string_view encoded) {
     const auto encodedSize = encoded.size();
     const auto padding = getPadding(encoded);
 
-    std::vector<std::uint8_t> ret(getOutputSize(encodedSize, padding));
+    StaticVector<std::uint8_t> ret(getOutputSize(encodedSize, padding));
     neon_decode_inplace(encoded, ret.data(), padding);
 
     return ret;
@@ -372,46 +383,50 @@ static constexpr std::array<std::uint8_t, 128> base64lut = {
 };
 // clang-format on
 
+namespace fastgltf::base64 {
+    template <typename Output>
+	[[gnu::always_inline]] FORCEINLINE void decode_block(std::array<std::uint8_t, 4>& sixBitChars, Output output) {
+		for (std::size_t i = 0; i < 4; i++) {
+			assert(static_cast<std::size_t>(sixBitChars[i]) < base64lut.size());
+			sixBitChars[i] = base64lut[sixBitChars[i]];
+		}
+
+		output[0] = (sixBitChars[0] << 2) + ((sixBitChars[1] & 0x30) >> 4);
+		output[1] = ((sixBitChars[1] & 0xf) << 4) + ((sixBitChars[2] & 0x3c) >> 2);
+		output[2] = ((sixBitChars[2] & 0x3) << 6) + sixBitChars[3];
+	}
+} // namespace fastgltf::base64
+
 void fg::base64::fallback_decode_inplace(std::string_view encoded, std::uint8_t* output, std::size_t padding) {
-    std::array<std::uint8_t, 4> sixBitChars = {};
-    std::array<std::uint8_t, 3> eightBitChars = {};
+	constexpr std::size_t blockSize = 4;
+	std::array<std::uint8_t, blockSize> sixBitChars {};
 
-    // We use i here to track how many we've parsed and to batch 4 chars together.
-    const auto encodedSize = encoded.size();
-    std::size_t i = 0U, cursor = 0U;
-    for (auto pos = 0U; pos < encodedSize;) {
-        sixBitChars[i++] = encoded[pos]; ++pos;
-        if (i != 4)
-            continue;
+	const auto encodedSize = encoded.size();
+	for (auto pos = 0U; pos + 4 < encodedSize; pos += 4) {
+		std::memcpy(sixBitChars.data(), &encoded[pos], blockSize);
 
-        for (i = 0; i < 4; i++) {
-            assert(static_cast<std::size_t>(sixBitChars[i]) < base64lut.size());
-            sixBitChars[i] = base64lut[sixBitChars[i]];
-        }
+		decode_block(sixBitChars, output);
+		output += 3;
+	}
 
-        eightBitChars[0] = (sixBitChars[0] << 2) + ((sixBitChars[1] & 0x30) >> 4);
-        eightBitChars[1] = ((sixBitChars[1] & 0xf) << 4) + ((sixBitChars[2] & 0x3c) >> 2);
-        eightBitChars[2] = ((sixBitChars[2] & 0x3) << 6) + sixBitChars[3];
+	// Decode the last (possibly) padded characters
+	std::memcpy(sixBitChars.data(), &encoded[encodedSize - 4], blockSize);
 
-        // This adds 3 elements to the output vector. It also checks to not write zeroes that are
-        // generate from the padding.
-        std::size_t charsToWrite = 3;
-        if (pos == encodedSize) {
-            charsToWrite = 4 - (padding + 1);
-        }
-        for (std::size_t j = 0; j < charsToWrite; ++j) {
-            output[cursor++] = eightBitChars[j];
-        }
+	std::array<std::uint8_t, 4> eightBitChars {};
+	decode_block<decltype(eightBitChars)&>(sixBitChars, eightBitChars);
 
-        i = 0;
-    }
+	// Write the last characters, making sure not to write over the end.
+	const std::size_t charsToWrite = 3 - padding;
+	for (std::size_t j = 0; j < charsToWrite; ++j) {
+		output[j] = eightBitChars[j];
+	}
 }
 
-std::vector<std::uint8_t> fg::base64::fallback_decode(std::string_view encoded) {
+fg::StaticVector<std::uint8_t> fg::base64::fallback_decode(std::string_view encoded) {
     const auto encodedSize = encoded.size();
     const auto padding = getPadding(encoded);
 
-    std::vector<std::uint8_t> ret(getOutputSize(encodedSize, padding));
+    fg::StaticVector<std::uint8_t> ret(getOutputSize(encodedSize, padding));
     fallback_decode_inplace(encoded, ret.data(), padding);
 
     return ret;
@@ -423,7 +438,7 @@ void fg::base64::decode_inplace(std::string_view encoded, std::uint8_t* output, 
     return DecodeFunctionGetter::get()->inplace(encoded, output, padding);
 }
 
-std::vector<std::uint8_t> fg::base64::decode(std::string_view encoded) {
+fg::StaticVector<std::uint8_t> fg::base64::decode(std::string_view encoded) {
     assert(encoded.size() % 4 == 0);
 
     return DecodeFunctionGetter::get()->func(encoded);

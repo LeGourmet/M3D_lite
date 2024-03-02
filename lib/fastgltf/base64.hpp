@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 - 2023 spnda
+ * Copyright (C) 2022 - 2024 spnda
  * This file is part of fastgltf <https://github.com/spnda/fastgltf>.
  *
  * Permission is hereby granted, free of charge, to any person
@@ -30,7 +30,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <string_view>
-#include <vector>
+
+#include <fastgltf/types.hpp>
 
 #ifdef _MSC_VER
 #pragma warning(push) // attribute 'x' is not recognized
@@ -62,22 +63,22 @@ namespace fastgltf::base64 {
         return (encodedSize / 4) * 3 - padding;
     }
 
-#if defined(__x86_64__) || defined(_M_AMD64) || defined(_M_IX86)
+#if defined(FASTGLTF_IS_X86)
     void sse4_decode_inplace(std::string_view encoded, std::uint8_t* output, std::size_t padding);
     void avx2_decode_inplace(std::string_view encoded, std::uint8_t* output, std::size_t padding);
 
-    [[nodiscard]] std::vector<std::uint8_t> sse4_decode(std::string_view encoded);
-    [[nodiscard]] std::vector<std::uint8_t> avx2_decode(std::string_view encoded);
-#elif defined(_M_ARM64) || defined(__ARM_NEON) || defined(__aarch64__)
+    [[nodiscard]] StaticVector<std::uint8_t> sse4_decode(std::string_view encoded);
+    [[nodiscard]] StaticVector<std::uint8_t> avx2_decode(std::string_view encoded);
+#elif defined(FASTGLTF_IS_A64)
     void neon_decode_inplace(std::string_view encoded, std::uint8_t* output, std::size_t padding);
-    [[nodiscard]] std::vector<std::uint8_t> neon_decode(std::string_view encoded);
+    [[nodiscard]] StaticVector<std::uint8_t> neon_decode(std::string_view encoded);
 #endif
     void fallback_decode_inplace(std::string_view encoded, std::uint8_t* output, std::size_t padding);
     void decode_inplace(std::string_view encoded, std::uint8_t* output, std::size_t padding);
 
-    [[nodiscard]] std::vector<std::uint8_t> fallback_decode(std::string_view encoded);
-    [[nodiscard]] std::vector<std::uint8_t> decode(std::string_view encoded);
-}
+    [[nodiscard]] StaticVector<std::uint8_t> fallback_decode(std::string_view encoded);
+    [[nodiscard]] StaticVector<std::uint8_t> decode(std::string_view encoded);
+} // namespace fastgltf::base64
 
 #ifdef _MSC_VER
 #pragma warning(pop)

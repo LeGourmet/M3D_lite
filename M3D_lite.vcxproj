@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="lib\fastgltf\base64_decode.cpp" />
+    <ClCompile Include="lib\fastgltf\base64.cpp" />
     <ClCompile Include="lib\fastgltf\fastgltf.cpp" />
     <ClCompile Include="lib\gl3w\GL\gl3w.c" />
     <ClCompile Include="lib\imgui\imgui.cpp" />
@@ -39,10 +39,12 @@
     <ClCompile Include="src\user_interface\graphical_user_interface.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="lib\fastgltf\base64_decode.hpp" />
-    <ClInclude Include="lib\fastgltf\fastgltf_parser.hpp" />
-    <ClInclude Include="lib\fastgltf\fastgltf_types.hpp" />
-    <ClInclude Include="lib\fastgltf\fastgltf_util.hpp" />
+    <ClInclude Include="lib\fastgltf\base64.hpp" />
+    <ClInclude Include="lib\fastgltf\core.hpp" />
+    <ClInclude Include="lib\fastgltf\glm_element_traits.hpp" />
+    <ClInclude Include="lib\fastgltf\tools.hpp" />
+    <ClInclude Include="lib\fastgltf\types.hpp" />
+    <ClInclude Include="lib\fastgltf\util.hpp" />
     <ClInclude Include="lib\gl3w\GL\gl3w.h" />
     <ClInclude Include="lib\gl3w\GL\glcorearb.h" />
     <ClInclude Include="lib\imgui\imconfig.h" />

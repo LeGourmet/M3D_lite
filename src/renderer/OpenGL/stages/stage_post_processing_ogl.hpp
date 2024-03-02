@@ -14,6 +14,8 @@
 
 #include <iostream>
 
+#include "stb/stb_image.h"
+
 namespace M3D
 {
 	namespace Renderer
@@ -35,6 +37,17 @@ namespace M3D
 				_ToneMappingPass.addUniform("uGamma");
 				_ToneMappingPass.addUniform("uBloomPower");
 
+				glCreateTextures(GL_TEXTURE_2D, 1, &_AgXLUT);
+				glTextureParameteri(_AgXLUT, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTextureParameteri(_AgXLUT, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTextureParameteri(_AgXLUT, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glTextureParameteri(_AgXLUT, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				// dump data from disk on GPU
+				int width, height, nbChannels, bitDepth = 8;
+				unsigned char* data = stbi_load("./luts/AgX_lut.png",&width,&height,&nbChannels,0);
+				//glTextureStorage2D(_id, lvMipMap, internalFormat, p_texture->_image->getWidth(), p_texture->_image->getHeight());
+				//glTextureSubImage2D(_id, 0, 0, 0, p_texture->_image->getWidth(), p_texture->_image->getHeight(), format, GL_UNSIGNED_BYTE, p_texture->_image->getData());
+
 				glCreateFramebuffers(1, &_fboAA);
 				generateMap(&_aaMap, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 				attachColorMap(_fboAA, _aaMap, 0);
@@ -47,6 +60,8 @@ namespace M3D
 			}
 
 			~StagePostProcessingOGL() {
+				glDeleteTextures(1, &_AgXLUT);
+
 				glDeleteTextures(1, &_aaMap);
 				glDeleteFramebuffers(1, &_fboAA);
 
@@ -157,6 +172,7 @@ namespace M3D
 				glProgramUniform1f(_ToneMappingPass.getProgram(), _ToneMappingPass.getUniform("uBloomPower"), Application::getInstance().getRenderer().getBloomPower());
 				glBindTextureUnit(0, _aaMap);
 				glBindTextureUnit(1, _bloomMaps[_bloomMaps.size()-1]);
+				glBindTextureUnit(2, _AgXLUT);
 
 				glBindVertexArray(_emptyVAO);
 				glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -169,6 +185,8 @@ namespace M3D
 			GLuint _fboAA		= GL_INVALID_INDEX;
 
 			GLuint _aaMap		= GL_INVALID_INDEX;
+			
+			GLuint _AgXLUT		= GL_INVALID_INDEX;
 
 			std::vector<GLuint> _bloomMaps;
 			std::vector<Vec2f>	_bloomMapsDims;

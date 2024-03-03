@@ -268,7 +268,7 @@ namespace Scene
                 fastgltf::Accessor& a_texcoord = asset->accessors[itTexcoord->second];
 
                 if (!((a_position.count == a_normal.count) && (a_normal.count == a_texcoord.count))) throw std::runtime_error("Fail to load file: primitive vertices must have the same number of position, normal and texcoord0.");
-                if (a_texcoord.componentType != fastgltf::ComponentType::Float) throw std::runtime_error("Fail to load file: texcoord0 shoul'd be float only.");
+                if (a_texcoord.componentType != fastgltf::ComponentType::Float) throw std::runtime_error("Fail to load file: texcoord0 must be float only.");
 
                 fastgltf::Accessor& a_indices = asset->accessors[p.indicesAccessor.value()];
                 if (!a_indices.bufferViewIndex.has_value()) throw std::runtime_error("Fail to load file: primitive indices must be define.");
@@ -276,7 +276,7 @@ namespace Scene
 
                 std::vector<unsigned int> indices;
                 
-                if (!std::holds_alternative<fastgltf::sources::Array>(asset->buffers[bv_indices.bufferIndex].data)) throw std::runtime_error("Primitive indices type must be vector!");
+                if (!std::holds_alternative<fastgltf::sources::Array>(asset->buffers[bv_indices.bufferIndex].data)) throw std::runtime_error("Primitive indices type must be array!");
 
                 if (a_indices.componentType == fastgltf::ComponentType::UnsignedInt) {
                     const unsigned int* data = reinterpret_cast<const unsigned int*>(std::get<3>(asset->buffers[bv_indices.bufferIndex].data).bytes.data() + a_indices.byteOffset + bv_indices.byteOffset);
@@ -295,17 +295,17 @@ namespace Scene
 
                 if (!a_position.bufferViewIndex.has_value()) throw std::runtime_error("Fail to load file: primitive positions must be define.");
                 fastgltf::BufferView& bv_position = asset->bufferViews[a_position.bufferViewIndex.value()];
-                if (!std::holds_alternative<fastgltf::sources::Array>(asset->buffers[bv_position.bufferIndex].data)) throw std::runtime_error("Fail to load file: primitive positions type should be vector!");
+                if (!std::holds_alternative<fastgltf::sources::Array>(asset->buffers[bv_position.bufferIndex].data)) throw std::runtime_error("Fail to load file: primitive positions type must be array!");
                 const float* positionsBuffer = reinterpret_cast<const float*>(std::get<3>(asset->buffers[bv_position.bufferIndex].data).bytes.data() + a_position.byteOffset + bv_position.byteOffset);
 
                 if (!a_normal.bufferViewIndex.has_value()) throw std::runtime_error("Fail to load file: primitive normals must be define.");
                 fastgltf::BufferView& bv_normal = asset->bufferViews[a_normal.bufferViewIndex.value()];
-                if (!std::holds_alternative<fastgltf::sources::Array>(asset->buffers[bv_normal.bufferIndex].data)) throw std::runtime_error("Fail to load file: primitive normals type should be vector!");
+                if (!std::holds_alternative<fastgltf::sources::Array>(asset->buffers[bv_normal.bufferIndex].data)) throw std::runtime_error("Fail to load file: primitive normals type must be array!");
                 const float* normalsBuffer = reinterpret_cast<const float*>(std::get<3>(asset->buffers[bv_normal.bufferIndex].data).bytes.data() + a_normal.byteOffset + bv_normal.byteOffset);
 
                 if (!a_texcoord.bufferViewIndex.has_value()) throw std::runtime_error("Fail to load file: primitive texcoord0 must be define.");
                 fastgltf::BufferView& bv_texcoord = asset->bufferViews[a_texcoord.bufferViewIndex.value()];
-                if (!std::holds_alternative<fastgltf::sources::Array>(asset->buffers[bv_normal.bufferIndex].data)) throw std::runtime_error("Fail to load file: primitive texcoord0 type should be vector!");
+                if (!std::holds_alternative<fastgltf::sources::Array>(asset->buffers[bv_normal.bufferIndex].data)) throw std::runtime_error("Fail to load file: primitive texcoord0 type must be array!");
                 const float* uvsBuffer = reinterpret_cast<const float*>(std::get<3>(asset->buffers[bv_texcoord.bufferIndex].data).bytes.data() + a_texcoord.byteOffset + bv_texcoord.byteOffset);
 
                 std::vector<Vertex> vertices;
@@ -316,6 +316,10 @@ namespace Scene
                         ._normal = glm::normalize(glm::make_vec3(&normalsBuffer[i * 3])),
                         ._uv = glm::make_vec2(&uvsBuffer[i * 2])
                     };
+                    v._tangent = glm::cross(v._normal, VEC3F_X);
+                    if (glm::length(v._tangent) < 0.1) v._tangent = glm::cross(v._normal, VEC3F_Y);
+                    v._tangent = glm::normalize(v._tangent);
+                    v._bitangent = glm::normalize(glm::cross(v._normal, v._tangent));
                     vertices.push_back(v);
                 }
                 subMeshes.push_back(SubMesh(&_materials[((p.materialIndex.has_value()) ? startIdMaterials + p.materialIndex.value() : 0)], vertices, indices));

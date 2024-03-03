@@ -58,6 +58,5 @@ Rendre le monde plus vivant :
 
 - les fragments transparents ont tendencent à fliker
 - le bloom n'est pas stable d'une frame à l'autre
-- les images des textures ne se chargent pas correctement
 - lors du chargement d'une nouvelle scène l'application peut crash
 - les inputs d'imgui sont flingués

@@ -53,3 +53,11 @@ Rendre le monde plus vivant :
 - Gestion du skinnig des meshes.
 - Ajout d'un moteur physique.
 - Utilistion de boids ou de modèle de Lormtck Volterra (modèle de prédateur - proids) pour ajouter des NPC simples.
+
+## Bugs
+
+- les fragments transparents ont tendencent à fliker
+- le bloom n'est pas stable d'une frame à l'autre
+- les images des textures ne se chargent pas correctement
+- lors du chargement d'une nouvelle scène l'application peut crash
+- les inputs d'imgui sont flingués

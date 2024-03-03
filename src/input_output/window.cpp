@@ -14,7 +14,7 @@ namespace M3D
 {
     namespace InputOutput
     {
-        Window::Window(SDL_WindowFlags p_rendererTypeFlag) : _rendererType(p_rendererTypeFlag) {
+        Window::Window(Uint32 p_rendererTypeFlag) : _rendererType(p_rendererTypeFlag) {
             try {
                 if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0)
                     throw std::runtime_error("Exception caught: " + std::string(SDL_GetError()));
@@ -153,22 +153,7 @@ namespace M3D
 
         void Window::_takeScreenShot() {
             try {
-                /*SDL_Surface* surface = SDL_CreateRGBSurface(0, Application::getInstance().getWidth(), Application::getInstance().getHeight(), 32,
-                #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-                    0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff
-                #else
-                    0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
-                #endif
-                );
-                SDL_LockSurface(surface);
-                SDL_RenderReadPixels(SDL_GetRenderer(_window), NULL, surface->format->format, surface->pixels, surface->pitch);
-                const long long timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::system_clock::now().time_since_epoch())
-                    .count();
-                std::string filePath = "./screenshot/screenshot_" + std::to_string(timestamp) + ".bmp";
-                SDL_SaveBMP(surface, filePath.c_str()); //IMG_savePNG(surface, ". / screenshot / screenTest.png");
-                SDL_UnlockSurface(surface);
-                SDL_FreeSurface( surface );*/
+                
             }
             catch (const std::exception& e) {
                 std::cerr << "Cannot save screenshot: " << e.what() << std::endl;

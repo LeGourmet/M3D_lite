@@ -152,12 +152,15 @@ namespace M3D
         }
 
         void Window::_takeScreenShot() {
-            try {
-                
-            }
-            catch (const std::exception& e) {
-                std::cerr << "Cannot save screenshot: " << e.what() << std::endl;
-            }
+            /*pfd::save_file saveFileDialog = pfd::save_file("Save screenshot", pfd::path::home(), {".png", "*.png", "All Files", "*"});
+            std::filesystem::path path = saveFileDialog.result();
+            if (!path.empty()) {
+                std::vector<unsigned char> pixels = std::vector<unsigned char>(_width * _height * 3);
+                glReadPixels(0, 0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+                //stbi_flip_vertically_on_write(true);
+                //stbi_write_png((path.string() + ".png").c_str(), _width, _height, 3, pixels.data(), 0);
+                //stbi_flip_vertically_on_write(false);
+            }*/
         }
 
         void Window::_dispose() {

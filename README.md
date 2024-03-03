@@ -58,5 +58,10 @@ Rendre le monde plus vivant :
 
 - les fragments transparents ont tendencent à fliker
 - le bloom n'est pas stable d'une frame à l'autre
-- lors du chargement d'une nouvelle scène l'application peut crash
+- add asset ne marche pas
 - les inputs d'imgui sont flingués
+- la génération des mipmap des texture d'OpenGl prend beaucoup trop de RAM 
+- imgui bug end/endchild
+- clear bug sometime
+- si nb channel d'une image est 1 utilise le channel rouge 4 fois
+- agx lut n'est pas load correctement

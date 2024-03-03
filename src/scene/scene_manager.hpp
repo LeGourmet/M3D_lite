@@ -43,8 +43,8 @@ namespace M3D
             const Mat4f getMainCameraProjectionMatrix();
 
             // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
-            void loadNewScene(const std::string& p_path);
-            void addAsset(const std::string& p_path); 
+            void loadNewScene(const std::filesystem::path& p_path);
+            void addAsset(const std::filesystem::path& p_path);
 
             void addCamera(Camera p_camera);
             void addLight(Light p_light);

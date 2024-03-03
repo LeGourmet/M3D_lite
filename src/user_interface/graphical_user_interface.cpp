@@ -92,14 +92,17 @@ namespace UserInterface
 					if (ImGui::Button("clear scene")) Application::getInstance().getSceneManager().clearScene();
 					ImGui::SameLine();
 					if (ImGui::Button("load scene")) {
-						pfd::open_file openFileDialog = pfd::open_file("Choose files to read", pfd::path::home(), { "Text Files (.gltf .glb)", "*.gltf *.glb", "All Files", "*" }, pfd::opt::none);
-						std::vector<std::string> files = openFileDialog.result();
-						if (!files.empty()) Application::getInstance().getSceneManager().loadNewScene(files[0]);
+						pfd::open_file openFileDialog = pfd::open_file("Choose file to read", pfd::path::home(), { "Text Files (.glb)", "*.glb", "All Files", "*" });
+						for (std::filesystem::path path : openFileDialog.result())
+							if (!path.empty())
+								Application::getInstance().getSceneManager().loadNewScene(path);
 					}
 					ImGui::SameLine();
 					if (ImGui::Button("add asset")) {
-						pfd::open_file openFileDialog = pfd::open_file("Choose files to read", pfd::path::home(), { "Text Files (.gltf .glb)", "*.gltf *.glb", "All Files", "*" }, pfd::opt::multiselect);
-						for (std::string path : openFileDialog.result()) Application::getInstance().getSceneManager().addAsset(path);
+						pfd::open_file openFileDialog = pfd::open_file("Choose files to read", pfd::path::home(), { "Text Files (.glb)", "*.glb", "All Files", "*" }, pfd::opt::multiselect);
+						for (std::filesystem::path path : openFileDialog.result())
+							if (!path.empty())
+								Application::getInstance().getSceneManager().addAsset(path);
 					}
 
 					ImGui::Separator();

@@ -41,9 +41,9 @@ namespace Scene
     const Mat4f SceneManager::getMainCameraViewMatrix() { return _cameras[_mainCamera.x].getViewMatrix(_mainCamera.y); }
     const Mat4f SceneManager::getMainCameraProjectionMatrix() { return _cameras[_mainCamera.x].getProjectionMatrix(); }
 
-    void SceneManager::loadNewScene(const std::string& p_path) { clearScene(); _loadFile(p_path); resize(Application::getInstance().getWidth(), Application::getInstance().getHeight()); }
+    void SceneManager::loadNewScene(const std::filesystem::path& p_path) { clearScene(); _loadFile(p_path); resize(Application::getInstance().getWidth(), Application::getInstance().getHeight()); }
+    void SceneManager::addAsset(const std::filesystem::path& p_path) { _loadFile(p_path); resize(Application::getInstance().getWidth(), Application::getInstance().getHeight()); }
 
-    void SceneManager::addAsset(const std::string& p_path) { _loadFile(p_path); resize(Application::getInstance().getWidth(), Application::getInstance().getHeight()); }
     void SceneManager::addCamera(Camera p_camera) { _cameras.push_back(p_camera); }
     void SceneManager::addLight(Light p_light) { _lights.push_back(p_light); }
     void SceneManager::addMesh(Mesh p_mesh) { _meshes.push_back(p_mesh); Application::getInstance().getRenderer().createMesh(&_meshes[_meshes.size()-1]); }
@@ -141,7 +141,7 @@ namespace Scene
         _lights.clear();
         
         //_sceneGraph[0]->clearChilds();
-        _mainCamera = Vec2i(0, 0); // need to reset pos ?
+        _mainCamera = Vec2i(0, 0);
     }
 
     void SceneManager::_loadFile(const std::filesystem::path& p_path)

@@ -14,6 +14,7 @@
 
 #include <iostream>
 
+//#define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
 namespace M3D
@@ -26,13 +27,19 @@ namespace M3D
 			StagePostProcessingOGL() {
 				// --- anti-aliasing ---
 				_FXAAPass.addUniform("uInvSrcRes");
-				//_SMAAPass.addUniform("uInvSrcRes");
-				//_SMAAPass.addUniform("uSMAAPower");
+
+				glCreateFramebuffers(1, &_fboAA);
+				generateMap(&_aaMap, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+				attachColorMap(_fboAA, _aaMap, 0);
+				GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0};
+				glNamedFramebufferDrawBuffers(_fboAA, 1, DrawBuffers);
 
 				// --- bloom ---
 				_BloomDownSamplePass.addUniform("uInvSrcRes");
 				_BloomUpSamplePass.addUniform("uInvSrcRes");
 				
+				glCreateFramebuffers(1, &_fboBloom);
+
 				// --- tone mapping ---
 				_ToneMappingPass.addUniform("uGamma");
 				_ToneMappingPass.addUniform("uBloomPower");
@@ -42,20 +49,13 @@ namespace M3D
 				glTextureParameteri(_AgXLUT, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				glTextureParameteri(_AgXLUT, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 				glTextureParameteri(_AgXLUT, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				// dump data from disk on GPU
-				int width, height, nbChannels, bitDepth = 8;
-				unsigned char* data = stbi_load("./luts/AgX_lut.png",&width,&height,&nbChannels,0);
-				//glTextureStorage2D(_id, lvMipMap, internalFormat, p_texture->_image->getWidth(), p_texture->_image->getHeight());
-				//glTextureSubImage2D(_id, 0, 0, 0, p_texture->_image->getWidth(), p_texture->_image->getHeight(), format, GL_UNSIGNED_BYTE, p_texture->_image->getData());
-
-				glCreateFramebuffers(1, &_fboAA);
-				generateMap(&_aaMap, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-				attachColorMap(_fboAA, _aaMap, 0);
-				GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0};
-				glNamedFramebufferDrawBuffers(_fboAA, 1, DrawBuffers);
-
-				glCreateFramebuffers(1, &_fboBloom);
-
+				
+				int width, height, nbChannels;
+				unsigned char* image = stbi_load("luts/AgX_lut.png",&width,&height,&nbChannels,0);
+				glBindTexture(GL_TEXTURE_2D, _AgXLUT);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+				stbi_image_free(image);
+				
 				glCreateVertexArrays(1, &_emptyVAO);
 			}
 
@@ -108,12 +108,6 @@ namespace M3D
 
 				glProgramUniform2fv(_FXAAPass.getProgram(), _FXAAPass.getUniform("uInvSrcRes"), 1, glm::value_ptr(1.f/Vec2f(p_width,p_height)));
 				glBindTextureUnit(0, p_HDRMap);
-
-				/*glUseProgram(_SMAAPass.getProgram());
-
-				glProgramUniform2fv(_SMAAPass.getProgram(), _SMAAPass.getUniform("uInvSrcRes"), 1, glm::value_ptr(1.f/Vec2f(p_width,p_height)));
-				glProgramUniformf(_SMAAPass.getProgram(), _SMAAPass.getUniform("uSMAAPower"), 1, value );
-				glBindTextureUnit(0, p_HDRMap);*/
 
 				glBindVertexArray(_emptyVAO);
 				glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -194,7 +188,6 @@ namespace M3D
 			GLuint _emptyVAO	= GL_INVALID_INDEX;
 
 			ProgramOGL _FXAAPass					= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/FXAAPass.frag");
-			//ProgramOGL _SMAAPass					= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/SMAAPass.frag");
 			ProgramOGL _BloomDownSamplePass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/BloomDownSamplePass.frag");
 			ProgramOGL _BloomUpSamplePass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/BloomUpSamplePass.frag");
 			ProgramOGL _ToneMappingPass				= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/ToneMappingPass.frag");

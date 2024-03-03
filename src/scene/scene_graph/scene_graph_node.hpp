@@ -16,7 +16,7 @@ namespace M3D
         {
         public:
             // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-            SceneGraphNode(const Vec3f& p_translation, const Vec3f& p_scale, const Quatf& p_rotation) :
+            SceneGraphNode(Vec3f p_translation, Vec3f p_scale, Quatf p_rotation) :
                 _translation(p_translation), _scale(p_scale), _rotation(p_rotation) {
                 update();
             }
@@ -73,8 +73,11 @@ namespace M3D
                 p_child->setParent(this);
             }
             
-            // detach ??
-            void clearChilds() { _childs.clear(); }
+            void detach() {
+                for (SceneGraphNode* n : _childs) n->setParent(_parent);
+                setParent(nullptr);
+                _childs.clear();
+            }
 
             void update() {
                 _dirty = true;

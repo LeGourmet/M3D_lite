@@ -11,24 +11,18 @@ uniform float uBloomPower;
 
 in vec2 uv;
 
-/*
-refs : References:
-- [0] https://github.com/sobotka/AgX-S2O3/blob/main/AgX.py
-- [1] https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.postprocessing/PostProcessing/Shaders/Colors.hlsl
-- [2] https://video.stackexchange.com/q/9866
-- [3] https://github.com/Fubaxiusz/fubax-shaders/blob/master/Shaders/LUTTools.fx
-- [4] https://github.com/colour-science/colour/blob/develop/colour/models/rgb/transfer_functions/srgb.py#L99
-- [5] https://github.com/MrLixm/AgXc/blob/main/reshade/reshade-shaders/Shaders/AgX.fx
-- [6] https://github.com/MrLixm/AgXc/blob/main/obs/obs-script/AgX.hlsl
-*/
+// https://github.com/MrLixm/AgXc/blob/main/reshade/reshade-shaders/Shaders/AgX.fx
+// https://github.com/MrLixm/AgXc/blob/main/obs/obs-script/AgX.hlsl
 
 #define INPUT_HIGHLIGHT_GAIN_GAMMA  1.
-#define INPUT_HIGHLIGHT_GAIN        1.5
-#define INPUT_SATURATION            1.
+#define INPUT_HIGHLIGHT_GAIN        0.
+
+#define INPUT_SATURATION            1.5
 #define INPUT_GAMMA                 1.
-#define INPUT_EXPOSURE              0.5
-#define PUNCH_GAMMA                 1.
+#define INPUT_EXPOSURE              0.
+
 #define PUNCH_SATURATION            1.
+#define PUNCH_GAMMA                 1.
 #define PUNCH_EXPOSURE              0.
 
 #define LUT_BLOCK_SIZE 32
@@ -55,8 +49,8 @@ vec3 saturation(vec3 color, float saturationAmount) { return mix( vec3(getLumina
 vec3 cctf_decoding_sRGB(vec3 color) { 
     return vec3(
     (color.x<=0.04045) ? (color.x/12.92) : (powsafe((color.x+0.055)/1.055,2.4)),
-    (color.y<= 0.04045) ? (color.y / 12.92) : (powsafe((color.y + 0.055) / 1.055, 2.4)),
-    (color.z <= 0.04045) ? (color.z / 12.92) : (powsafe((color.z + 0.055) / 1.055, 2.4))
+    (color.y<=0.04045) ? (color.y/12.92) : (powsafe((color.y+0.055)/1.055,2.4)),
+    (color.z<=0.04045) ? (color.z/12.92) : (powsafe((color.z+0.055)/1.055,2.4))
     );
 }
 
@@ -67,13 +61,10 @@ vec3 convertOpenDomainToNormalizedLog2(vec3 color, float minimum_ev, float maxim
     return (color-minimum_ev)/(maximum_ev-minimum_ev);
 }
 
-//#define AGX
-
 void main(){
-	#if defined AGX
+    vec3 col = texture(uTexture,uv).xyz+uBloomPower*texture(uBloom,uv).xyz;
 
-    vec3 col = texture(uTexture,uv).xyz;//+uBloomPower*texture(uBloom,uv).xyz;
-     // ------ APPLY AgX Tone Mapping ------
+    // ------ APPLY AgX Tone Mapping ------
     // --- Input transform ---
     //col = cctf_decoding_sRGB(col); // col = convertColorspaceToColorspace(col, INPUT_COLORSPACE, colorspaceid_working_space);
     // gamutid_sRGB         =>          gamutid_sRGB
@@ -81,7 +72,6 @@ void main(){
     // cctf_id_sRGB_EOTF    =>          -1
 
     // --- Open Grading ---
-    // + Image = white_balance( Image, INPUT_WHITE_BALANCE_TEMPERATURE, INPUT_WHITE_BALANCE_TINT, INPUT_WHITE_BALANCE_INTENSITY);
     col += col * vec3(powsafe(getLuminance(col), INPUT_HIGHLIGHT_GAIN_GAMMA)) * INPUT_HIGHLIGHT_GAIN;
     col = saturation(col, INPUT_SATURATION);
     col = powsafe(col, INPUT_GAMMA);
@@ -90,12 +80,11 @@ void main(){
 	// --- DRT ---
     // agx log 
 	col = max(vec3(0.),col);
-    col = agx_compressed_matrix*col; // other sens ? => col*mat ?
+    col = agx_compressed_matrix*col;
     col = convertOpenDomainToNormalizedLog2(col, -10., 6.5);
     col = clamp(col, 0., 1.);
 
     // agX lut
-    /*
     vec3 lut3D = col*(LUT_BLOCK_SIZE-1);
     vec2 lut2D[2];
     lut2D[0].x = floor(lut3D.z)*LUT_BLOCK_SIZE+lut3D.x;
@@ -106,17 +95,12 @@ void main(){
     lut2D[1] = (lut2D[1]+0.5)*LUT_PIXEL_SIZE;
     col = mix( texture(uAgXTextureLUT, lut2D[0]).xyz, texture(uAgXTextureLUT, lut2D[1]).xyz, fract(lut3D.z) ); // tex2D = texture ?
     col = powsafe(col, 2.2);
-    */
-    // if(DRT == drt_id_agx_outset) col = agx_compressed_matrix_inverse*col; // other sens ? => col*mat ?
+    //col = agx_compressed_matrix_inverse*col;
 
     // --- ODT ---
-    col = powsafe(col, 1./2.2); // col = convertColorspaceToColorspace(Image, colorspaceid_working_space, OUTPUT_COLORSPACE)
-    // gamutid_sRGB         =>          gamutid_sRGB
-    // whitepointid_D65     =>          whitepointid_D65
-    // -1                   =>          cctf_id_sRGB_EOTF
+    col = powsafe(col, 1./2.2);
 
     // --- Display grading ---
-    // + Image = white_balance( Image, INPUT_WHITE_BALANCE_TEMPERATURE, INPUT_WHITE_BALANCE_TINT, INPUT_WHITE_BALANCE_INTENSITY);
     col = powsafe(col, PUNCH_GAMMA);
     col = saturation(col, PUNCH_SATURATION);
     col *= powsafe(2., PUNCH_EXPOSURE);
@@ -126,12 +110,6 @@ void main(){
     // whitepointid_D65     =>          whitepointid_D65
     // cctf_id_sRGB_EOTF    =>          cctf_id_BT_709
     //Image = convertColorspaceToColorspace(Image, 1, 4);
-
-	#else
-    vec3 col = texture(uTexture,uv).xyz+uBloomPower*texture(uBloom,uv).xyz;
-	col = clamp((col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14), 0., 1.);		// ACES filmic tone mapping
-	col = pow(col,vec3(1./uGamma));																// gama correction
-	#endif
 
 	fragColor = vec4(col,1.);
 }

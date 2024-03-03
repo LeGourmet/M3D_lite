@@ -29,15 +29,15 @@ namespace M3D
 
 				GLenum wrapping;
 				switch (p_texture->_wrappingS) {
-					case WRAPPING_TYPE::WRAP_MIRRORED_REPEAT: wrapping = GL_MIRRORED_REPEAT; break;
-					case WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE: wrapping = GL_CLAMP_TO_EDGE; break;
+					case WRAPPING_TYPE::MIRRORED_REPEAT: wrapping = GL_MIRRORED_REPEAT; break;
+					case WRAPPING_TYPE::CLAMP_TO_EDGE: wrapping = GL_CLAMP_TO_EDGE; break;
 					default: wrapping = GL_REPEAT; break;
 				}
 				glTextureParameteri(_id, GL_TEXTURE_WRAP_S, wrapping);
 
 				switch (p_texture->_wrappingT) {
-					case WRAPPING_TYPE::WRAP_MIRRORED_REPEAT: wrapping = GL_MIRRORED_REPEAT; break;
-					case WRAPPING_TYPE::WRAP_CLAMP_TO_EDGE: wrapping = GL_CLAMP_TO_EDGE; break;
+					case WRAPPING_TYPE::MIRRORED_REPEAT: wrapping = GL_MIRRORED_REPEAT; break;
+					case WRAPPING_TYPE::CLAMP_TO_EDGE: wrapping = GL_CLAMP_TO_EDGE; break;
 					default: wrapping = GL_REPEAT; break;
 				}
 				glTextureParameteri(_id, GL_TEXTURE_WRAP_T, wrapping);

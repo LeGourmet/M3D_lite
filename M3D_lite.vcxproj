@@ -30,7 +30,6 @@
     <ClCompile Include="lib\imgui\imgui_tables.cpp" />
     <ClCompile Include="lib\imgui\imgui_widgets.cpp" />
     <ClCompile Include="lib\simdjson\simdjson.cpp" />
-    <ClCompile Include="lib\tinygltf\tiny_gltf.cc" />
     <ClCompile Include="src\application.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\renderer\OpenGL\renderer_ogl.cpp" />
@@ -538,18 +537,12 @@
     <ClInclude Include="lib\simdjson\simdjson.h" />
     <ClInclude Include="lib\stb\stb_image.h" />
     <ClInclude Include="lib\stb\stb_image_write.h" />
-    <ClInclude Include="lib\tinygltf\json.hpp" />
-    <ClInclude Include="lib\tinygltf\stb_image.h" />
-    <ClInclude Include="lib\tinygltf\stb_image_write.h" />
-    <ClInclude Include="lib\tinygltf\tiny_gltf.h" />
     <ClInclude Include="src\application.hpp" />
     <ClInclude Include="src\renderer\OpenGL\stages\stage_geometry_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\stages\stage_lighting_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\stages\stage_post_processing_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\stages\stage_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\texture_ogl.hpp" />
-    <ClInclude Include="src\scene\acceleration_structures\AABB.hpp" />
-    <ClInclude Include="src\scene\acceleration_structures\BVH.hpp" />
     <ClInclude Include="src\scene\objects\cameras\fov_box.hpp" />
     <ClInclude Include="src\scene\objects\meshes\material.hpp" />
     <ClInclude Include="src\scene\objects\meshes\sub_mesh.hpp" />

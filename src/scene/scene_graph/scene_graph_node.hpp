@@ -16,11 +16,11 @@ namespace M3D
         {
         public:
             // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-            SceneGraphNode(SceneGraphNode* p_parent, const Vec3f& p_translation, const Vec3f& p_scale, const Quatf& p_rotation) :
-                _parent(p_parent), _translation(p_translation), _scale(p_scale), _rotation(p_rotation) {
-                if(p_parent != nullptr) p_parent->addChild(this);
+            SceneGraphNode(const Vec3f& p_translation, const Vec3f& p_scale, const Quatf& p_rotation) :
+                _translation(p_translation), _scale(p_scale), _rotation(p_rotation) {
                 update();
             }
+
             ~SceneGraphNode() {}
 
             // ------------------------------------------------------ GETTERS ------------------------------------------------------
@@ -45,13 +45,18 @@ namespace M3D
             inline const bool isDirty() const { return _dirty; }
             
             // ------------------------------------------------------ SETTERS ------------------------------------------------------
+            void setParent(SceneGraphNode* p_parent) {
+                _parent = p_parent;
+                update();
+            }
+
             void setRotation(const Quatf& p_rotation) {
-                _rotation = p_rotation;             // CHECK normalize
+                _rotation = p_rotation;
                 update();
             }
 
             void setScaling(const Vec3f& p_scale) {
-                _scale = p_scale;                   // CHECK negative
+                _scale = p_scale;
                 update();
             }
 
@@ -61,11 +66,14 @@ namespace M3D
             }
 
             void setDirtyFalse() { _dirty = false; }
+
             // ----------------------------------------------------- FONCTIONS -----------------------------------------------------      
-            void addChild(SceneGraphNode* child){
-                _childs.push_back(child);
+            void attach(SceneGraphNode* p_child) {
+                _childs.push_back(p_child);
+                p_child->setParent(this);
             }
             
+            // detach ??
             void clearChilds() { _childs.clear(); }
 
             void update() {
@@ -81,12 +89,12 @@ namespace M3D
             }
 
             void rotate(const Vec3f& p_delta) { 
-                _rotation *= Quatf(p_delta);    // CHECK normalize
+                _rotation *= Quatf(p_delta);
                 update();
             }
 
             void scale(const Vec3f& p_delta) {
-                _scale *= p_delta;              // CHECK negative
+                _scale *= p_delta;
                 update();
             }
 
@@ -95,27 +103,22 @@ namespace M3D
                 translate(p_pivot + Quatf(p_delta) * (position - p_pivot) - position);
             }
 
-            void lookAt(const Vec3f& p_target) {
-                /*Vec3f forwardVector = glm::normalize(p_lookAt - _position);
-
-                _rotation *= glm::normalize(
-                    Quatf(glm::dot(_front, forwardVector) + 1.f, 
-                          glm::cross(_front, forwardVector)));*/
-            }
+            // todo implement
+            void lookAt(const Vec3f& p_target) { }
 
         private:
             // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-            SceneGraphNode* _parent = nullptr;
+            SceneGraphNode* _parent     = nullptr;
             std::vector<SceneGraphNode*> _childs;
 
-            Quatf _rotation = QUATF_ID;
-            Vec3f _scale = VEC3F_ONE;
-            Vec3f _translation = VEC3F_ZERO;
+            Quatf _rotation             = QUATF_ID;
+            Vec3f _scale                = VEC3F_ONE;
+            Vec3f _translation          = VEC3F_ZERO;
             
-            Mat4f _localTransformation = MAT4F_ID;
-            Mat4f _transformation = MAT4F_ID;
+            Mat4f _localTransformation  = MAT4F_ID;
+            Mat4f _transformation       = MAT4F_ID;
 
-            bool _dirty;
+            bool _dirty                 = false;
         };
     }
 }

@@ -14,25 +14,10 @@ namespace Scene
     {
     public:
         // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-        SubMesh(Material* p_material, std::vector<Vertex>& p_vertices, const unsigned int* p_data, unsigned int p_count) {
+        SubMesh(Material* p_material, std::vector<Vertex>& p_vertices, std::vector<unsigned int>& p_indices) {
             _material = p_material;
             _vertices = p_vertices;
-            _indices.reserve(p_count);
-            for (unsigned int i = 0; i < p_count;i++) _indices.push_back(p_data[i]);
-        }
-
-        SubMesh(Material* p_material, std::vector<Vertex>& p_vertices, const unsigned short* p_data, unsigned int p_count) {
-            _material = p_material;
-            _vertices = p_vertices;
-            _indices.reserve(p_count);
-            for (unsigned int i = 0; i < p_count;i++) _indices.push_back(p_data[i]);
-        }
-        
-        SubMesh(Material* p_material, std::vector<Vertex>& p_vertices, const unsigned char* p_data, unsigned int p_count) {
-            _material = p_material;
-            _vertices = p_vertices;
-            _indices.reserve(p_count);
-            for (unsigned int i = 0; i < p_count;i++) _indices.push_back(p_data[i]);
+            _indices = p_indices;
         }
 
         ~SubMesh() {}

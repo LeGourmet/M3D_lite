@@ -24,6 +24,7 @@ namespace M3D
             ~Material(){}
 
             // ------------------------------------------------------ GETTERS ------------------------------------------------------
+            // change for name albedo
             inline const Vec4f& getBaseColor() const { return _baseColor; }
             inline const Vec3f& getEmissiveColor() const { return _emissiveColor; }
             inline const Vec3f getEmissivity() const { return _emissiveColor*_emissiveStrength; }

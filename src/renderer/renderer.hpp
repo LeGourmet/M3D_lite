@@ -12,6 +12,8 @@ namespace M3D
 {
     namespace Renderer
     {
+        enum AA_TYPE { NONE, FXAA, SMAA };
+
         class Renderer
         {
         public:
@@ -21,9 +23,11 @@ namespace M3D
             virtual ~Renderer() = default;
 
             // ------------------------------------------------------ GETTERS ------------------------------------------------------
-            inline float getGamma() { return _gamma; }
             inline float getBloomPower() { return _bloomPower; }
             inline Vec4f& getClearColor() { return _clearColor; }
+            inline AA_TYPE getAAType() { return _aaType; }
+
+            inline void setAAType(AA_TYPE p_aa_type) { _aaType = p_aa_type; }
 
             // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
             virtual void resize(const int p_width, const int p_height) = 0;
@@ -39,9 +43,9 @@ namespace M3D
             virtual void deleteTexture(Texture* p_texture) = 0;
 
         protected:
-            float _gamma = 2.2f; 
             float _bloomPower = 0.04f;
             Vec4f _clearColor = VEC4F_ZERO;
+            AA_TYPE _aaType = AA_TYPE::FXAA;
         };
     }
 }

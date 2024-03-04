@@ -51,7 +51,7 @@ namespace M3D
             unsigned long long _time = 0;
             
             bool _vSync = true;
-            unsigned int _targetFPS = 120;
+            unsigned int _targetFPS = 0;
 
             // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
             bool _captureEvent(const SDL_Event& p_event);

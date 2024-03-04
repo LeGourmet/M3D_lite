@@ -14,6 +14,9 @@ in vec2 fragUVs;
 
 void main()
 {
-    if((uHasAlbedoMap ? texture(uAlbedoMap,fragUVs) : uAlbedo).a<uAlphaCutOff) discard;
+    if(uAlphaCutOff<1.) {
+		vec4 albedo = (uHasAlbedoMap ? texture(uAlbedoMap,fragUVs) : vec4(1.))*uAlbedo;
+		if(albedo.a<uAlphaCutOff) discard;
+	}
     gl_FragDepth = distance(fragPos.xyz,uLightPos)/uZfar;
 } 

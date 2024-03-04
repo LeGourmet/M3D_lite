@@ -1,9 +1,6 @@
 #version 450
 
 #define PI				3.1415926535
-#define PCF_SAMPLES     8
-#define PCF_OFFSET      0.1
-#define EPS				0.0001
 
 #define pow2(a) (a)*(a)
 #define pow5(a) (a)*(a)*(a)*(a)*(a)
@@ -21,12 +18,14 @@ struct FragNode {
 
 layout( binding = 0, r32ui )	uniform uimage2D uRootTransparency;
 layout( binding = 1, std430 )	buffer uLinkedListTransparency { FragNode nodes[]; };
-layout( binding = 2 )           uniform sampler2DShadow uShadowMap;
+//layout( binding = 2 )         buffer shadowPerChannelPerFragment
 
 uniform vec4 uCamData;
-uniform mat4 uLightMatrix_VP;
+uniform vec3 uLightPosition;
 uniform vec3 uLightDirection;
 uniform vec3 uLightEmissivity;
+uniform vec2 uLightCosAngles;
+uniform bool uLightTypePoint;
 
 in vec2 uv;
 
@@ -39,11 +38,18 @@ void main(){
         
         // ---------- LIGHT ----------
         vec3 L = -uLightDirection;
+        vec3 light_componant = uLightEmissivity;
+
+        if (uLightTypePoint) {
+            L = uLightPosition-nodes[i].position;
+	        float lightDepth_sq = dot(L,L); 
+	        L = normalize(L);
+	        light_componant *= clamp((dot(-L,uLightDirection)-uLightCosAngles.y) / (uLightCosAngles.x-uLightCosAngles.y), 0., 1.) / max(lightDepth_sq,0.0001);
+        }
         
         // ---------- SHADING ----------
 	    vec3 H = normalize(V+L);
-        vec3 N = nodes[i].normal * ((dot(nodes[i].normal,V)<0.) ? -1. : 1.); // if double side not discard than flip before compute
-	    //if(dot(N,V)<0. && dot(N,L)<0.) N = -N;
+        vec3 N = nodes[i].normal * ((dot(nodes[i].normal,V)<0.) ? -1. : 1.);
 
 	    float cosNV = max(1e-5,abs(dot(N,V)));
 	    float cosNL = max(0.,dot(N,L));
@@ -51,7 +57,7 @@ void main(){
 	    float cosHN = max(0.,dot(H,N));
 
         float r = clamp(nodes[i].roughness, 0.01, 0.99);
-			  r = pow(r,1.75); //pow2(r*r);
+		      r = pow(r,1.75); //pow2(r*r);
         float r2 = pow2(r);
 	
 	    // --- dielectic ---
@@ -67,35 +73,24 @@ void main(){
         float V2 = 0.5/max(1e-5,(cosNL*sqrt((cosNV-cosNV*r2)*cosNV+r2) + cosNV*sqrt((cosNL-cosNL*r2)*cosNL+r2)));
         vec3 conductor = F*D*V2;
 
+		// --- transmit ---
+		/*
+		float cosNL = max(0.,dot(-N, transmitRay.getDirection()));
+		float DielF = schlick(0., 1., max(0.,dot(H,V)));
+                    
+        float XL = sqrt(r2 + (1. - r2) * cosNL * cosNL);
+        float XV = sqrt(r2 + (1. - r2) * cosNV * cosNV);
+        float G1L = 2. * cosNL / max(1e-5, (cosNL + XL));
+        float G1V = 2. * cosNV / max(1e-5, (cosNV + XV));
+        float G2 = 2. * cosNL * cosNV / max(1e-5, (cosNV * XL + cosNL * XV));
+		*/
+        //vec3 transmit = sqrt(vec3(albedo)) * (1.-DielF)*G2/**pow2(p_ni/p_no)*//max(1e-5,G1L); 
+		//vec3 transmit = sqrt(vec3(albedo)) * (1.-DielF) * D *
+
 		// ---------- SHADOW ----------
-		// use slope scale bias => dot(L,N)
-		// use adaptive Bias Based on Depth => base on difference znear/zfar for light source
-		// use bias that scale on resalution of the shadow map
-		// use pcf and/or pcss
+		vec3 shadow = vec3(1.);
 
-		float shadow  = 0.;
-
-		#if PCF_SAMPLES < 2
-			vec3 fp = nodes[i].position + L*clamp(0.05*cosNL,0.05,0.1); // offset => use N or L ; factors should depend of something  // N*EPS + L*max(0.5,cosNL)*1000./uCamData.a;
-			vec3 fpLS = (uLightMatrix_VP * vec4(fp,1.)).xyz;
-			shadow = (fpLS.z < 1.) ? texture(uShadowMap,fpLS) : 1.; // pcss => facteur compris entre 0 et 1 compute
-		#else
-			vec3 T = cross(N,vec3(1.,0.,0.));
-			if(length(T)<0.1) T = cross(N,vec3(0.,1.,0.));
-			T = normalize(T);
-			vec3 B = normalize(cross(N,T));
-
-			float pcf_step = 2.*PCF_OFFSET/float(PCF_SAMPLES-1);
-			for(int i=0; i<PCF_SAMPLES ;i++)
-				for(int j=0; j<PCF_SAMPLES ;j++){
-					vec3 fp = nodes[i].position + T*(float(i)*pcf_step-PCF_OFFSET) + B*(float(j)*pcf_step-PCF_OFFSET);
-						 fp += L*clamp(0.05*cosNL,0.05,0.1); // offset => use N or L ; factors should depend of something  // N*EPS + L*max(0.5,cosNL)*1000./uCamData.a;
-					vec3 fpLS = (uLightMatrix_VP * vec4(fp,1.)).xyz;
-					shadow += (fpLS.z < 1.) ? texture(uShadowMap,fpLS) : 1.; // pcss => facteur compris entre 0 et 1 compute
-				}
-			shadow /= float(pow2(PCF_SAMPLES));
-		#endif
-
-        nodes[i].emissive += mix(dielectric,conductor,nodes[i].metalness) * uLightEmissivity * shadow * cosNL;
+		// ---------- FINAL MIX ----------
+        nodes[i].emissive += mix(dielectric,conductor,nodes[i].metalness) * light_componant * shadow * cosNL;
     }
 }

@@ -6,6 +6,7 @@
 #include "scene/objects/lights/light.hpp"
 #include "scene/scene_graph/scene_graph_node.hpp"
 #include "scene/scene_manager.hpp"
+#include "renderer/renderer.hpp"
 
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_opengl3.h"
@@ -71,7 +72,7 @@ namespace UserInterface
 		ImGuiIO& io = ImGui::GetIO();
 
 		if (ImGui::BeginMainMenuBar()) {
-			if (ImGui::BeginMenu("Settings")) {
+			if (ImGui::BeginMenu("ScreenSettings")) {
 				int targetFPS = Application::getInstance().getWindow().getTargetFps();
 				if (ImGui::InputInt("Target FPS", &targetFPS, 1, 10)) Application::getInstance().getWindow().setTargetFPS(targetFPS);
 
@@ -146,6 +147,19 @@ namespace UserInterface
 						Application::getInstance().getSceneManager().addLight(sun);
 						Application::getInstance().getSceneManager().addInstance(sun, new Scene::SceneGraphNode(nullptr, VEC3F_ZERO, VEC3F_ONE, QUATF_ID));
 					}*/
+
+					ImGui::EndTabItem();
+				}
+
+				if (ImGui::BeginTabItem("Renderer")) {
+
+					ImGui::TextColored(ImVec4(1, 1, 0, 1), "Anti-Aliasing");
+
+					if (ImGui::RadioButton("NONE", Application::getInstance().getRenderer().getAAType() == Renderer::AA_TYPE::NONE)) { Application::getInstance().getRenderer().setAAType(Renderer::AA_TYPE::NONE); }
+					ImGui::SameLine();
+					if (ImGui::RadioButton("FXAA", Application::getInstance().getRenderer().getAAType() == Renderer::AA_TYPE::FXAA)) { Application::getInstance().getRenderer().setAAType(Renderer::AA_TYPE::FXAA); }
+					ImGui::SameLine();
+					if (ImGui::RadioButton("SMAA", Application::getInstance().getRenderer().getAAType() == Renderer::AA_TYPE::SMAA)) { Application::getInstance().getRenderer().setAAType(Renderer::AA_TYPE::SMAA); }
 
 					ImGui::EndTabItem();
 				}

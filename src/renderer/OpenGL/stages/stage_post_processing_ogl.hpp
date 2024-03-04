@@ -14,7 +14,6 @@
 
 #include <iostream>
 
-//#define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
 namespace M3D
@@ -27,6 +26,7 @@ namespace M3D
 			StagePostProcessingOGL() {
 				// --- anti-aliasing ---
 				_FXAAPass.addUniform("uInvSrcRes");
+				_SMAAPass.addUniform("uInvSrcRes");
 
 				glCreateFramebuffers(1, &_fboAA);
 				generateMap(&_aaMap, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
@@ -40,9 +40,8 @@ namespace M3D
 				
 				glCreateFramebuffers(1, &_fboBloom);
 
-				// --- tone mapping ---
-				_ToneMappingPass.addUniform("uGamma");
-				_ToneMappingPass.addUniform("uBloomPower");
+				// --- tone mapping and final mix ---
+				_FinalPass.addUniform("uBloomPower");
 
 				glCreateTextures(GL_TEXTURE_2D, 1, &_AgXLUT);
 				glTextureParameteri(_AgXLUT, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -60,13 +59,13 @@ namespace M3D
 			}
 
 			~StagePostProcessingOGL() {
-				glDeleteTextures(1, &_AgXLUT);
-
 				glDeleteTextures(1, &_aaMap);
 				glDeleteFramebuffers(1, &_fboAA);
 
 				glDeleteFramebuffers(1, &_fboBloom);
 				for(int i=1; i<_bloomMaps.size(); i++) glDeleteTextures(1, &_bloomMaps[i]);
+
+				glDeleteTextures(1, &_AgXLUT);
 
 				glDeleteVertexArrays(1, &_emptyVAO);
 			}
@@ -99,20 +98,29 @@ namespace M3D
 			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_HDRMap) {
 				// --- anti-aliasing ---
 				glViewport(0, 0, p_width, p_height);
-
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboAA);
-
 				glClear(GL_COLOR_BUFFER_BIT);
+				if(Application::getInstance().getRenderer().getAAType() == AA_TYPE::NONE){
+					glCopyImageSubData(p_HDRMap, GL_TEXTURE_2D, 0, 0, 0, 0, _aaMap, GL_TEXTURE_2D, 0, 0, 0, 0, p_width, p_height, 1);
+				} else if (Application::getInstance().getRenderer().getAAType() == AA_TYPE::FXAA) {
+					glUseProgram(_FXAAPass.getProgram());
 
-				glUseProgram(_FXAAPass.getProgram());
+					glProgramUniform2fv(_FXAAPass.getProgram(), _FXAAPass.getUniform("uInvSrcRes"), 1, glm::value_ptr(1.f / Vec2f(p_width, p_height)));
+					glBindTextureUnit(0, p_HDRMap);
 
-				glProgramUniform2fv(_FXAAPass.getProgram(), _FXAAPass.getUniform("uInvSrcRes"), 1, glm::value_ptr(1.f/Vec2f(p_width,p_height)));
-				glBindTextureUnit(0, p_HDRMap);
+					glBindVertexArray(_emptyVAO);
+					glDrawArrays(GL_TRIANGLES, 0, 3);
+					glBindVertexArray(0);
+				} else if(Application::getInstance().getRenderer().getAAType() == AA_TYPE::SMAA) {
+					glUseProgram(_SMAAPass.getProgram());
 
-				glBindVertexArray(_emptyVAO);
-				glDrawArrays(GL_TRIANGLES, 0, 3);
-				glBindVertexArray(0);
+					glProgramUniform2fv(_SMAAPass.getProgram(), _SMAAPass.getUniform("uInvSrcRes"), 1, glm::value_ptr(1.f / Vec2f(p_width, p_height)));
+					glBindTextureUnit(0, p_HDRMap);
 
+					glBindVertexArray(_emptyVAO);
+					glDrawArrays(GL_TRIANGLES, 0, 3);
+					glBindVertexArray(0);
+				}
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 				// --- bloom ---
@@ -160,10 +168,9 @@ namespace M3D
 
 				glClear(GL_COLOR_BUFFER_BIT);
 
-				glUseProgram(_ToneMappingPass.getProgram());
-
-				glProgramUniform1f(_ToneMappingPass.getProgram(), _ToneMappingPass.getUniform("uGamma"), Application::getInstance().getRenderer().getGamma());
-				glProgramUniform1f(_ToneMappingPass.getProgram(), _ToneMappingPass.getUniform("uBloomPower"), Application::getInstance().getRenderer().getBloomPower());
+				glUseProgram(_FinalPass.getProgram());
+				
+				glProgramUniform1f(_FinalPass.getProgram(), _FinalPass.getUniform("uBloomPower"), Application::getInstance().getRenderer().getBloomPower());
 				glBindTextureUnit(0, _aaMap);
 				glBindTextureUnit(1, _bloomMaps[_bloomMaps.size()-1]);
 				glBindTextureUnit(2, _AgXLUT);
@@ -187,10 +194,11 @@ namespace M3D
 
 			GLuint _emptyVAO	= GL_INVALID_INDEX;
 
-			ProgramOGL _FXAAPass					= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/FXAAPass.frag");
-			ProgramOGL _BloomDownSamplePass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/BloomDownSamplePass.frag");
-			ProgramOGL _BloomUpSamplePass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/BloomUpSamplePass.frag");
-			ProgramOGL _ToneMappingPass				= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/ToneMappingPass.frag");
+			ProgramOGL _FXAAPass				= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/FXAAPass.frag");
+			ProgramOGL _SMAAPass				= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/SMAAPass.frag");
+			ProgramOGL _BloomDownSamplePass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/BloomDownSamplePass.frag");
+			ProgramOGL _BloomUpSamplePass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/BloomUpSamplePass.frag");
+			ProgramOGL _FinalPass				= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/FinalPass.frag");
 		};
 	}
 }

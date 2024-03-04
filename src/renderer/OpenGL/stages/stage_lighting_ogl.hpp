@@ -31,12 +31,6 @@ namespace M3D
 				_OpaqueDirectionalPass.addUniform("uLightDirection");
 				_OpaqueDirectionalPass.addUniform("uLightEmissivity");
 				
-				// --- transparent directional ---
-				_TransparentDirectionalPass.addUniform("uCamData");
-				_TransparentDirectionalPass.addUniform("uLightMatrix_VP");
-				_TransparentDirectionalPass.addUniform("uLightDirection");
-				_TransparentDirectionalPass.addUniform("uLightEmissivity");
-
 				// --- shadow directional ---
 				_ShadowPass.addUniform("uLightMatrix_VP");
 				_ShadowPass.addUniform("uAlbedo");
@@ -63,12 +57,13 @@ namespace M3D
 				_OpaquePunctualPass.addUniform("uLightEmissivity");
 				_OpaquePunctualPass.addUniform("uLightCosAngles");
 
-				// --- transparent punctual ---
-				_TransparentPunctualPass.addUniform("uCamData");
-				_TransparentPunctualPass.addUniform("uLightPosition");
-				_TransparentPunctualPass.addUniform("uLightDirection");
-				_TransparentPunctualPass.addUniform("uLightEmissivity");
-				_TransparentPunctualPass.addUniform("uLightCosAngles");
+				// --- transparent lighting ---
+				_TransparentLightingPass.addUniform("uCamData");
+				_TransparentLightingPass.addUniform("uLightPosition");
+				_TransparentLightingPass.addUniform("uLightDirection");
+				_TransparentLightingPass.addUniform("uLightEmissivity");
+				_TransparentLightingPass.addUniform("uLightCosAngles");
+				_TransparentLightingPass.addUniform("uLightTypePoint");
 
 				// --- shadow punctual ---
 				_ShadowCubePass.addUniform("uShadowTransform");
@@ -175,7 +170,7 @@ namespace M3D
 										// compute for each instance if they are cull or not => they id inside SSBO => render instance number = size SSBO => in shader read this ssbo with instance count
 										for (unsigned int j=0; j < mesh.first->getSubMeshes().size(); j++) {
 											Scene::SubMesh subMesh = mesh.first->getSubMeshes()[j];
-											if (!subMesh.getMaterial().isOpaque()) continue;
+											//if (!subMesh.getMaterial().isOpaque()) continue;
 
 											if (subMesh.getMaterial().isDoubleSide()) { glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
 											else { glDisable(GL_CULL_FACE); }
@@ -248,20 +243,20 @@ namespace M3D
 									// --- transparent ---
 									glViewport(0, 0, p_width, p_height);
 
-									glUseProgram(_TransparentPunctualPass.getProgram());
+									glUseProgram(_TransparentLightingPass.getProgram());
 
 									glBindImageTexture(0, p_rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
 									glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, p_ssboTransparency);
-									glBindTextureUnit(2, _shadowCubeMap);
 
 									glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _billboardSSBO);
 
-									glProgramUniform4fv(_TransparentPunctualPass.getProgram(), _TransparentPunctualPass.getUniform("uCamData"), 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition(), zfar)));
-									glProgramUniform3fv(_TransparentPunctualPass.getProgram(), _TransparentPunctualPass.getUniform("uLightPosition"), 1, glm::value_ptr(l.getInstance(i)->getPosition()));
-									glProgramUniform3fv(_TransparentPunctualPass.getProgram(), _TransparentPunctualPass.getUniform("uLightDirection"), 1, glm::value_ptr(l.getInstance(i)->getFront()));
-									glProgramUniform3fv(_TransparentPunctualPass.getProgram(), _TransparentPunctualPass.getUniform("uLightEmissivity"), 1, glm::value_ptr(l.getEmissivity()));
-									glProgramUniform2fv(_TransparentPunctualPass.getProgram(), _TransparentPunctualPass.getUniform("uLightCosAngles"), 1, glm::value_ptr(Vec2f(l.getCosInnerConeAngle(), l.getCosOuterConeAngle())));
-
+									glProgramUniform4fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uCamData"), 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition(), zfar)));
+									glProgramUniform3fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightPosition"), 1, glm::value_ptr(l.getInstance(i)->getPosition()));
+									glProgramUniform3fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightDirection"), 1, glm::value_ptr(l.getInstance(i)->getFront()));
+									glProgramUniform3fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightEmissivity"), 1, glm::value_ptr(l.getEmissivity()));
+									glProgramUniform2fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightCosAngles"), 1, glm::value_ptr(Vec2f(l.getCosInnerConeAngle(), l.getCosOuterConeAngle())));
+									glProgramUniform1i(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightTypePoint"), true);
+									
 									glBindVertexArray(_emptyVAO);
 									glDrawArrays(GL_TRIANGLES, 0, 6);
 									glBindVertexArray(0);
@@ -292,7 +287,7 @@ namespace M3D
 									for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes)
 										for (unsigned int j=0; j<mesh.first->getSubMeshes().size(); j++) {
 											Scene::SubMesh subMesh = mesh.first->getSubMeshes()[j];
-											if (!subMesh.getMaterial().isOpaque()) continue;
+											//if (!subMesh.getMaterial().isOpaque()) continue;
 
 											if (subMesh.getMaterial().isDoubleSide()) { glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
 											else { glDisable(GL_CULL_FACE); }
@@ -339,19 +334,29 @@ namespace M3D
 									glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 									// --- transparent ---
-									glUseProgram(_TransparentDirectionalPass.getProgram());
+									_billBoardCoords[0] = Vec4f(-1., -1., 0., 1.);
+									_billBoardCoords[1] = Vec4f( 1., -1., 0., 1.);
+									_billBoardCoords[2] = Vec4f(-1.,  1., 0., 1.);
+									_billBoardCoords[3] = Vec4f( 1.,  1., 0., 1.);
+
+									glNamedBufferSubData(_billboardSSBO, 0, 4 * sizeof(Vec4f), &_billBoardCoords);
+
+									glViewport(0, 0, p_width, p_height);
+
+									glUseProgram(_TransparentLightingPass.getProgram());
 
 									glBindImageTexture(0, p_rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
 									glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, p_ssboTransparency);
-									glBindTextureUnit(2, _shadowMap);
-
-									glProgramUniformMatrix4fv(_TransparentDirectionalPass.getProgram(), _TransparentDirectionalPass.getUniform("uLightMatrix_VP"), 1, false, glm::value_ptr(homogeneousLightMatrix_VP));
-									glProgramUniform4fv(_TransparentDirectionalPass.getProgram(), _TransparentDirectionalPass.getUniform("uCamData"), 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition(), zfar)));
-									glProgramUniform3fv(_TransparentDirectionalPass.getProgram(), _TransparentDirectionalPass.getUniform("uLightDirection"), 1, glm::value_ptr(l.getInstance(i)->getFront()));
-									glProgramUniform3fv(_TransparentDirectionalPass.getProgram(), _TransparentDirectionalPass.getUniform("uLightEmissivity"), 1, glm::value_ptr(l.getEmissivity()));
+									
+									glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _billboardSSBO);
+									
+									glProgramUniform4fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uCamData"), 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition(), zfar)));
+									glProgramUniform3fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightDirection"), 1, glm::value_ptr(l.getInstance(i)->getFront()));
+									glProgramUniform3fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightEmissivity"), 1, glm::value_ptr(l.getEmissivity()));
+									glProgramUniform1i(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightTypePoint"), false);
 
 									glBindVertexArray(_emptyVAO);
-									glDrawArrays(GL_TRIANGLES, 0, 3);
+									glDrawArrays(GL_TRIANGLES, 0, 6);
 									glBindVertexArray(0);
 
 									break;
@@ -418,8 +423,7 @@ namespace M3D
 			ProgramOGL _OpaquePunctualPass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/Billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/OpaquePunctualPass.frag");
 			ProgramOGL _OpaqueAmbientPass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/OpaqueAmbientPass.frag");
 			
-			ProgramOGL _TransparentDirectionalPass	= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/TransparentDirectionalPass.frag");
-			ProgramOGL _TransparentPunctualPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/Billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/TransparentPunctualPass.frag");
+			ProgramOGL _TransparentLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/Billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/TransparentLightingPass.frag");
 			ProgramOGL _TransparentPass				= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/TransparentPass.frag");
 
 			ProgramOGL _ShadowPass					= ProgramOGL("src/renderer/OpenGL/shaders/shadow/Shadow.vert", "", "src/renderer/OpenGL/shaders/shadow/Shadow.frag");

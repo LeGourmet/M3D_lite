@@ -10,7 +10,7 @@ Le moteur supporte deux formats de description de scène : le gltf et glb. Ces fo
 - Un graphe de scène qui décrit une hiérachie de transformations qui sont appliquées aux objets de la scène. L'utilisation d'un graphe de scène permet au moteur de supporter l'instancing. 
 - Des matériaux physiquement basés qui sont attachés aux objets.
 
-En ce qui concerne le rendu de la scène, il est réalisé par deffered shading, l'ombre produite par les lumières est calculée par des shadows map et par la suite plusieurs opérations de post-processing sont réalisées pour rendre l'image finale (bloom, fxaa, tone mapping et gama correction).
+En ce qui concerne le rendu de la scène, il est réalisé par deffered shading, l'ombre produite par les lumières est calculée par des shadows map et par la suite plusieurs opérations de post-processing sont réalisées pour rendre l'image finale (bloom, FXAA, tone mapping et gama correction (AgX)).
 Depuis peu, le moteur implémente une méthode de "order independency transparency" par le biais d'une "per pixel linked list" et permet donc l'affichage des objets transparents.
 
 ## Résulats
@@ -33,7 +33,6 @@ Les plus urgentes :
 - Implémentation du papier [Screen Space Indirect Lighting with Visibility Bitmask](https://arxiv.org/pdf/2301.11376.pdf) pour approximer l'illumination gobale de la scène.
 - Changement de la méthode de calcul d'ombrage par du ray tracing. Cette méthode permettra en plus d'avoir des ombres plus propre, de prendre en compte les ombres colorées projetées par les objets transparents. En contrepartie il sera plus couteux d'omptenir des ombres douces.
 - Implémentation d'une méthodes alternative d'anti-alliasing au FXAA déjà présent (SMAA ou TAA/TXAA/TSSAA).
-- Changement de méthode de tone mapping (ACES => AgX).
 
 Accélération des calculs :
 - Ajout de "frustum culling" lors de la "geometrie pass" grâce à l'utilisation de boîtes englobantes et d'une hiérachie de scène. 
@@ -47,6 +46,8 @@ Amélioration de la qualité visuel :
 - Amélioration de la brdf utilisé pour prendre en compte plus de propriétées (sheen, coat, anisotropy, translucent/subsurface, iridecence, ...).
 - Amélioration du normal mapping par des méthodes de paralax mapping (ou parallax occlusion mapping).
 - Ajout d'une méthode d'alpha to coverage et d'alpha distribution for alpha testing dans le but d'améliorer le rendu des objets transparent.
+- Ajout d'effet de post processing comme lens ghosting, vignetting ou autre filtres.
+- Revoir la méthode de génération du bloom effect et ajouter un treshold
  
 Rendre le monde plus vivant :
 - Rendu d'athmosphère grâce à la méthode de Sébastien Hillaire, [A Scalable and Production Ready Sky and Atmosphere Rendering Technique](https://sebh.github.io/publications/egsr2020.pdf).
@@ -56,13 +57,12 @@ Rendre le monde plus vivant :
 
 ## Bugs
 
-- les fragments transparents ont tendencent à fliker
+- les fragments transparents ont tendencent à fliker (provient des shadows)
 - le bloom n'est pas stable d'une frame à l'autre
-- add asset ne marche pas
-- clear scene bug parfois
-- les inputs d'imgui sont flingués
 - la génération des mipmap des texture d'OpenGl prend beaucoup trop de RAM 
-- certaines scene ne sont pas correctement load à cause de fastgltf
-- imgui bug end/endchild
-- si nb channel d'une image est 1 utilise le channel rouge 4 fois
-- agx lut n'est pas load correctement
+
+- les inputs d'imgui sont flingués
+- imgui debug mode : canno't close settings : end/endchild
+
+- certaines scene ne sont pas correctement load à cause de fastgltf (crash toycar, pub (texture 1 cannal to repeat))
+- add asset et clear scnene ne marchent pas => semblent provenir d'un même bug

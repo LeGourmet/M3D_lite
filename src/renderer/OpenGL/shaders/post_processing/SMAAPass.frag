@@ -12,6 +12,8 @@ uniform vec2 uInvSrcRes;
 
 in vec2 uv;
 
+// use luma or color edge 
+
 #if defined(SMAA_PRESET_LOW)
 #define SMAA_THRESHOLD 0.15
 #define SMAA_MAX_SEARCH_STEPS 4

@@ -55,7 +55,7 @@ void main()
 	float cosHN = max(0.,dot(H,N));
 
 	float r = clamp(albedo_roughness.a, 0.01, 0.99);
-		  r = pow(r,1.75); //pow2(r*r);
+		  r = pow2(r);
     float r2 = pow2(r);
 	
 	// --- dielectic ---

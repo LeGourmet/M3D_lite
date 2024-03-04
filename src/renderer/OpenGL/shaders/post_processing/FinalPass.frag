@@ -6,7 +6,6 @@ layout( binding = 0 ) uniform sampler2D uTexture;
 layout( binding = 1 ) uniform sampler2D uBloom;
 layout( binding = 2 ) uniform sampler2D uAgXTextureLUT;
 
-uniform float uGamma; 
 uniform float uBloomPower;
 
 in vec2 uv;
@@ -17,11 +16,11 @@ in vec2 uv;
 #define INPUT_HIGHLIGHT_GAIN_GAMMA  1.
 #define INPUT_HIGHLIGHT_GAIN        0.
 
-#define INPUT_SATURATION            1.5
+#define INPUT_SATURATION            1.
 #define INPUT_GAMMA                 1.
 #define INPUT_EXPOSURE              0.
 
-#define PUNCH_SATURATION            1.
+#define PUNCH_SATURATION            1.25
 #define PUNCH_GAMMA                 1.
 #define PUNCH_EXPOSURE              0.
 
@@ -62,14 +61,7 @@ vec3 convertOpenDomainToNormalizedLog2(vec3 color, float minimum_ev, float maxim
 }
 
 void main(){
-    vec3 col = texture(uTexture,uv).xyz;//+uBloomPower*texture(uBloom,uv).xyz;
-
-    // ------ APPLY AgX Tone Mapping ------
-    // --- Input transform ---
-    //col = cctf_decoding_sRGB(col); // col = convertColorspaceToColorspace(col, INPUT_COLORSPACE, colorspaceid_working_space);
-    // gamutid_sRGB         =>          gamutid_sRGB
-    // whitepointid_D65     =>          whitepointid_D65
-    // cctf_id_sRGB_EOTF    =>          -1
+    vec3 col = texture(uTexture,uv).xyz+uBloomPower*texture(uBloom,uv).xyz;
 
     // --- Open Grading ---
     col += col * vec3(powsafe(getLuminance(col), INPUT_HIGHLIGHT_GAIN_GAMMA)) * INPUT_HIGHLIGHT_GAIN;
@@ -78,33 +70,27 @@ void main(){
     col *= powsafe(2., INPUT_EXPOSURE);
     
 	// --- DRT ---
-    // agx log 
+    // * agx log * 
 	col = max(vec3(0.),col);
     col = agx_compressed_matrix*col;
     col = convertOpenDomainToNormalizedLog2(col, -10., 6.5);
     col = clamp(col, 0., 1.);
 
-    // agX lut
+    // * agX lut *
     vec3 lut3D = col*(LUT_BLOCK_SIZE-1);
     vec2 lut2D_0 = (vec2(floor(lut3D.z)*LUT_BLOCK_SIZE+lut3D.x,lut3D.y)+0.5)*LUT_PIXEL_SIZE;
     vec2 lut2D_1 = (vec2(ceil(lut3D.z)*LUT_BLOCK_SIZE+lut3D.x,lut3D.y)+0.5)*LUT_PIXEL_SIZE;
     col = mix( texture(uAgXTextureLUT, lut2D_0).xyz, texture(uAgXTextureLUT, lut2D_1).xyz, fract(lut3D.z) );
-    //col = powsafe(col, 2.2);
-    //col = agx_compressed_matrix_inverse*col;
+    col = powsafe(col, 2.2);
+    col = agx_compressed_matrix_inverse*col;
 
     // --- ODT ---
-    //col = powsafe(col, 1./2.2);
+    col = powsafe(col, 1./2.2);
 
     // --- Display grading ---
     col = powsafe(col, PUNCH_GAMMA);
     col = saturation(col, PUNCH_SATURATION);
     col *= powsafe(2., PUNCH_EXPOSURE);
-
-    // --- Output transform ---
-    // gamutid_sRGB         =>          gamutid_sRGB
-    // whitepointid_D65     =>          whitepointid_D65
-    // cctf_id_sRGB_EOTF    =>          cctf_id_BT_709
-    //Image = convertColorspaceToColorspace(Image, 1, 4);
 
 	fragColor = vec4(col,1.);
 }

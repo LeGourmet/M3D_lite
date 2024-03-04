@@ -10,5 +10,8 @@ in vec2 uv;
 
 void main()
 {
-	if((uHasAlbedoMap ? texture(uAlbedoMap,uv) : uAlbedo).a<uAlphaCutOff) discard;
+	if(uAlphaCutOff<1.) {
+		vec4 albedo = (uHasAlbedoMap ? texture(uAlbedoMap,uv) : vec4(1.))*uAlbedo;
+		if(albedo.a<uAlphaCutOff) discard;
+	}
 }

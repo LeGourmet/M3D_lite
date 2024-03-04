@@ -51,9 +51,9 @@ namespace M3D
 				glTextureParameteri(_AgXLUT, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 				
 				int width, height, nbChannels;
-				unsigned char* image = stbi_load("luts/AgX_lut.png",&width,&height,&nbChannels,0);
+				unsigned short* image = stbi_load_16("luts/AgX_lut.png",&width,&height,&nbChannels,0);
 				glBindTexture(GL_TEXTURE_2D, _AgXLUT);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16_SNORM, width, height, 0, GL_RGB, GL_UNSIGNED_SHORT, image);
 				stbi_image_free(image);
 				
 				glCreateVertexArrays(1, &_emptyVAO);

@@ -62,7 +62,7 @@ vec3 convertOpenDomainToNormalizedLog2(vec3 color, float minimum_ev, float maxim
 }
 
 void main(){
-    vec3 col = texture(uTexture,uv).xyz+uBloomPower*texture(uBloom,uv).xyz;
+    vec3 col = texture(uTexture,uv).xyz;//+uBloomPower*texture(uBloom,uv).xyz;
 
     // ------ APPLY AgX Tone Mapping ------
     // --- Input transform ---
@@ -86,19 +86,14 @@ void main(){
 
     // agX lut
     vec3 lut3D = col*(LUT_BLOCK_SIZE-1);
-    vec2 lut2D[2];
-    lut2D[0].x = floor(lut3D.z)*LUT_BLOCK_SIZE+lut3D.x;
-    lut2D[0].y = lut3D.y;
-    lut2D[1].x = ceil(lut3D.z)*LUT_BLOCK_SIZE+lut3D.x;
-    lut2D[1].y = lut3D.y;
-    lut2D[0] = (lut2D[0]+0.5)*LUT_PIXEL_SIZE;
-    lut2D[1] = (lut2D[1]+0.5)*LUT_PIXEL_SIZE;
-    col = mix( texture(uAgXTextureLUT, lut2D[0]).xyz, texture(uAgXTextureLUT, lut2D[1]).xyz, fract(lut3D.z) ); // tex2D = texture ?
-    col = powsafe(col, 2.2);
+    vec2 lut2D_0 = (vec2(floor(lut3D.z)*LUT_BLOCK_SIZE+lut3D.x,lut3D.y)+0.5)*LUT_PIXEL_SIZE;
+    vec2 lut2D_1 = (vec2(ceil(lut3D.z)*LUT_BLOCK_SIZE+lut3D.x,lut3D.y)+0.5)*LUT_PIXEL_SIZE;
+    col = mix( texture(uAgXTextureLUT, lut2D_0).xyz, texture(uAgXTextureLUT, lut2D_1).xyz, fract(lut3D.z) );
+    //col = powsafe(col, 2.2);
     //col = agx_compressed_matrix_inverse*col;
 
     // --- ODT ---
-    col = powsafe(col, 1./2.2);
+    //col = powsafe(col, 1./2.2);
 
     // --- Display grading ---
     col = powsafe(col, PUNCH_GAMMA);

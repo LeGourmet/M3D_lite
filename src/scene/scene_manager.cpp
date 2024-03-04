@@ -148,7 +148,7 @@ namespace Scene
     {
         std::cout << "Start loading " << p_path << std::endl;
 
-        fastgltf::Parser _parser = fastgltf::Parser( fastgltf::Extensions::KHR_lights_punctual );
+        fastgltf::Parser _parser = fastgltf::Parser( fastgltf::Extensions::KHR_lights_punctual | fastgltf::Extensions::KHR_materials_emissive_strength );
 
         fastgltf::GltfDataBuffer data;
         data.loadFromFile(p_path);

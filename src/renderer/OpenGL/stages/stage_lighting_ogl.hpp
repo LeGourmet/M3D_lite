@@ -22,9 +22,10 @@ namespace M3D
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 			StageLightingOGL() {
-				// --- opaque ambient ---
-				_OpaqueAmbientPass.addUniform("uCamPos");
-					
+				glCreateFramebuffers(1, &_fboLighting);
+				generateMap(&_lightingMap, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+				attachColorMap(_fboLighting, _lightingMap, 0);
+
 				// --- opaque directional ---
 				_OpaqueDirectionalPass.addUniform("uCamData");
 				_OpaqueDirectionalPass.addUniform("uLightMatrix_VP");
@@ -57,14 +58,6 @@ namespace M3D
 				_OpaquePunctualPass.addUniform("uLightEmissivity");
 				_OpaquePunctualPass.addUniform("uLightCosAngles");
 
-				// --- transparent lighting ---
-				_TransparentLightingPass.addUniform("uCamData");
-				_TransparentLightingPass.addUniform("uLightPosition");
-				_TransparentLightingPass.addUniform("uLightDirection");
-				_TransparentLightingPass.addUniform("uLightEmissivity");
-				_TransparentLightingPass.addUniform("uLightCosAngles");
-				_TransparentLightingPass.addUniform("uLightTypePoint");
-
 				// --- shadow punctual ---
 				_ShadowCubePass.addUniform("uShadowTransform");
 				_ShadowCubePass.addUniform("uLightPos");
@@ -84,15 +77,17 @@ namespace M3D
 				glReadBuffer(GL_NONE);
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-				// --- lighting ---
-				glCreateFramebuffers(1, &_fboLighting);
-				generateMap(&_lightingMap, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-				attachColorMap(_fboLighting, _lightingMap, 0);
-
-				glCreateFramebuffers(1, &_fboDirectLighting);
-				generateMap(&_directLightingMap, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT);
-				attachColorMap(_fboDirectLighting, _directLightingMap, 0);
-
+				// --- transparent lighting ---
+				_TransparentLightingPass.addUniform("uCamData");
+				_TransparentLightingPass.addUniform("uLightPosition");
+				_TransparentLightingPass.addUniform("uLightDirection");
+				_TransparentLightingPass.addUniform("uLightEmissivity");
+				_TransparentLightingPass.addUniform("uLightCosAngles");
+				_TransparentLightingPass.addUniform("uLightTypePoint");
+				
+				// --- ambient lighting ---
+				_AmbientLightingPass.addUniform("uCamPos");
+				
 				// --- others ---
 				glCreateVertexArrays(1, &_emptyVAO);
 				glCreateBuffers(1, &_billboardSSBO);
@@ -100,12 +95,10 @@ namespace M3D
 			}
 
 			~StageLightingOGL() {
-				glDeleteTextures(1, &_directLightingMap);
 				glDeleteTextures(1, &_lightingMap);
 				glDeleteTextures(1, &_shadowCubeMap);
 				glDeleteTextures(1, &_shadowMap);
 
-				glDeleteFramebuffers(1, &_fboDirectLighting);
 				glDeleteFramebuffers(1, &_fboLighting);
 				glDeleteFramebuffers(1, &_fboShadowCube);
 				glDeleteFramebuffers(1, &_fboShadow);
@@ -120,16 +113,12 @@ namespace M3D
 			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void resize(int p_width, int p_height) {
 				resizeColorMap(p_width, p_height, _lightingMap);
-				resizeColorMap(p_width, p_height, _directLightingMap);
 			}
 
 			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_positionMap, GLuint p_normalMetalnessMap, GLuint p_albedoRoughnessMap, GLuint p_emissiveMap, GLuint p_rootTransparency, GLuint p_ssboTransparency) {
-				// --- emissive object ---
-				glCopyImageSubData(p_emissiveMap, GL_TEXTURE_2D, 0, 0, 0, 0, _directLightingMap, GL_TEXTURE_2D, 0, 0, 0, 0, p_width, p_height, 1);
+				// --- clear buffer ---
+				glCopyImageSubData(p_emissiveMap, GL_TEXTURE_2D, 0, 0, 0, 0, _lightingMap, GL_TEXTURE_2D, 0, 0, 0, 0, p_width, p_height, 1);
 				
-				glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
-				glClear(GL_COLOR_BUFFER_BIT);
-
 				// --- direct lighting ---
 				for (Scene::Light l : Application::getInstance().getSceneManager().getLights())
 					for (unsigned int i=0; i<l.getNumberInstances() ;i++)
@@ -213,7 +202,7 @@ namespace M3D
 									// --- opaque ---
 									glViewport(0, 0, p_width, p_height);
 
-									glBindFramebuffer(GL_FRAMEBUFFER, _fboDirectLighting);
+									glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
 
 									glEnable(GL_BLEND);
 									glBlendFunc(GL_ONE, GL_ONE);
@@ -309,7 +298,7 @@ namespace M3D
 									// --- opaque ---
 									glViewport(0, 0, p_width, p_height);
 
-									glBindFramebuffer(GL_FRAMEBUFFER, _fboDirectLighting);
+									glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
 
 									glEnable(GL_BLEND);
 									glBlendFunc(GL_ONE, GL_ONE);
@@ -364,7 +353,7 @@ namespace M3D
 						}
 
 				// --- indirect lighting ---
-				glCopyImageSubData(_directLightingMap, GL_TEXTURE_2D, 0, 0, 0, 0, _lightingMap, GL_TEXTURE_2D, 0, 0, 0, 0, p_width, p_height, 1);
+				glCopyImageSubData(_lightingMap, GL_TEXTURE_2D, 0, 0, 0, 0, _lightingMap, GL_TEXTURE_2D, 0, 0, 0, 0, p_width, p_height, 1);
 
 				glViewport(0, 0, p_width, p_height);
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
@@ -372,14 +361,14 @@ namespace M3D
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_ONE, GL_ONE);
 
-				glUseProgram(_OpaqueAmbientPass.getProgram());
+				glUseProgram(_AmbientLightingPass.getProgram());
 
 				glBindTextureUnit(0, p_positionMap);
 				glBindTextureUnit(1, p_normalMetalnessMap);
 				glBindTextureUnit(2, p_albedoRoughnessMap);
-				glBindTextureUnit(3, _directLightingMap);
+				glBindTextureUnit(3, _lightingMap);
 
-				glProgramUniform3fv(_OpaqueAmbientPass.getProgram(), _OpaqueAmbientPass.getUniform("uCamPos"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition()));
+				glProgramUniform3fv(_AmbientLightingPass.getProgram(), _AmbientLightingPass.getUniform("uCamPos"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition()));
 
 				glBindVertexArray(_emptyVAO);
 				glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -403,12 +392,10 @@ namespace M3D
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-			GLuint _fboDirectLighting	= GL_INVALID_INDEX;
 			GLuint _fboLighting			= GL_INVALID_INDEX;
 			GLuint _fboShadowCube		= GL_INVALID_INDEX;
 			GLuint _fboShadow			= GL_INVALID_INDEX;
 
-			GLuint _directLightingMap	= GL_INVALID_INDEX;
 			GLuint _lightingMap			= GL_INVALID_INDEX;
 			GLuint _shadowCubeMap		= GL_INVALID_INDEX;
 			GLuint _shadowMap			= GL_INVALID_INDEX;
@@ -419,15 +406,16 @@ namespace M3D
 
 			unsigned int _shadowMapResolution = 1024;
 
+			ProgramOGL _ShadowPass					= ProgramOGL("src/renderer/OpenGL/shaders/shadow/Shadow.vert", "", "src/renderer/OpenGL/shaders/shadow/Shadow.frag");
+			ProgramOGL _ShadowCubePass				= ProgramOGL("src/renderer/OpenGL/shaders/shadow/CubeShadow.vert", "src/renderer/OpenGL/shaders/shadow/CubeShadow.geom", "src/renderer/OpenGL/shaders/shadow/CubeShadow.frag");
+
 			ProgramOGL _OpaqueDirectionalPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/OpaqueDirectionalPass.frag");
 			ProgramOGL _OpaquePunctualPass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/Billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/OpaquePunctualPass.frag");
-			ProgramOGL _OpaqueAmbientPass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/OpaqueAmbientPass.frag");
 			
 			ProgramOGL _TransparentLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/Billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/TransparentLightingPass.frag");
 			ProgramOGL _TransparentPass				= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/BlendTranspFrags.frag");
 
-			ProgramOGL _ShadowPass					= ProgramOGL("src/renderer/OpenGL/shaders/shadow/Shadow.vert", "", "src/renderer/OpenGL/shaders/shadow/Shadow.frag");
-			ProgramOGL _ShadowCubePass				= ProgramOGL("src/renderer/OpenGL/shaders/shadow/CubeShadow.vert", "src/renderer/OpenGL/shaders/shadow/CubeShadow.geom", "src/renderer/OpenGL/shaders/shadow/CubeShadow.frag");
+			ProgramOGL _AmbientLightingPass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/AmbientLightingPass.frag");
 
 		};
 	}

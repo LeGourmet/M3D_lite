@@ -23,7 +23,9 @@ in vec2 uv;
 
 void main()
 {
-	vec4 position = texture(uPositionMap,uv);
+    //fragColor = 
+
+	/*vec4 position = texture(uPositionMap,uv);
 	if(position.a<0.5) discard;
 
 	vec3 N = texture(uNormal_MetalnessMap,uv).xyz;
@@ -40,8 +42,8 @@ void main()
 	//float cosNV = dot(N,V);
 
 	// lancer de rayon au millieux de la section à travers direct lighting Map
-	vec3 col = occlusion * vec3(0.01); // rayon * cos(N,L);
-	fragColor = vec4(texture(uAlbedo_RoughnessMap,uv).xyz*col,1.);
+	vec3 col = occlusion * vec3(10.); // rayon * cos(N,L);
+	fragColor = vec4(texture(uAlbedo_RoughnessMap,uv).xyz*col,1.);*/
 
 	/*
     seed = uint(iFrame*(int(iResolution.x*iResolution.y)))+uint(fragCoord.x+fragCoord.y*iResolution.x);

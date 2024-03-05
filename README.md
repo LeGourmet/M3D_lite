@@ -64,7 +64,9 @@ Rendre le monde plus vivant :
 - les normals sembles ne pas être bonne parfois sur le calcule du shading (uniquement pour des objet utilisant du normal mapping) (usual suspect cosNL)
 
 - les inputs d'imgui sont flingués
-- imgui debug mode : canno't close settings : end/endchild
+- imgui debug mode : cannot close settings : end/endchild
 
-- certaines scene ne sont pas correctement load à cause de fastgltf (crash toycar, pub (texture 1 cannal to repeat))
-- add asset et clear scnene ne marchent pas => semblent provenir d'un même bug
+- certaines scene ne sont pas correctement load à cause de fastgltf (toycar crash, pub (texture 1 cannal to repeat))
+- clear scene ne marchent pas => semblent provenir d'un bug sur les maps utilisé par le gpu 
+
+- la compilation ne se fait pas au bon endroit de l'arborecense

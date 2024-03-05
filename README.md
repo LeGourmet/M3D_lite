@@ -39,7 +39,6 @@ Accélération des calculs :
 - Ajout d'occlusion culling lors de la "geometrie pass".
 - Utilisation de micro meshes permetant une meilleur gestion de la mémoire ainsi que des LOD. 
 - Optimiser le type de texture utilisé (principalement dans la géométrie pass) pour booster les performances.
-- Optimiser la mémoire alloué aux fragments transparents.
  
 Amélioration de la qualité visuel :
 - Gestion d'une environement map (+IBL).

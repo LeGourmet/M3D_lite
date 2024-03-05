@@ -23,8 +23,6 @@ in vec2 uv;
 
 void main()
 {
-    //fragColor = 
-
 	/*vec4 position = texture(uPositionMap,uv);
 	if(position.a<0.5) discard;
 

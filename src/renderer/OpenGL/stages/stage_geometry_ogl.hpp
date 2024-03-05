@@ -33,23 +33,23 @@ namespace M3D
 				_GeometryPass.addUniform("uHasNormalMap");
 				_GeometryPass.addUniform("uHasEmissiveMap");
 
-				_GeometryPass.addUniform("uNbFragmentsMax");
+				_GeometryPass.addUniform("uNbTranspFragsMax");
 
 				glCreateFramebuffers(1, &_fbo);
-				generateMap(&_positionMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
+				generateMap(&_positionMap, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 				attachColorMap(_fbo, _positionMap, 0);
-				generateMap(&_normalMetalnessMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
+				generateMap(&_normalMetalnessMap, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 				attachColorMap(_fbo, _normalMetalnessMap, 1);
-				generateMap(&_albedoRoughnessMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
+				generateMap(&_albedoRoughnessMap, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 				attachColorMap(_fbo, _albedoRoughnessMap, 2);
-				generateMap(&_emissiveMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
+				generateMap(&_emissiveMap, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 				attachColorMap(_fbo, _emissiveMap, 3);
-				generateMap(&_depthMap, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
+				generateMap(&_depthMap, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 				attachDepthMap(_fbo, _depthMap);
 				GLenum DrawBuffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
 				glNamedFramebufferDrawBuffers(_fbo, 4, DrawBuffers);
 
-				generateMap(&_rootTransparency, GL_NEAREST, GL_NEAREST, GL_REPEAT, GL_REPEAT);
+				generateMap(&_rootTransparency, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 				glCreateBuffers(1, &_ssboTransparency);
 				glCreateBuffers(1, &_counterTransparency);
 
@@ -93,7 +93,7 @@ namespace M3D
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, p_width, p_height, 0, GL_RED, GL_FLOAT, 0);
 				glBindTexture(GL_TEXTURE_2D, 0);
 
-				_maxTransparentFragments = 25 * p_width * p_height;
+				_maxTransparentFragments = 10 * p_width * p_height;
 				glDeleteBuffers(1, &_ssboTransparency);
 				glCreateBuffers(1, &_ssboTransparency);
 				glNamedBufferStorage(_ssboTransparency, _maxTransparentFragments * (16*sizeof(float)+sizeof(unsigned int)), nullptr, GL_DYNAMIC_STORAGE_BIT);
@@ -117,7 +117,7 @@ namespace M3D
 				glNamedBufferSubData(_counterTransparency, 0, sizeof(unsigned int), &_clearValue);
 				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 7, _counterTransparency);
 
-				glProgramUniform1ui(_GeometryPass.getProgram(), _GeometryPass.getUniform("uNbFragmentsMax"), _maxTransparentFragments);
+				glProgramUniform1ui(_GeometryPass.getProgram(), _GeometryPass.getUniform("uNbTranspFragsMax"), _maxTransparentFragments);
 
 				for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes) {
 					// todo call gpu bvh scene for instance frustum culling

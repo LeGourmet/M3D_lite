@@ -85,8 +85,8 @@ namespace M3D
 				_TransparentLightingPass.addUniform("uLightCosAngles");
 				_TransparentLightingPass.addUniform("uLightTypePoint");
 				
-				// --- ambient lighting ---
-				_AmbientLightingPass.addUniform("uCamPos");
+				// --- indirect lighting ---
+				_IndirectLightingPass.addUniform("uCamPos");
 				
 				// --- others ---
 				glCreateVertexArrays(1, &_emptyVAO);
@@ -119,6 +119,12 @@ namespace M3D
 				// --- clear buffer ---
 				glCopyImageSubData(p_emissiveMap, GL_TEXTURE_2D, 0, 0, 0, 0, _lightingMap, GL_TEXTURE_2D, 0, 0, 0, 0, p_width, p_height, 1);
 				
+				/*
+				- deterime point to cast ray shadow (point/spot => position ; sun depend of intersection of LDir and World AABB)
+				- use compute shader to compute ray intersection with scene and determine for each fragments (opaque and transp) the quantity of light per channel that come
+				- compute direct lighting opaque and transparent in unified shader
+				*/
+
 				// --- direct lighting ---
 				for (Scene::Light l : Application::getInstance().getSceneManager().getLights())
 					for (unsigned int i=0; i<l.getNumberInstances() ;i++)
@@ -353,33 +359,27 @@ namespace M3D
 						}
 
 				// --- indirect lighting ---
-				glCopyImageSubData(_lightingMap, GL_TEXTURE_2D, 0, 0, 0, 0, _lightingMap, GL_TEXTURE_2D, 0, 0, 0, 0, p_width, p_height, 1);
-
 				glViewport(0, 0, p_width, p_height);
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
 
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_ONE, GL_ONE);
-
-				glUseProgram(_AmbientLightingPass.getProgram());
+				glUseProgram(_IndirectLightingPass.getProgram());
 
 				glBindTextureUnit(0, p_positionMap);
 				glBindTextureUnit(1, p_normalMetalnessMap);
 				glBindTextureUnit(2, p_albedoRoughnessMap);
 				glBindTextureUnit(3, _lightingMap);
 
-				glProgramUniform3fv(_AmbientLightingPass.getProgram(), _AmbientLightingPass.getUniform("uCamPos"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition()));
+				glProgramUniform3fv(_IndirectLightingPass.getProgram(), _IndirectLightingPass.getUniform("uCamPos"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition()));
 
 				glBindVertexArray(_emptyVAO);
 				glDrawArrays(GL_TRIANGLES, 0, 3);
 				glBindVertexArray(0);
 
-				glDisable(GL_BLEND);
-
-				// --- transparent ---
-				glUseProgram(_TransparentPass.getProgram());
+				// --- Final Mix ---
+				glUseProgram(_FinalMixLightingPass.getProgram());
 
 				glBindTextureUnit(0, _lightingMap);
+				//+ indirect lighting map
 				glBindImageTexture(1, p_rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
 				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, p_ssboTransparency);
 
@@ -408,14 +408,17 @@ namespace M3D
 
 			ProgramOGL _ShadowPass					= ProgramOGL("src/renderer/OpenGL/shaders/shadow/Shadow.vert", "", "src/renderer/OpenGL/shaders/shadow/Shadow.frag");
 			ProgramOGL _ShadowCubePass				= ProgramOGL("src/renderer/OpenGL/shaders/shadow/CubeShadow.vert", "src/renderer/OpenGL/shaders/shadow/CubeShadow.geom", "src/renderer/OpenGL/shaders/shadow/CubeShadow.frag");
+			//ProgramOGL _GenerateShadowMaps		= ProgramOGL("src/renderer/OpenGL/shaders/shadow/QuadScreen.vert", "src/renderer/OpenGL/shaders/shadow/GenerateShadowMaps.frag"); // cast shadow ray (indirect call compute)  
 
 			ProgramOGL _OpaqueDirectionalPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/OpaqueDirectionalPass.frag");
 			ProgramOGL _OpaquePunctualPass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/Billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/OpaquePunctualPass.frag");
-			
 			ProgramOGL _TransparentLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/Billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/TransparentLightingPass.frag");
-			ProgramOGL _TransparentPass				= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/BlendTranspFrags.frag");
+			//ProgramOGL _DirectLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/Billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/DirectLightingPass.frag");
 
-			ProgramOGL _AmbientLightingPass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/AmbientLightingPass.frag");
+
+			ProgramOGL _IndirectLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/IndirectLightingPass.frag");
+
+			ProgramOGL _FinalMixLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/FinalMixLightingPass.frag");
 
 		};
 	}

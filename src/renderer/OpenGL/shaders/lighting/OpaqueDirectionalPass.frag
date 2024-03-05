@@ -41,7 +41,8 @@ void main()
 
 	// ---------- SHADING ----------
 	vec3 H = normalize(V+L);
-	if(dot(N,V)<0. && dot(N,L)<0.) N = -N; // if double side not discard than flip before compute
+	//if(dot(N,V)<0. && dot(N,L)<0.) N = -N; // if double side not discard than flip before compute
+	if(dot(N,V)<0.) N = -N;
 
 	float cosNV = max(1e-5,abs(dot(N,V)));
 	float cosNL = max(0.,dot(N,L));
@@ -52,18 +53,18 @@ void main()
 		  r = pow2(r);
     float r2 = pow2(r);
 	
-	// --- dielectic ---
+	// --- diffuse ---
 	float Rr = r*2.*cosHL*cosHL+0.5;
     float Fl = pow5(1.-cosNL);
     float Fv = pow5(1.-cosNV);
-	vec3 dielectric = albedo_roughness.xyz * ((1.-0.5*Fl) * (1.-0.5*Fv) + Rr*(Fl+Fv+Fl*Fv*(Rr-1.)))/PI;
+	vec3 diffuse = albedo_roughness.xyz * ((1.-0.5*Fl) * (1.-0.5*Fv) + Rr*(Fl+Fv+Fl*Fv*(Rr-1.)))/PI;
 
-	// --- conductor ---
+	// --- specular ---
 	vec3 f0 = mix(vec3(schlick(0.04,1.,cosHL)), albedo_roughness.xyz, normal_metalness.a);
     vec3 F = schlick(f0, vec3(1.), cosHL);
 	float D = r2/max(1e-5,(PI*pow2(cosHN*cosHN*(r2-1.)+1.)));
     float V2 = 0.5/max(1e-5,(cosNL*sqrt((cosNV-cosNV*r2)*cosNV+r2) + cosNV*sqrt((cosNL-cosNL*r2)*cosNL+r2)));
-    vec3 conductor = F*D*V2;
+    vec3 specular = F*D*V2;
 
 	// ---------- SHADOW ----------
 	// use slope scale bias => dot(L,N)
@@ -95,5 +96,8 @@ void main()
 	#endif
 
 	// ---------- FINAL MIX ----------
+	vec3 dielectric = mix(diffuse,specular,schlick(0.66,1.,cosHL));
+	vec3 conductor = specular;
+	
 	fragColor = vec4(mix(dielectric,conductor,normal_metalness.a) * uLightEmissivity * shadow * cosNL,1.);
 }

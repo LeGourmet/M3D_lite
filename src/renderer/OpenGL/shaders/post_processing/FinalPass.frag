@@ -18,10 +18,10 @@ in vec2 uv;
 
 #define INPUT_SATURATION            1.
 #define INPUT_GAMMA                 1.
-#define INPUT_EXPOSURE              0.
+#define INPUT_EXPOSURE              2.
 
-#define PUNCH_SATURATION            1.25
-#define PUNCH_GAMMA                 1.
+#define PUNCH_SATURATION            1.
+#define PUNCH_GAMMA                 1.8
 #define PUNCH_EXPOSURE              0.
 
 #define LUT_BLOCK_SIZE 32

@@ -119,8 +119,8 @@ namespace M3D
 
 				glProgramUniform1ui(_GeometryPass.getProgram(), _GeometryPass.getUniform("uNbFragmentsMax"), _maxTransparentFragments);
 
-				// TODO frustum culling
 				for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes) {
+					// todo call gpu bvh scene for instance frustum culling
 					for (unsigned int i = 0; i < mesh.first->getSubMeshes().size();i++) {
 						Scene::SubMesh subMesh = mesh.first->getSubMeshes()[i];
 
@@ -187,7 +187,7 @@ namespace M3D
 			GLuint _depthMap = GL_INVALID_INDEX;
 
 			ProgramOGL _GeometryPass = ProgramOGL("src/renderer/OpenGL/shaders/geometry/GeometryPass.vert", "", "src/renderer/OpenGL/shaders/geometry/GeometryPass.frag");
-			ProgramOGL _FilterAndSortTranspFragsPass = ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/geometry/FilterAndSortTranspFragsPass.frag");
+			ProgramOGL _FilterAndSortTranspFragsPass = ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/geometry/FilterAndSortTranspFrags.frag");
 		};
 	}
 }

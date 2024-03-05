@@ -424,7 +424,7 @@ namespace M3D
 			ProgramOGL _OpaqueAmbientPass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/OpaqueAmbientPass.frag");
 			
 			ProgramOGL _TransparentLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/Billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/TransparentLightingPass.frag");
-			ProgramOGL _TransparentPass				= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/TransparentPass.frag");
+			ProgramOGL _TransparentPass				= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/BlendTranspFrags.frag");
 
 			ProgramOGL _ShadowPass					= ProgramOGL("src/renderer/OpenGL/shaders/shadow/Shadow.vert", "", "src/renderer/OpenGL/shaders/shadow/Shadow.frag");
 			ProgramOGL _ShadowCubePass				= ProgramOGL("src/renderer/OpenGL/shaders/shadow/CubeShadow.vert", "src/renderer/OpenGL/shaders/shadow/CubeShadow.geom", "src/renderer/OpenGL/shaders/shadow/CubeShadow.frag");

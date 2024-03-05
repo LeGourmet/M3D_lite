@@ -49,7 +49,8 @@ void main(){
         
         // ---------- SHADING ----------
 	    vec3 H = normalize(V+L);
-        vec3 N = nodes[i].normal * ((dot(nodes[i].normal,V)<0.) ? -1. : 1.);
+        vec3 N = nodes[i].normal;
+        if(dot(N,V)<0.) N = -N;
 
 	    float cosNV = max(1e-5,abs(dot(N,V)));
 	    float cosNL = max(0.,dot(N,L));
@@ -57,21 +58,21 @@ void main(){
 	    float cosHN = max(0.,dot(H,N));
 
         float r = clamp(nodes[i].roughness, 0.01, 0.99);
-		      r = pow(r,1.75); //pow2(r*r);
+		      r = pow2(r);
         float r2 = pow2(r);
 	
-	    // --- dielectic ---
+	    // --- diffuse ---
 	    float Rr = r*2.*cosHL*cosHL+0.5;
         float Fl = pow5(1.-cosNL);
         float Fv = pow5(1.-cosNV);
-	    vec3 dielectric = nodes[i].albedo.xyz * ((1.-0.5*Fl) * (1.-0.5*Fv) + Rr*(Fl+Fv+Fl*Fv*(Rr-1.)))/PI;
+	    vec3 diffuse = nodes[i].albedo.xyz * ((1.-0.5*Fl) * (1.-0.5*Fv) + Rr*(Fl+Fv+Fl*Fv*(Rr-1.)))/PI;
 
-	    // --- conductor ---
+	    // --- specular ---
         vec3 f0 = mix(vec3(schlick(0.04,1.,cosHL)), nodes[i].albedo.xyz, nodes[i].metalness);
         vec3 F = schlick(f0, vec3(1.), cosHL);
 	    float D = r2/max(1e-5,(PI*pow2(cosHN*cosHN*(r2-1.)+1.)));
         float V2 = 0.5/max(1e-5,(cosNL*sqrt((cosNV-cosNV*r2)*cosNV+r2) + cosNV*sqrt((cosNL-cosNL*r2)*cosNL+r2)));
-        vec3 conductor = F*D*V2;
+        vec3 specular = F*D*V2;
 
 		// --- transmit ---
 		/*
@@ -87,10 +88,14 @@ void main(){
         //vec3 transmit = sqrt(vec3(albedo)) * (1.-DielF)*G2/**pow2(p_ni/p_no)*//max(1e-5,G1L); 
 		//vec3 transmit = sqrt(vec3(albedo)) * (1.-DielF) * D *
 
+
 		// ---------- SHADOW ----------
 		vec3 shadow = vec3(1.);
 
 		// ---------- FINAL MIX ----------
+	    vec3 dielectric = mix(diffuse,specular,schlick(0.66,1.,cosHL));
+	    vec3 conductor = specular;
+
         nodes[i].emissive += mix(dielectric,conductor,nodes[i].metalness) * light_componant * shadow * cosNL;
     }
 }

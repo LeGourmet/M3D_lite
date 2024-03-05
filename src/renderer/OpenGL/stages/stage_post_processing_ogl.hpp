@@ -194,10 +194,10 @@ namespace M3D
 
 			GLuint _emptyVAO	= GL_INVALID_INDEX;
 
-			ProgramOGL _FXAAPass				= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/FXAAPass.frag");
-			ProgramOGL _SMAAPass				= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/SMAAPass.frag");
-			ProgramOGL _BloomDownSamplePass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/BloomDownSamplePass.frag");
-			ProgramOGL _BloomUpSamplePass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/BloomUpSamplePass.frag");
+			ProgramOGL _FXAAPass				= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/FXAA.frag");
+			ProgramOGL _SMAAPass				= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/SMAA.frag");
+			ProgramOGL _BloomDownSamplePass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/BloomDownSample.frag");
+			ProgramOGL _BloomUpSamplePass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/BloomUpSample.frag");
 			ProgramOGL _FinalPass				= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/post_processing/FinalPass.frag");
 		};
 	}

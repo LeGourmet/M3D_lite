@@ -38,7 +38,9 @@ Accélération des calculs :
 - Ajout de "frustum culling" lors de la "geometrie pass" grâce à l'utilisation de boîtes englobantes et d'une hiérachie de scène. 
 - Ajout d'occlusion culling lors de la "geometrie pass".
 - Utilisation de micro meshes permetant une meilleur gestion de la mémoire ainsi que des LOD. 
-
+- Optimiser le type de texture utilisé (principalement dans la géométrie pass) pour booster les performances.
+- Optimiser la mémoire alloué aux fragments transparents.
+ 
 Amélioration de la qualité visuel :
 - Gestion d'une environement map (+IBL).
 - Ajout d'une méthode pour amélioré la qualité visuel des materiaux les plus réfléchissant (SS réfléxion ou ray tracing).
@@ -57,9 +59,9 @@ Rendre le monde plus vivant :
 
 ## Bugs
 
-- les fragments transparents ont tendencent à fliker (provient des shadows)
 - le bloom n'est pas stable d'une frame à l'autre
 - la génération des mipmap des texture d'OpenGl prend beaucoup trop de RAM 
+- les normals sembles ne pas être bonne parfois sur le calcule du shading (uniquement pour des objet utilisant du normal mapping) (usual suspect cosNL)
 
 - les inputs d'imgui sont flingués
 - imgui debug mode : canno't close settings : end/endchild

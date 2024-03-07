@@ -52,7 +52,7 @@ namespace M3D
 				int width, height, nbChannels;
 				unsigned short* image = stbi_load_16("luts/AgX_lut.png",&width,&height,&nbChannels,0);
 				glBindTexture(GL_TEXTURE_2D, _AgXLUT);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16_SNORM, width, height, 0, GL_RGB, GL_UNSIGNED_SHORT, image);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16_SNORM, width, height, 0, GL_RGB, GL_UNSIGNED_SHORT, image); // should be just RGB16 ?
 				stbi_image_free(image);
 				
 				glCreateVertexArrays(1, &_emptyVAO);
@@ -72,7 +72,7 @@ namespace M3D
 
 			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void resize(int p_width, int p_height) {
-				resizeColorMap(p_width, p_height, _aaMap);
+				resizeColorMap(GL_RGB32F, GL_RGB, GL_FLOAT, p_width, p_height, _aaMap);
 
 				for(int i=1; i<_bloomMaps.size(); i++) glDeleteTextures(1, &_bloomMaps[i]);
 
@@ -85,13 +85,13 @@ namespace M3D
 				for(unsigned int i=1; i<lvMipMap+1 ;i++){
 					generateMap(&_bloomMaps[i], GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 					_bloomMapsDims[i] = Vec2f(_bloomMapsDims[i-1].x, _bloomMapsDims[i-1].y)*0.5f;
-					resizeColorMap((int)_bloomMapsDims[i].x, (int)_bloomMapsDims[i].y, _bloomMaps[i]);
+					resizeColorMap(GL_RGB32F, GL_RGB, GL_FLOAT, (int)_bloomMapsDims[i].x, (int)_bloomMapsDims[i].y, _bloomMaps[i]);
 				}
 
 				for(unsigned int i=lvMipMap+1; i<lvMipMap*2+1 ;i++){
 					generateMap(&_bloomMaps[i], GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 					_bloomMapsDims[i] = Vec2f(_bloomMapsDims[i-1].x, _bloomMapsDims[i-1].y)*2.f;
-					resizeColorMap((int)_bloomMapsDims[i].x, (int)_bloomMapsDims[i].y, _bloomMaps[i]);
+					resizeColorMap(GL_RGB32F, GL_RGB, GL_FLOAT, (int)_bloomMapsDims[i].x, (int)_bloomMapsDims[i].y, _bloomMaps[i]);
 				}
 			}
 

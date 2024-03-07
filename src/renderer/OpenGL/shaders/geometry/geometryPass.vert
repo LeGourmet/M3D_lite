@@ -10,7 +10,6 @@ layout(std430, binding = 0) buffer aTransformations { mat4 data_SSBO[]; };
 
 out vec2 uv;
 out vec3 fragNormal;
-out vec3 fragPosition;
 out mat3 TBN;
 
 void main()
@@ -22,7 +21,6 @@ void main()
 	uv = aVertexTexCoords;
 
 	fragNormal = (Matrix_Normal * vec4(aVertexNormal,1.)).xyz;
-	fragPosition = (Matrix_M * vec4(aVertexPosition,1.)).xyz;
 
 	vec3 T	 = normalize( (Matrix_M * vec4(aVertexTangent,0.)).xyz );
 	vec3 B	 = normalize( (Matrix_M * vec4(aVertexBitangent,0.)).xyz );

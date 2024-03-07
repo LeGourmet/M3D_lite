@@ -42,16 +42,16 @@ namespace M3D
 				glNamedRenderbufferStorage(p_rbo, GL_DEPTH_COMPONENT, p_width, p_height);
 			}
 
-			void resizeColorMap(int p_width, int p_height, GLuint p_texture) {
+			void resizeColorMap(int p_textureFormat, int p_pixelFormat, int p_pixelType, int p_width, int p_height, GLuint p_texture) {
 				glBindTexture(GL_TEXTURE_2D, p_texture);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, p_width, p_height, 0, GL_RGBA, GL_FLOAT, 0);
+				glTexImage2D(GL_TEXTURE_2D, 0, p_textureFormat, p_width, p_height, 0, p_pixelFormat, p_pixelType, 0);
 				glBindTexture(GL_TEXTURE_2D, 0);
 			}
 
-			void resizeColorCubeMap(int p_width, int p_height, GLuint p_texture) {
+			void resizeColorCubeMap(int p_textureFormat, int p_pixelFormat, int p_pixelType, int p_width, int p_height, GLuint p_texture) {
 				glBindTexture(GL_TEXTURE_CUBE_MAP, p_texture);
 				for (unsigned int i = 0; i < 6; i++)
-					glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA32F, p_width, p_height, 0, GL_RGBA, GL_FLOAT, 0);
+					glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, p_textureFormat, p_width, p_height, 0, p_pixelFormat, p_pixelType, 0);
 				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 			}
 

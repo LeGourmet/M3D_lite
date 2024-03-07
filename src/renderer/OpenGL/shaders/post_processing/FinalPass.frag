@@ -61,7 +61,7 @@ vec3 convertOpenDomainToNormalizedLog2(vec3 color, float minimum_ev, float maxim
 }
 
 void main(){
-    vec3 col = texture(uTexture,uv).xyz+uBloomPower*texture(uBloom,uv).xyz;
+    vec3 col = texture(uTexture,uv).xyz;//+uBloomPower*texture(uBloom,uv).xyz;
 
     // --- Open Grading ---
     col += col * vec3(powsafe(getLuminance(col), INPUT_HIGHLIGHT_GAIN_GAMMA)) * INPUT_HIGHLIGHT_GAIN;

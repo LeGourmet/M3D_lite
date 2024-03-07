@@ -1,32 +1,31 @@
 #version 450
 
-struct FragNode {
+struct TranspFragNode {
     vec4 albedo;
-    vec3 position;
     vec3 normal;
-    vec3 emissive;
-    float metalness;
+	float metalness;
     float roughness;
+    vec3 emissive;
     float depth;
     uint nextId;
 };
 
 layout( binding = 0 )           uniform sampler2D uOpaqueDepthMap;
 layout( binding = 1, r32ui)		uniform uimage2D uRootTransparency;
-layout( binding = 2, std430)	buffer uLinkedListTransparency { FragNode nodes[]; };
+layout( binding = 2, std430)	buffer uLinkedListTransparencyFrags { TranspFragNode transparencyFrags[]; };
 
 in vec2 uv;
 
 bool insert( inout uint headId, in uint currentId ){
     uint iPreviousId = 0;
 
-    for(uint i=headId; i!=currentId ;i=nodes[i].nextId) {    
-        if(nodes[currentId].depth>=nodes[i].depth){ 
+    for(uint i=headId; i!=currentId ;i=transparencyFrags[i].nextId) {    
+        if(transparencyFrags[currentId].depth>=transparencyFrags[i].depth){ 
             if(iPreviousId==0){
                 imageStore(uRootTransparency, ivec2(gl_FragCoord.xy), uvec4(currentId));
                 headId = currentId;
-            }else{ nodes[iPreviousId].nextId = currentId; }
-            nodes[currentId].nextId = i;
+            }else{ transparencyFrags[iPreviousId].nextId = currentId; }
+            transparencyFrags[currentId].nextId = i;
             return true;
         }
         iPreviousId = i;
@@ -42,16 +41,16 @@ void main(){
     uint previousId = 0; 
 
     while(currentId!=0){
-        uint futurId = nodes[currentId].nextId;
+        uint futurId = transparencyFrags[currentId].nextId;
 
-        if(opaqueDepth>nodes[currentId].depth) { // sort (insertion)
-            if(insert(headId,currentId)) { nodes[previousId].nextId=futurId; }
+        if(opaqueDepth>transparencyFrags[currentId].depth) { // sort (insertion)
+            if(insert(headId,currentId)) { transparencyFrags[previousId].nextId=futurId; }
             else { previousId = currentId; }
         } else { 
             if(previousId==0) { // filter
-                imageStore(uRootTransparency, ivec2(gl_FragCoord.xy), uvec4(nodes[currentId].nextId));
-                headId = nodes[currentId].nextId;
-            } else { nodes[previousId].nextId=nodes[currentId].nextId; }
+                imageStore(uRootTransparency, ivec2(gl_FragCoord.xy), uvec4(transparencyFrags[currentId].nextId));
+                headId = transparencyFrags[currentId].nextId;
+            } else { transparencyFrags[previousId].nextId=transparencyFrags[currentId].nextId; }
         }
 
         currentId=futurId;

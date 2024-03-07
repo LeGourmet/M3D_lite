@@ -38,7 +38,7 @@ namespace Renderer
 	void RendererOGL::drawFrame() {
 		glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.a);
 		_stageGeometryOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures);
-		_stageLightingOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageGeometryOGL->getPositionMap(), _stageGeometryOGL->getNormalMetalnessMap(), _stageGeometryOGL->getAlbedoRoughnessMap(), _stageGeometryOGL->getEmissiveMap(), _stageGeometryOGL->getRootTransparency(), _stageGeometryOGL->getSSBOTransparency());
+		_stageLightingOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageGeometryOGL->getAlbedoMap(), _stageGeometryOGL->getNormalMap(), _stageGeometryOGL->getMetalnessRoughnessMap(), _stageGeometryOGL->getEmissiveMap(), _stageGeometryOGL->getDepthMap(), _stageGeometryOGL->getRootTransparency(), _stageGeometryOGL->getSSBOTransparency());
 		_stagePostProcessingOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageLightingOGL->getLightingMap());
 
 		GLenum err;

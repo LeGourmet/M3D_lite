@@ -61,8 +61,8 @@ Rendre le monde plus vivant :
 - le bloom n'est pas stable d'une frame à l'autre
 - la génération des mipmap des texture d'OpenGl prend beaucoup trop de RAM 
 - les normals sembles ne pas être bonne parfois sur le calcule du shading (uniquement pour des objet utilisant du normal mapping) (usual suspect cosNL)
+- le normal mapping induit des zones complètement noir aux angles razant 
 
-- les inputs d'imgui sont flingués
 - imgui debug mode : cannot close settings : end/endchild
 
 - certaines scene ne sont pas correctement load à cause de fastgltf (toycar crash, pub (texture 1 cannal to repeat))

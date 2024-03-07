@@ -26,12 +26,6 @@ namespace M3D
 				generateMap(&_lightingMap, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 				attachColorMap(_fboLighting, _lightingMap, 0);
 
-				// --- opaque directional ---
-				_OpaqueDirectionalPass.addUniform("uCamData");
-				_OpaqueDirectionalPass.addUniform("uLightMatrix_VP");
-				_OpaqueDirectionalPass.addUniform("uLightDirection");
-				_OpaqueDirectionalPass.addUniform("uLightEmissivity");
-				
 				// --- shadow directional ---
 				_ShadowPass.addUniform("uLightMatrix_VP");
 				_ShadowPass.addUniform("uAlbedo");
@@ -50,13 +44,6 @@ namespace M3D
 				glDrawBuffer(GL_NONE);
 				glReadBuffer(GL_NONE);
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-				// --- opaque punctual ---
-				_OpaquePunctualPass.addUniform("uCamData");
-				_OpaquePunctualPass.addUniform("uLightPosition");
-				_OpaquePunctualPass.addUniform("uLightDirection");
-				_OpaquePunctualPass.addUniform("uLightEmissivity");
-				_OpaquePunctualPass.addUniform("uLightCosAngles");
 
 				// --- shadow punctual ---
 				_ShadowCubePass.addUniform("uShadowTransform");
@@ -77,14 +64,17 @@ namespace M3D
 				glReadBuffer(GL_NONE);
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-				// --- transparent lighting ---
-				_TransparentLightingPass.addUniform("uCamData");
-				_TransparentLightingPass.addUniform("uLightPosition");
-				_TransparentLightingPass.addUniform("uLightDirection");
-				_TransparentLightingPass.addUniform("uLightEmissivity");
-				_TransparentLightingPass.addUniform("uLightCosAngles");
-				_TransparentLightingPass.addUniform("uLightTypePoint");
-				
+				// --- direct lighting ---
+				_DirectLightingPass.addUniform("uCamPos");
+				_DirectLightingPass.addUniform("uInvMatrix_VP");
+				_DirectLightingPass.addUniform("uShadowFar");
+				_DirectLightingPass.addUniform("uLightMatrix_VP");
+				_DirectLightingPass.addUniform("uLightPosition");
+				_DirectLightingPass.addUniform("uLightDirection");
+				_DirectLightingPass.addUniform("uLightEmissivity");
+				_DirectLightingPass.addUniform("uLightCosAngles");
+				_DirectLightingPass.addUniform("uLightTypePoint");
+
 				// --- indirect lighting ---
 				_IndirectLightingPass.addUniform("uCamPos");
 				
@@ -112,251 +102,159 @@ namespace M3D
 
 			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void resize(int p_width, int p_height) {
-				resizeColorMap(p_width, p_height, _lightingMap);
+				resizeColorMap(GL_RGB32F, GL_RGB, GL_FLOAT, p_width, p_height, _lightingMap);
 			}
 
-			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_positionMap, GLuint p_normalMetalnessMap, GLuint p_albedoRoughnessMap, GLuint p_emissiveMap, GLuint p_rootTransparency, GLuint p_ssboTransparency) {
+			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_albedoMap, GLuint p_normalMap, GLuint p_metalnessRoughnessMap, GLuint p_emissiveMap, GLuint p_depthMap, GLuint p_rootTransparency, GLuint p_ssboTransparency) {
 				// --- clear buffer ---
 				glCopyImageSubData(p_emissiveMap, GL_TEXTURE_2D, 0, 0, 0, 0, _lightingMap, GL_TEXTURE_2D, 0, 0, 0, 0, p_width, p_height, 1);
 				
-				/*
-				- deterime point to cast ray shadow (point/spot => position ; sun depend of intersection of LDir and World AABB)
-				- use compute shader to compute ray intersection with scene and determine for each fragments (opaque and transp) the quantity of light per channel that come
-				- compute direct lighting opaque and transparent in unified shader
-				*/
-
 				// --- direct lighting ---
 				for (Scene::Light l : Application::getInstance().getSceneManager().getLights())
-					for (unsigned int i=0; i<l.getNumberInstances() ;i++)
-						switch (l.getType()) {
-							case LIGHT_TYPE::POINT:
-							case LIGHT_TYPE::SPOT:
-								{
-									// todo better compute
-									float znear = 1e-3f;
-									float zfar = glm::max(znear,l.getRange()); // TODO frustum culling and bounding sphere objects to compute zfar
-									Vec3f lightPos = l.getInstance(i)->getPosition();
+					for (unsigned int i = 0; i < l.getNumberInstances();i++) {
+						//- deterime point to cast ray shadow (point/spot => position ; sun depend of intersection of LDir and World AABB)
+						//-use compute shader to compute ray intersection with scene and determine for each fragments(opaque and transp) the quantity of light per channel that come
 
-									// --- shadow cube ---
-									glViewport(0, 0, _shadowMapResolution, _shadowMapResolution);
+						Mat4f lightMatrix_VP = glm::ortho(-25.f, 25.f, -25.f, 25.f, 1e-3f, 50.f) * glm::lookAt(VEC3F_ZERO + l.getInstance(i)->getBack() * 0.5f * 50.f, VEC3F_ZERO, l.getInstance(i)->getUp());
+						Mat4f homogeneousLightMatrix_VP = Mat4f(0.5f, 0.f, 0.f, 0.f, 0.f, 0.5f, 0.f, 0.f, 0.f, 0.f, 0.5f, 0.f, 0.5f, 0.5f, 0.5f, 1.f) * lightMatrix_VP;
 
-									glBindFramebuffer(GL_FRAMEBUFFER, _fboShadowCube);
+						if (l.getType() == LIGHT_TYPE::DIRECTIONAL) {
+							glViewport(0, 0, _shadowMapResolution, _shadowMapResolution);
+							glBindFramebuffer(GL_FRAMEBUFFER, _fboShadow);
 
-									glEnable(GL_DEPTH_TEST);
-									glClear(GL_DEPTH_BUFFER_BIT);
+							glEnable(GL_DEPTH_TEST);
+							glClear(GL_DEPTH_BUFFER_BIT);
 
-									glUseProgram(_ShadowCubePass.getProgram());
+							glUseProgram(_ShadowPass.getProgram());
 
-									Mat4f shadowProj = glm::perspective(PI_2f, 1.f, 1e-3f, zfar);
-									std::vector<Mat4f> shadowTransforms = {
-										shadowProj * glm::lookAt(lightPos, lightPos + VEC3F_X, -VEC3F_Y),
-										shadowProj * glm::lookAt(lightPos, lightPos - VEC3F_X, -VEC3F_Y),
-										shadowProj * glm::lookAt(lightPos, lightPos + VEC3F_Y,  VEC3F_Z),
-										shadowProj * glm::lookAt(lightPos, lightPos - VEC3F_Y, -VEC3F_Z),
-										shadowProj * glm::lookAt(lightPos, lightPos + VEC3F_Z, -VEC3F_Y),
-										shadowProj * glm::lookAt(lightPos, lightPos - VEC3F_Z, -VEC3F_Y)
-									};
+							glProgramUniformMatrix4fv(_ShadowPass.getProgram(), _ShadowPass.getUniform("uLightMatrix_VP"), 1, false, glm::value_ptr(lightMatrix_VP));
 
-									glProgramUniformMatrix4fv(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uShadowTransform"), 6, false, glm::value_ptr(shadowTransforms[0]));
-									glProgramUniform3fv(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uLightPos"), 1, glm::value_ptr(lightPos));
-									glProgramUniform1f(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uZfar"), zfar);
-
-									for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes)
-										// compute for each instance if they are cull or not => they id inside SSBO => render instance number = size SSBO => in shader read this ssbo with instance count
-										for (unsigned int j=0; j < mesh.first->getSubMeshes().size(); j++) {
-											Scene::SubMesh subMesh = mesh.first->getSubMeshes()[j];
-											//if (!subMesh.getMaterial().isOpaque()) continue;
-
-											if (subMesh.getMaterial().isDoubleSide()) { glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
-											else { glDisable(GL_CULL_FACE); }
-
-											glProgramUniform4fv(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uAlbedo"), 1, glm::value_ptr(subMesh.getMaterial().getBaseColor()));
-											glProgramUniform1f(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uAlphaCutOff"), subMesh.getMaterial().getAlphaCutOff());
-											glProgramUniform1i(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uHasAlbedoMap"), subMesh.getMaterial().getBaseColorMap() != nullptr);
-											if (subMesh.getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures.at(subMesh.getMaterial().getBaseColorMap())->getId());
-
-											mesh.second->bind(j);
-											glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)subMesh.getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
-											glBindVertexArray(0);
-										}
-
-									glDisable(GL_CULL_FACE);
-									glDisable(GL_DEPTH_TEST);
-									glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-									Mat4f p_matrixVP = Application::getInstance().getSceneManager().getMainCameraProjectionMatrix() * Application::getInstance().getSceneManager().getMainCameraViewMatrix();
-
-									Vec4f a = p_matrixVP * Vec4f((Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getUp() + Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getLeft()) * l.getRange() + lightPos, 1.f);
-									if (abs(a.a) > 0.01f) a /= a.a;
-
-									Vec4f b = p_matrixVP * Vec4f((Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getUp() + Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getRight()) * l.getRange() + lightPos, 1.f);
-									if (abs(b.a) > 0.01f)  b /= b.a;
-
-									Vec4f c = p_matrixVP * Vec4f((Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getDown() + Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getLeft()) * l.getRange() + lightPos, 1.f);
-									if (abs(c.a) > 0.01f)  c /= c.a;
-
-									Vec4f d = p_matrixVP * Vec4f((Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getDown() + Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getRight()) * l.getRange() + lightPos, 1.f);
-									if (abs(d.a) > 0.01f)  d /= d.a;
-
-									_billBoardCoords[0] = glm::clamp(Vec4f(a.x, a.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);
-									_billBoardCoords[1] = glm::clamp(Vec4f(b.x, b.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);
-									_billBoardCoords[2] = glm::clamp(Vec4f(c.x, c.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);
-									_billBoardCoords[3] = glm::clamp(Vec4f(d.x, d.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);
-
-									glNamedBufferSubData(_billboardSSBO, 0, 4 * sizeof(Vec4f), &_billBoardCoords);
+							for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes)
+								for (unsigned int j = 0; j < mesh.first->getSubMeshes().size(); j++) {
+									Scene::SubMesh subMesh = mesh.first->getSubMeshes()[j];
 									
-									// --- opaque ---
-									glViewport(0, 0, p_width, p_height);
+									if (subMesh.getMaterial().isDoubleSide()) { glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
+									else { glDisable(GL_CULL_FACE); }
 
-									glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
+									glProgramUniform4fv(_ShadowPass.getProgram(), _ShadowPass.getUniform("uAlbedo"), 1, glm::value_ptr(subMesh.getMaterial().getBaseColor()));
+									glProgramUniform1f(_ShadowPass.getProgram(), _ShadowPass.getUniform("uAlphaCutOff"), subMesh.getMaterial().getAlphaCutOff());
+									glProgramUniform1i(_ShadowPass.getProgram(), _ShadowPass.getUniform("uHasAlbedoMap"), subMesh.getMaterial().getBaseColorMap() != nullptr);
+									if (subMesh.getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures.at(subMesh.getMaterial().getBaseColorMap())->getId());
 
-									glEnable(GL_BLEND);
-									glBlendFunc(GL_ONE, GL_ONE);
-
-									glUseProgram(_OpaquePunctualPass.getProgram());
-
-									glBindTextureUnit(0, p_positionMap);
-									glBindTextureUnit(1, p_normalMetalnessMap);
-									glBindTextureUnit(2, p_albedoRoughnessMap);
-									glBindTextureUnit(3, _shadowCubeMap);
-
-									glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _billboardSSBO);
-
-									glProgramUniform4fv(_OpaquePunctualPass.getProgram(), _OpaquePunctualPass.getUniform("uCamData"), 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition(), zfar)));
-									glProgramUniform3fv(_OpaquePunctualPass.getProgram(), _OpaquePunctualPass.getUniform("uLightPosition"), 1, glm::value_ptr(l.getInstance(i)->getPosition()));
-									glProgramUniform3fv(_OpaquePunctualPass.getProgram(), _OpaquePunctualPass.getUniform("uLightDirection"), 1, glm::value_ptr(l.getInstance(i)->getFront()));
-									glProgramUniform3fv(_OpaquePunctualPass.getProgram(), _OpaquePunctualPass.getUniform("uLightEmissivity"), 1, glm::value_ptr(l.getEmissivity()));
-									glProgramUniform2fv(_OpaquePunctualPass.getProgram(), _OpaquePunctualPass.getUniform("uLightCosAngles"), 1, glm::value_ptr(Vec2f(l.getCosInnerConeAngle(), l.getCosOuterConeAngle())));
-									
-									glBindVertexArray(_emptyVAO);
-									glDrawArrays(GL_TRIANGLES, 0, 6);
+									mesh.second->bind(j);
+									glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)subMesh.getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
 									glBindVertexArray(0);
-
-									glDisable(GL_BLEND);
-									glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-									// --- transparent ---
-									glViewport(0, 0, p_width, p_height);
-
-									glUseProgram(_TransparentLightingPass.getProgram());
-
-									glBindImageTexture(0, p_rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
-									glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, p_ssboTransparency);
-
-									glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _billboardSSBO);
-
-									glProgramUniform4fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uCamData"), 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition(), zfar)));
-									glProgramUniform3fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightPosition"), 1, glm::value_ptr(l.getInstance(i)->getPosition()));
-									glProgramUniform3fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightDirection"), 1, glm::value_ptr(l.getInstance(i)->getFront()));
-									glProgramUniform3fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightEmissivity"), 1, glm::value_ptr(l.getEmissivity()));
-									glProgramUniform2fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightCosAngles"), 1, glm::value_ptr(Vec2f(l.getCosInnerConeAngle(), l.getCosOuterConeAngle())));
-									glProgramUniform1i(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightTypePoint"), true);
-									
-									glBindVertexArray(_emptyVAO);
-									glDrawArrays(GL_TRIANGLES, 0, 6);
-									glBindVertexArray(0);
-
-									break;
 								}
-							case LIGHT_TYPE::DIRECTIONAL:
-								{
-									// todo better compute
-									float znear = 1e-3f;
-									float xmag = 50.f, ymag = 50.f, zfar = 50.f;
-									Vec3f centerFrustum = VEC3F_ZERO;
-									Mat4f lightMatrix_VP = glm::ortho(-0.5f*xmag, 0.5f*xmag, -0.5f*ymag, 0.5f*ymag, znear, zfar) * glm::lookAt(centerFrustum+l.getInstance(i)->getBack()*0.5f*zfar, centerFrustum, l.getInstance(i)->getUp());
-									Mat4f homogeneousLightMatrix_VP = Mat4f(0.5f, 0.f, 0.f, 0.f, 0.f, 0.5f, 0.f, 0.f, 0.f, 0.f, 0.5f, 0.f, 0.5f, 0.5f, 0.5f, 1.f) * lightMatrix_VP;
+
+							glDisable(GL_CULL_FACE);
+							glDisable(GL_DEPTH_TEST);
+							glBindFramebuffer(GL_FRAMEBUFFER, 0);
+						}else{
+							glViewport(0, 0, _shadowMapResolution, _shadowMapResolution);
+							glBindFramebuffer(GL_FRAMEBUFFER, _fboShadowCube);
+
+							glEnable(GL_DEPTH_TEST);
+							glClear(GL_DEPTH_BUFFER_BIT);
+
+							glUseProgram(_ShadowCubePass.getProgram());
+
+							Mat4f shadowProj = glm::perspective(PI_2f, 1.f, 1e-3f, l.getRange());
+							std::vector<Mat4f> shadowTransforms = {
+								shadowProj * glm::lookAt(l.getInstance(i)->getPosition(), l.getInstance(i)->getPosition() + VEC3F_X, -VEC3F_Y),
+								shadowProj * glm::lookAt(l.getInstance(i)->getPosition(), l.getInstance(i)->getPosition() - VEC3F_X, -VEC3F_Y),
+								shadowProj * glm::lookAt(l.getInstance(i)->getPosition(), l.getInstance(i)->getPosition() + VEC3F_Y,  VEC3F_Z),
+								shadowProj * glm::lookAt(l.getInstance(i)->getPosition(), l.getInstance(i)->getPosition() - VEC3F_Y, -VEC3F_Z),
+								shadowProj * glm::lookAt(l.getInstance(i)->getPosition(), l.getInstance(i)->getPosition() + VEC3F_Z, -VEC3F_Y),
+								shadowProj * glm::lookAt(l.getInstance(i)->getPosition(), l.getInstance(i)->getPosition() - VEC3F_Z, -VEC3F_Y)
+							};
+
+							glProgramUniformMatrix4fv(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uShadowTransform"), 6, false, glm::value_ptr(shadowTransforms[0]));
+							glProgramUniform3fv(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uLightPos"), 1, glm::value_ptr(l.getInstance(i)->getPosition()));
+							glProgramUniform1f(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uZfar"), l.getRange());
+
+							for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes)
+								for (unsigned int j = 0; j < mesh.first->getSubMeshes().size(); j++) {
+									Scene::SubMesh subMesh = mesh.first->getSubMeshes()[j];
 									
-									// --- shadow ---
-									glViewport(0, 0, _shadowMapResolution, _shadowMapResolution);
+									if (subMesh.getMaterial().isDoubleSide()) { glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
+									else { glDisable(GL_CULL_FACE); }
 
-									glBindFramebuffer(GL_FRAMEBUFFER, _fboShadow);
+									glProgramUniform4fv(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uAlbedo"), 1, glm::value_ptr(subMesh.getMaterial().getBaseColor()));
+									glProgramUniform1f(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uAlphaCutOff"), subMesh.getMaterial().getAlphaCutOff());
+									glProgramUniform1i(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uHasAlbedoMap"), subMesh.getMaterial().getBaseColorMap() != nullptr);
+									if (subMesh.getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures.at(subMesh.getMaterial().getBaseColorMap())->getId());
 
-									glEnable(GL_DEPTH_TEST);
-									glClear(GL_DEPTH_BUFFER_BIT);
-
-									glUseProgram(_ShadowPass.getProgram());
-
-									glProgramUniformMatrix4fv(_ShadowPass.getProgram(), _ShadowPass.getUniform("uLightMatrix_VP"), 1, false, glm::value_ptr(lightMatrix_VP));
-									
-									for (std::pair<Scene::Mesh*, MeshOGL*> mesh : p_meshes)
-										for (unsigned int j=0; j<mesh.first->getSubMeshes().size(); j++) {
-											Scene::SubMesh subMesh = mesh.first->getSubMeshes()[j];
-											//if (!subMesh.getMaterial().isOpaque()) continue;
-
-											if (subMesh.getMaterial().isDoubleSide()) { glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
-											else { glDisable(GL_CULL_FACE); }
-
-											glProgramUniform4fv(_ShadowPass.getProgram(), _ShadowPass.getUniform("uAlbedo"), 1, glm::value_ptr(subMesh.getMaterial().getBaseColor()));
-											glProgramUniform1f(_ShadowPass.getProgram(), _ShadowPass.getUniform("uAlphaCutOff"), subMesh.getMaterial().getAlphaCutOff());
-											glProgramUniform1i(_ShadowPass.getProgram(), _ShadowPass.getUniform("uHasAlbedoMap"), subMesh.getMaterial().getBaseColorMap() != nullptr);
-											if (subMesh.getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures.at(subMesh.getMaterial().getBaseColorMap())->getId());
-
-											mesh.second->bind(j);
-											glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)subMesh.getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
-											glBindVertexArray(0);
-										}
-
-									glDisable(GL_CULL_FACE);
-									glDisable(GL_DEPTH_TEST);
-									glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-									// --- opaque ---
-									glViewport(0, 0, p_width, p_height);
-
-									glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
-
-									glEnable(GL_BLEND);
-									glBlendFunc(GL_ONE, GL_ONE);
-
-									glUseProgram(_OpaqueDirectionalPass.getProgram());
-
-									glBindTextureUnit(0, p_positionMap);
-									glBindTextureUnit(1, p_normalMetalnessMap);
-									glBindTextureUnit(2, p_albedoRoughnessMap);
-									glBindTextureUnit(3, _shadowMap);
-
-									glProgramUniformMatrix4fv(_OpaqueDirectionalPass.getProgram(), _OpaqueDirectionalPass.getUniform("uLightMatrix_VP"), 1, false, glm::value_ptr(homogeneousLightMatrix_VP));
-									glProgramUniform4fv(_OpaqueDirectionalPass.getProgram(), _OpaqueDirectionalPass.getUniform("uCamData"), 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition(), zfar)));
-									glProgramUniform3fv(_OpaqueDirectionalPass.getProgram(), _OpaqueDirectionalPass.getUniform("uLightDirection"), 1, glm::value_ptr(l.getInstance(i)->getFront()));
-									glProgramUniform3fv(_OpaqueDirectionalPass.getProgram(), _OpaqueDirectionalPass.getUniform("uLightEmissivity"), 1, glm::value_ptr(l.getEmissivity()));
-
-									glBindVertexArray(_emptyVAO);
-									glDrawArrays(GL_TRIANGLES, 0, 3);
+									mesh.second->bind(j);
+									glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)subMesh.getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
 									glBindVertexArray(0);
-
-									glDisable(GL_BLEND);
-									glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-									// --- transparent ---
-									_billBoardCoords[0] = Vec4f(-1., -1., 0., 1.);
-									_billBoardCoords[1] = Vec4f( 1., -1., 0., 1.);
-									_billBoardCoords[2] = Vec4f(-1.,  1., 0., 1.);
-									_billBoardCoords[3] = Vec4f( 1.,  1., 0., 1.);
-
-									glNamedBufferSubData(_billboardSSBO, 0, 4 * sizeof(Vec4f), &_billBoardCoords);
-
-									glViewport(0, 0, p_width, p_height);
-
-									glUseProgram(_TransparentLightingPass.getProgram());
-
-									glBindImageTexture(0, p_rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
-									glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, p_ssboTransparency);
-									
-									glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _billboardSSBO);
-									
-									glProgramUniform4fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uCamData"), 1, glm::value_ptr(Vec4f(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition(), zfar)));
-									glProgramUniform3fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightDirection"), 1, glm::value_ptr(l.getInstance(i)->getFront()));
-									glProgramUniform3fv(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightEmissivity"), 1, glm::value_ptr(l.getEmissivity()));
-									glProgramUniform1i(_TransparentLightingPass.getProgram(), _TransparentLightingPass.getUniform("uLightTypePoint"), false);
-
-									glBindVertexArray(_emptyVAO);
-									glDrawArrays(GL_TRIANGLES, 0, 6);
-									glBindVertexArray(0);
-
-									break;
 								}
+
+							glDisable(GL_CULL_FACE);
+							glDisable(GL_DEPTH_TEST);
+							glBindFramebuffer(GL_FRAMEBUFFER, 0);
 						}
+
+						glViewport(0, 0, p_width, p_height);
+
+						glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
+
+						glEnable(GL_BLEND);
+						glBlendFunc(GL_ONE, GL_ONE);
+
+						glUseProgram(_DirectLightingPass.getProgram());
+
+						glBindTextureUnit(0, p_albedoMap);
+						glBindTextureUnit(1, p_normalMap);
+						glBindTextureUnit(2, p_metalnessRoughnessMap);
+						glBindTextureUnit(3, p_depthMap);
+						glBindTextureUnit(4, _shadowMap);
+						glBindTextureUnit(5, _shadowCubeMap);
+						glBindImageTexture(6, p_rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
+						glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, p_ssboTransparency);
+
+						glProgramUniform3fv(_DirectLightingPass.getProgram(), _DirectLightingPass.getUniform("uCamPos"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition()));
+						glProgramUniformMatrix4fv(_DirectLightingPass.getProgram(), _DirectLightingPass.getUniform("uInvMatrix_VP"), 1, false, glm::value_ptr(glm::inverse(Application::getInstance().getSceneManager().getMainCameraProjectionMatrix() * Application::getInstance().getSceneManager().getMainCameraViewMatrix())));
+						glProgramUniform1f(_DirectLightingPass.getProgram(), _DirectLightingPass.getUniform("uShadowFar"), l.getRange());
+						glProgramUniformMatrix4fv(_DirectLightingPass.getProgram(), _DirectLightingPass.getUniform("uLightMatrix_VP"), 1, false, glm::value_ptr(homogeneousLightMatrix_VP));
+						glProgramUniform3fv(_DirectLightingPass.getProgram(), _DirectLightingPass.getUniform("uLightPosition"), 1, glm::value_ptr(l.getInstance(i)->getPosition()));
+						glProgramUniform3fv(_DirectLightingPass.getProgram(), _DirectLightingPass.getUniform("uLightDirection"), 1, glm::value_ptr(l.getInstance(i)->getFront()));
+						glProgramUniform3fv(_DirectLightingPass.getProgram(), _DirectLightingPass.getUniform("uLightEmissivity"), 1, glm::value_ptr(l.getEmissivity()));
+						glProgramUniform2fv(_DirectLightingPass.getProgram(), _DirectLightingPass.getUniform("uLightCosAngles"), 1, glm::value_ptr(Vec2f(l.getCosInnerConeAngle(), l.getCosOuterConeAngle())));
+						glProgramUniform1i(_DirectLightingPass.getProgram(), _DirectLightingPass.getUniform("uLightTypePoint"), l.getType()!=LIGHT_TYPE::DIRECTIONAL);
+
+						/* --- billboard full screen --- 
+						  _billBoardCoords[0] = Vec4f(-1., -1., 0., 1.);
+						  _billBoardCoords[1] = Vec4f( 1., -1., 0., 1.);
+						  _billBoardCoords[2] = Vec4f(-1.,  1., 0., 1.);
+						  _billBoardCoords[3] = Vec4f( 1.,  1., 0., 1.); */
+						/* --- billboard light range ---
+						  Mat4f p_matrixVP = Application::getInstance().getSceneManager().getMainCameraProjectionMatrix() * Application::getInstance().getSceneManager().getMainCameraViewMatrix();
+						  
+						  Vec4f a = p_matrixVP * Vec4f((Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getUp() + Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getLeft()) * l.getRange() + lightPos, 1.f);
+						  if (abs(a.a) > 0.01f) a /= a.a;
+
+						  Vec4f b = p_matrixVP * Vec4f((Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getUp() + Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getRight()) * l.getRange() + lightPos, 1.f);
+						  if (abs(b.a) > 0.01f)  b /= b.a;
+
+						  Vec4f c = p_matrixVP * Vec4f((Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getDown() + Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getLeft()) * l.getRange() + lightPos, 1.f);
+						  if (abs(c.a) > 0.01f)  c /= c.a;
+
+						  Vec4f d = p_matrixVP * Vec4f((Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getDown() + Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getRight()) * l.getRange() + lightPos, 1.f);
+						  if (abs(d.a) > 0.01f)  d /= d.a;
+
+						  _billBoardCoords[0] = glm::clamp(Vec4f(a.x, a.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);
+						  _billBoardCoords[1] = glm::clamp(Vec4f(b.x, b.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);
+						  _billBoardCoords[2] = glm::clamp(Vec4f(c.x, c.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);
+						  _billBoardCoords[3] = glm::clamp(Vec4f(d.x, d.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);*/
+						// glNamedBufferSubData(_billboardSSBO, 0, 4 * sizeof(Vec4f), &_billBoardCoords); // bind en 0 ?? 
+
+						glBindVertexArray(_emptyVAO);
+						glDrawArrays(GL_TRIANGLES, 0, 3);
+						glBindVertexArray(0);
+
+						glDisable(GL_BLEND);
+						glBindFramebuffer(GL_FRAMEBUFFER, 0);
+					}
 
 				// --- indirect lighting ---
 				glViewport(0, 0, p_width, p_height);
@@ -364,18 +262,13 @@ namespace M3D
 
 				glUseProgram(_IndirectLightingPass.getProgram());
 
-				glBindTextureUnit(0, p_positionMap);
-				glBindTextureUnit(1, p_normalMetalnessMap);
-				glBindTextureUnit(2, p_albedoRoughnessMap);
-				glBindTextureUnit(3, _lightingMap);
-
 				glProgramUniform3fv(_IndirectLightingPass.getProgram(), _IndirectLightingPass.getUniform("uCamPos"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition()));
 
 				glBindVertexArray(_emptyVAO);
 				glDrawArrays(GL_TRIANGLES, 0, 3);
 				glBindVertexArray(0);
 
-				// --- Final Mix ---
+				// --- Final Mix --- (rename apply transparent mask)
 				glUseProgram(_FinalMixLightingPass.getProgram());
 
 				glBindTextureUnit(0, _lightingMap);
@@ -410,14 +303,8 @@ namespace M3D
 			ProgramOGL _ShadowCubePass				= ProgramOGL("src/renderer/OpenGL/shaders/shadow/CubeShadow.vert", "src/renderer/OpenGL/shaders/shadow/CubeShadow.geom", "src/renderer/OpenGL/shaders/shadow/CubeShadow.frag");
 			//ProgramOGL _GenerateShadowMaps		= ProgramOGL("src/renderer/OpenGL/shaders/shadow/QuadScreen.vert", "src/renderer/OpenGL/shaders/shadow/GenerateShadowMaps.frag"); // cast shadow ray (indirect call compute)  
 
-			ProgramOGL _OpaqueDirectionalPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/OpaqueDirectionalPass.frag");
-			ProgramOGL _OpaquePunctualPass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/Billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/OpaquePunctualPass.frag");
-			ProgramOGL _TransparentLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/Billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/TransparentLightingPass.frag");
-			//ProgramOGL _DirectLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/Billboard.vert", "", "src/renderer/OpenGL/shaders/lighting/DirectLightingPass.frag");
-
-
+			ProgramOGL _DirectLightingPass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/DirectLightingPass.frag");
 			ProgramOGL _IndirectLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/IndirectLightingPass.frag");
-
 			ProgramOGL _FinalMixLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/FinalMixLightingPass.frag");
 
 		};

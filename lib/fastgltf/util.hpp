@@ -30,6 +30,7 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
+#include <memory>
 #include <string_view>
 #include <type_traits>
 
@@ -397,9 +398,20 @@ namespace fastgltf {
 	constexpr std::make_unsigned_t<T> uabs(T val) {
 		using unsigned_t = std::make_unsigned_t<T>;
 		return (val < 0)
-			? static_cast<unsigned_t>(-(val - 1)) - 1
+			? static_cast<unsigned_t>(-(val + 1)) + 1
 			: static_cast<unsigned_t>(val);
 	}
+
+	template <auto callback>
+	struct UniqueDeleter {
+		template <typename T>
+		constexpr void operator()(T* t) const {
+			callback(t);
+		}
+	};
+
+	template <typename T, auto callback>
+	using deletable_unique_ptr = std::unique_ptr<T, UniqueDeleter<callback>>;
 } // namespace fastgltf
 
 #ifdef _MSC_VER

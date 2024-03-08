@@ -52,7 +52,7 @@ void main(){
 		if(albedo.a<uAlphaCutOff) discard;
 
 		opaqueAlbedo = albedo.xyz;
-		opaqueNormal = normal;		// + should be transform to [0;1] ?
+		opaqueNormal = normal;
 		opaqueMetalnessRoughness = MetalnessRoughness;
 		opaqueEmissive = emissivity;
 	}else{	// transparent

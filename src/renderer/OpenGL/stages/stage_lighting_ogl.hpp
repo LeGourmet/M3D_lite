@@ -79,9 +79,15 @@ namespace M3D
 				_IndirectLightingPass.addUniform("uCamPos");
 				
 				// --- others ---
+				glCreateBuffers(1, &_billBoardVBO);
+				glCreateVertexArrays(1, &_billBoardVAO);
+				glNamedBufferData(_billBoardVBO, 4 * sizeof(Vec3f), nullptr, GL_DYNAMIC_DRAW);
+				glVertexArrayVertexBuffer(_billBoardVAO, 0, _billBoardVBO, 0, sizeof(Vec3f));
+				glEnableVertexArrayAttrib(_billBoardVAO, 0);
+				glVertexArrayAttribFormat(_billBoardVAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
+				glVertexArrayAttribBinding(_billBoardVAO, 0, 0);
+
 				glCreateVertexArrays(1, &_emptyVAO);
-				glCreateBuffers(1, &_billboardSSBO);
-				glNamedBufferStorage(_billboardSSBO, 4*sizeof(Vec4f), nullptr, GL_DYNAMIC_STORAGE_BIT);
 			}
 
 			~StageLightingOGL() {
@@ -93,8 +99,9 @@ namespace M3D
 				glDeleteFramebuffers(1, &_fboShadowCube);
 				glDeleteFramebuffers(1, &_fboShadow);
 
+				glDeleteBuffers(1, &_billBoardVBO);
+				glDeleteVertexArrays(1, &_billBoardVAO);
 				glDeleteVertexArrays(1, &_emptyVAO);
-				glDeleteBuffers(1, &_billboardSSBO);
 			}
 
 			// ------------------------------------------------------ GETTERS ------------------------------------------------------
@@ -102,7 +109,7 @@ namespace M3D
 
 			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void resize(int p_width, int p_height) {
-				resizeColorMap(GL_RGB32F, GL_RGB, GL_FLOAT, p_width, p_height, _lightingMap);
+				resizeColorMap(GL_RGB16F, GL_RGB, GL_FLOAT, p_width, p_height, _lightingMap);
 			}
 
 			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_albedoMap, GLuint p_normalMap, GLuint p_metalnessRoughnessMap, GLuint p_emissiveMap, GLuint p_depthMap, GLuint p_rootTransparency, GLuint p_ssboTransparency) {
@@ -112,7 +119,7 @@ namespace M3D
 				// --- direct lighting ---
 				for (Scene::Light l : Application::getInstance().getSceneManager().getLights())
 					for (unsigned int i = 0; i < l.getNumberInstances();i++) {
-						//- deterime point to cast ray shadow (point/spot => position ; sun depend of intersection of LDir and World AABB)
+						//-deterime point to cast ray shadow (point/spot => position ; sun depend of intersection of LDir and World AABB)
 						//-use compute shader to compute ray intersection with scene and determine for each fragments(opaque and transp) the quantity of light per channel that come
 
 						Mat4f lightMatrix_VP = glm::ortho(-25.f, 25.f, -25.f, 25.f, 1e-3f, 50.f) * glm::lookAt(VEC3F_ZERO + l.getInstance(i)->getBack() * 0.5f * 50.f, VEC3F_ZERO, l.getInstance(i)->getUp());
@@ -223,10 +230,10 @@ namespace M3D
 						glProgramUniform1i(_DirectLightingPass.getProgram(), _DirectLightingPass.getUniform("uLightTypePoint"), l.getType()!=LIGHT_TYPE::DIRECTIONAL);
 
 						/* --- billboard full screen --- 
-						  _billBoardCoords[0] = Vec4f(-1., -1., 0., 1.);
-						  _billBoardCoords[1] = Vec4f( 1., -1., 0., 1.);
-						  _billBoardCoords[2] = Vec4f(-1.,  1., 0., 1.);
-						  _billBoardCoords[3] = Vec4f( 1.,  1., 0., 1.); */
+						  _billBoardCoords[0] = Vec3f(-1., -1., 0., 1.);
+						  _billBoardCoords[1] = Vec3f( 1., -1., 0., 1.);
+						  _billBoardCoords[2] = Vec3f(-1.,  1., 0., 1.);
+						  _billBoardCoords[3] = Vec3f( 1.,  1., 0., 1.); */
 						/* --- billboard light range ---
 						  Mat4f p_matrixVP = Application::getInstance().getSceneManager().getMainCameraProjectionMatrix() * Application::getInstance().getSceneManager().getMainCameraViewMatrix();
 						  
@@ -242,11 +249,11 @@ namespace M3D
 						  Vec4f d = p_matrixVP * Vec4f((Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getDown() + Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getRight()) * l.getRange() + lightPos, 1.f);
 						  if (abs(d.a) > 0.01f)  d /= d.a;
 
-						  _billBoardCoords[0] = glm::clamp(Vec4f(a.x, a.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);
-						  _billBoardCoords[1] = glm::clamp(Vec4f(b.x, b.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);
-						  _billBoardCoords[2] = glm::clamp(Vec4f(c.x, c.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);
-						  _billBoardCoords[3] = glm::clamp(Vec4f(d.x, d.y, 0., 1.), -VEC4F_ONE, VEC4F_ONE);*/
-						// glNamedBufferSubData(_billboardSSBO, 0, 4 * sizeof(Vec4f), &_billBoardCoords); // bind en 0 ?? 
+						  _billBoardCoords[0] = glm::clamp(Vec3f(a.x, a.y, 0.), -VEC3F_ONE, VEC3F_ONE);
+						  _billBoardCoords[1] = glm::clamp(Vec3f(b.x, b.y, 0.), -VEC3F_ONE, VEC3F_ONE);
+						  _billBoardCoords[2] = glm::clamp(Vec3f(c.x, c.y, 0.), -VEC3F_ONE, VEC3F_ONE);
+						  _billBoardCoords[3] = glm::clamp(Vec3f(d.x, d.y, 0.), -VEC3F_ONE, VEC3F_ONE);*/
+						// glNamedBufferSubData(_billboardVBO, 0, 4 * sizeof(Vec3f), &_billBoardCoords); // bind en 0 ?? 
 
 						glBindVertexArray(_emptyVAO);
 						glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -293,8 +300,8 @@ namespace M3D
 			GLuint _shadowCubeMap		= GL_INVALID_INDEX;
 			GLuint _shadowMap			= GL_INVALID_INDEX;
 
-			Vec4f  _billBoardCoords[4]	= {VEC4F_ZERO, VEC4F_ZERO, VEC4F_ZERO, VEC4F_ZERO};
-			GLuint _billboardSSBO		= GL_INVALID_INDEX;
+			GLuint _billBoardVBO		= GL_INVALID_INDEX;
+			GLuint _billBoardVAO		= GL_INVALID_INDEX;
 			GLuint _emptyVAO			= GL_INVALID_INDEX;
 
 			unsigned int _shadowMapResolution = 1024;

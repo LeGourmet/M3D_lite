@@ -64,6 +64,14 @@ namespace fg = fastgltf;
 namespace fs = std::filesystem;
 
 namespace fastgltf {
+#if defined(__ANDROID__)
+    /**
+     * Global asset manager that can be accessed freely.
+     * The value of this global should only be set by fastgltf::setAndroidAssetManager.
+     */
+    static AAssetManager* androidAssetManager = nullptr;
+#endif
+
     constexpr std::uint32_t binaryGltfHeaderMagic = 0x46546C67; // ASCII for "glTF".
     constexpr std::uint32_t binaryGltfJsonChunkMagic = 0x4E4F534A;
     constexpr std::uint32_t binaryGltfDataChunkMagic = 0x004E4942;
@@ -617,17 +625,19 @@ void fg::URI::readjustViews(const URIView& other) {
 }
 
 void fg::URI::decodePercents(std::string& x) noexcept {
-	for (auto it = x.begin(); it != x.end(); ++it) {
-		if (*it == '%') {
-			// Read the next two chars and store them.
-			std::array<char, 3> chars = {*(it + 1), *(it + 2), 0};
-			*it = static_cast<char>(std::strtoul(chars.data(), nullptr, 16));
-			x.erase(it + 1, it + 3);
-		}
+	for (std::size_t i = 0; i < x.size(); ++i) {
+		if (x[i] != '%')
+			continue;
+
+		// Read the next two chars and store them
+		std::array<char, 3> chars = {x[i + 1], x[i + 2]};
+		x[i] = static_cast<char>(std::strtoul(chars.data(), nullptr, 16));
+		x.erase(i + 1, 2);
 	}
 }
 
 std::string_view fg::URI::string() const noexcept { return uri; }
+const char*      fg::URI::c_str() const noexcept { return uri.c_str(); }
 std::string_view fg::URI::scheme() const noexcept { return view.scheme(); }
 std::string_view fg::URI::userinfo() const noexcept { return view.userinfo(); }
 std::string_view fg::URI::host() const noexcept { return view.host(); }
@@ -705,16 +715,70 @@ fg::Expected<fg::DataSource> fg::Parser::decodeDataUri(URIView& uri) const noexc
 	return Expected<DataSource> { std::move(source) };
 }
 
+#if defined(__ANDROID__)
+fg::Expected<fg::DataSource> fg::Parser::loadFileFromApk(const fs::path& path) const noexcept {
+	auto file = deletable_unique_ptr<AAsset, AAsset_close>(
+		AAssetManager_open(androidAssetManager, path.c_str(), AASSET_MODE_BUFFER));
+	if (file == nullptr) {
+		return Expected<DataSource>(Error::MissingExternalBuffer);
+	}
+
+	const auto length = AAsset_getLength(file.get());
+	if (length == 0) {
+		return Expected<DataSource>(Error::MissingExternalBuffer);
+	}
+
+	if (config.mapCallback != nullptr) {
+		auto info = config.mapCallback(static_cast<std::uint64_t>(length), config.userPointer);
+		if (info.mappedMemory != nullptr) {
+			const sources::CustomBuffer customBufferSource = { info.customId, MimeType::None };
+			AAsset_read(file.get(), info.mappedMemory, length);
+			if (config.unmapCallback != nullptr) {
+				config.unmapCallback(&info, config.userPointer);
+			}
+
+			return Expected<DataSource> { customBufferSource };
+		}
+	}
+
+	sources::Array arraySource = {
+		StaticVector<std::uint8_t>(length),
+		MimeType::GltfBuffer
+	};
+	AAsset_read(file.get(), arraySource.bytes.data(), length);
+
+	return Expected<DataSource> { std::move(arraySource) };
+}
+#endif
+
 fg::Expected<fg::DataSource> fg::Parser::loadFileFromUri(URIView& uri) const noexcept {
 	URI decodedUri(uri.path()); // Re-allocate so we can decode potential characters.
-    auto path = directory / fs::path(decodedUri.path());
-    std::error_code error;
+#if FASTGLTF_CPP_20
+	// JSON strings need always be in UTF-8, so we can safely assume that the URI contains UTF-8 characters.
+	// This is technically UB... but I'm not sure how to do it otherwise.
+	std::u8string_view u8path(reinterpret_cast<const char8_t*>(decodedUri.path().data()),
+							  decodedUri.path().size());
+	auto path = directory / fs::path(u8path);
+#else
+    auto path = directory / fs::u8path(decodedUri.path());
+#endif
+
+#if defined(__ANDROID__)
+	if (androidAssetManager != nullptr) {
+		// Try to load external buffers from the APK. If they're not there, fall through to the file case
+		if (auto androidResult = loadFileFromApk(path); androidResult.error() == Error::None) {
+			return Expected<DataSource>(std::move(androidResult.get()));
+		}
+	}
+#endif
+
     // If we were instructed to load external buffers and the files don't exist, we'll return an error.
+	std::error_code error;
     if (!fs::exists(path, error) || error) {
 	    return Expected<DataSource> { Error::MissingExternalBuffer };
     }
 
-    auto length = static_cast<std::streamsize>(std::filesystem::file_size(path, error));
+    auto length = static_cast<std::streamsize>(fs::file_size(path, error));
     if (error) {
 	    return Expected<DataSource> { Error::InvalidURI };
     }
@@ -724,7 +788,7 @@ fg::Expected<fg::DataSource> fg::Parser::loadFileFromUri(URIView& uri) const noe
     if (config.mapCallback != nullptr) {
         auto info = config.mapCallback(static_cast<std::uint64_t>(length), config.userPointer);
         if (info.mappedMemory != nullptr) {
-            const sources::CustomBuffer customBufferSource = { info.customId, MimeType::None };
+            const sources::CustomBuffer customBufferSource = { info.customId };
             file.read(reinterpret_cast<char*>(info.mappedMemory), length);
             if (config.unmapCallback != nullptr) {
                 config.unmapCallback(&info, config.userPointer);
@@ -738,7 +802,6 @@ fg::Expected<fg::DataSource> fg::Parser::loadFileFromUri(URIView& uri) const noe
 	file.read(reinterpret_cast<char*>(data.data()), length);
     sources::Array vectorSource = {
 		std::move(data),
-		MimeType::None,
 	};
 	return Expected<DataSource> { std::move(vectorSource) };
 }
@@ -809,16 +872,23 @@ fg::Error fg::Parser::generateMeshIndices(fastgltf::Asset& asset) const {
 			if (positionAttribute == primitive.attributes.end()) {
 				return Error::InvalidGltf;
 			}
-			auto& positionAccessor = asset.accessors[positionAttribute->second];
+			auto positionCount = asset.accessors[positionAttribute->second].count;
 
-			StaticVector<std::uint8_t> generatedIndices(positionAccessor.count * getElementByteSize(positionAccessor.type, positionAccessor.componentType));
+			StaticVector<std::uint8_t> generatedIndices(positionCount * sizeof(std::uint32_t));
 			fastgltf::span<std::uint32_t> indices { reinterpret_cast<std::uint32_t*>(generatedIndices.data()),
 													generatedIndices.size() / sizeof(std::uint32_t) };
-			for (std::size_t i = 0; i < positionAccessor.count; ++i) {
+			for (std::size_t i = 0; i < positionCount; ++i) {
 				indices[i] = static_cast<std::uint32_t>(i);
 			}
 
 			auto bufferIdx = asset.buffers.size();
+			auto& buffer = asset.buffers.emplace_back();
+			sources::Array indicesArray {
+					std::move(generatedIndices),
+					MimeType::GltfBuffer,
+			};
+			buffer.byteLength = generatedIndices.size_bytes();
+			buffer.data = std::move(indicesArray);
 
 			auto bufferViewIdx = asset.bufferViews.size();
 			auto& bufferView = asset.bufferViews.emplace_back();
@@ -826,23 +896,14 @@ fg::Error fg::Parser::generateMeshIndices(fastgltf::Asset& asset) const {
 			bufferView.bufferIndex = bufferIdx;
 			bufferView.byteOffset = 0;
 
-			auto accessorIdx = asset.accessors.size();
+			primitive.indicesAccessor = asset.accessors.size();
 			auto& accessor = asset.accessors.emplace_back();
 			accessor.byteOffset = 0;
-			accessor.count = positionAccessor.count;
+			accessor.count = positionCount;
 			accessor.type = AccessorType::Scalar;
 			accessor.componentType = ComponentType::UnsignedInt;
 			accessor.normalized = false;
 			accessor.bufferViewIndex = bufferViewIdx;
-
-			sources::Array indicesArray {
-				std::move(generatedIndices),
-				MimeType::GltfBuffer,
-			};
-			auto& buffer = asset.buffers.emplace_back();
-			buffer.byteLength = generatedIndices.size_bytes();
-			buffer.data = std::move(indicesArray);
-			primitive.indicesAccessor = accessorIdx;
 		}
 	}
 	return Error::None;
@@ -1835,7 +1896,6 @@ fg::Error fg::Parser::parseBuffers(simdjson::dom::array& buffers, Asset& asset) 
                 sources::URI filePath;
                 filePath.fileByteOffset = 0;
                 filePath.uri = uriView;
-				filePath.mimeType = MimeType::None;
                 buffer.data = std::move(filePath);
             }
         } else if (bufferIndex == 0 && !std::holds_alternative<std::monostate>(glbBuffer)) {
@@ -2226,7 +2286,6 @@ fg::Error fg::Parser::parseImages(simdjson::dom::array& images, Asset& asset) {
                 sources::URI filePath;
                 filePath.fileByteOffset = 0;
                 filePath.uri = uriView;
-				filePath.mimeType = MimeType::None;
                 image.data = std::move(filePath);
             }
 
@@ -3743,7 +3802,7 @@ bool fg::GltfDataBuffer::copyBytes(const std::uint8_t* bytes, std::size_t byteCo
 bool fg::GltfDataBuffer::loadFromFile(const fs::path& path, std::uint64_t byteOffset) noexcept {
     using namespace simdjson;
     std::error_code ec;
-    auto length = static_cast<std::streamsize>(std::filesystem::file_size(path, ec));
+    auto length = static_cast<std::streamsize>(fs::file_size(path, ec));
     if (ec) {
         return false;
     }
@@ -3773,10 +3832,14 @@ bool fg::GltfDataBuffer::loadFromFile(const fs::path& path, std::uint64_t byteOf
 
 #pragma region AndroidGltfDataBuffer
 #if defined(__ANDROID__)
-fg::AndroidGltfDataBuffer::AndroidGltfDataBuffer(AAssetManager* assetManager) noexcept : assetManager{assetManager} {}
+void fg::setAndroidAssetManager(AAssetManager* assetManager) noexcept {
+	androidAssetManager = assetManager;
+}
+
+fg::AndroidGltfDataBuffer::AndroidGltfDataBuffer() noexcept = default;
 
 bool fg::AndroidGltfDataBuffer::loadFromAndroidAsset(const fs::path& path, std::uint64_t byteOffset) noexcept {
-    if (assetManager == nullptr) {
+    if (androidAssetManager == nullptr) {
         return false;
     }
 
@@ -3784,8 +3847,8 @@ bool fg::AndroidGltfDataBuffer::loadFromAndroidAsset(const fs::path& path, std::
 
     const auto filenameString = path.string();
 
-    auto assetDeleter = [](AAsset* file) { AAsset_close(file); };
-    auto file = std::unique_ptr<AAsset, decltype(assetDeleter)>(AAssetManager_open(assetManager, filenameString.c_str(), AASSET_MODE_BUFFER), assetDeleter);
+	auto file = deletable_unique_ptr<AAsset, AAsset_close>(
+		AAssetManager_open(androidAssetManager, filenameString.c_str(), AASSET_MODE_BUFFER));
     if (file == nullptr) {
         return false;
     }
@@ -3879,10 +3942,12 @@ fg::Expected<fg::Asset> fg::Parser::loadGltf(GltfDataBuffer* buffer, fs::path di
 fg::Expected<fg::Asset> fg::Parser::loadGltfJson(GltfDataBuffer* buffer, fs::path directory, Options options, Category categories) {
     using namespace simdjson;
 
+#if !defined(__ANDROID__)
     // If we never have to load the files ourselves, we're fine with the directory being invalid/blank.
-    if (hasBit(options, Options::LoadExternalBuffers) && !fs::is_directory(directory)) {
+    if (std::error_code ec; hasBit(options, Options::LoadExternalBuffers) && (!fs::is_directory(directory, ec) || ec)) {
         return Expected<Asset>(Error::InvalidPath);
     }
+#endif
 
 	this->options = options;
 	this->directory = std::move(directory);
@@ -3913,7 +3978,7 @@ fg::Expected<fg::Asset> fg::Parser::loadGltfBinary(GltfDataBuffer* buffer, fs::p
     using namespace simdjson;
 
     // If we never have to load the files ourselves, we're fine with the directory being invalid/blank.
-    if (hasBit(options, Options::LoadExternalBuffers) && !fs::is_directory(directory)) {
+    if (std::error_code ec; hasBit(options, Options::LoadExternalBuffers) && (!fs::is_directory(directory, ec) || ec)) {
 	    return Expected<Asset>(Error::InvalidPath);
     }
 
@@ -3980,7 +4045,7 @@ fg::Expected<fg::Asset> fg::Parser::loadGltfBinary(GltfDataBuffer* buffer, fs::p
 						if (config.unmapCallback != nullptr) {
 							config.unmapCallback(&info, config.userPointer);
 						}
-						glbBuffer = sources::CustomBuffer{info.customId, MimeType::None};
+						glbBuffer = sources::CustomBuffer{info.customId};
 					}
 				} else {
 					StaticVector<std::uint8_t> binaryData(binaryChunk.chunkLength);
@@ -4070,37 +4135,53 @@ void fg::prettyPrintJson(std::string& json) {
     }
 }
 
+namespace fastgltf {
+	static void escapeString(std::string& string) {
+		std::size_t i = 0;
+		do {
+			switch (string[i]) {
+				case '\"': {
+					const std::string_view s = "\\\"";
+					string.replace(i, 1, s);
+					i += s.size();
+					break;
+				}
+				case '\\': {
+					const std::string_view s = "\\\\";
+					string.replace(i, 1, s);
+					i += s.size();
+					break;
+				}
+			}
+			++i;
+		} while (i < string.size());
+	}
+
+	/**
+	 * Normalizes the path using lexically_normal, calls generic_string to always use forward slashes,
+	 * and escapes any necessary characters.
+	 */
+	static std::string normalizeAndFormatPath(fs::path& path) {
+		auto string = path.lexically_normal().generic_string();
+		escapeString(string);
+		return string;
+	}
+} // namespace fastgltf
+
 std::string fg::escapeString(std::string_view string) {
     std::string ret(string);
-    std::size_t i = 0;
-    do {
-        switch (ret[i]) {
-            case '\"': {
-                const std::string_view s = "\\\"";
-                ret.replace(i, 1, s);
-                i += s.size();
-                break;
-            }
-            case '\\': {
-                const std::string_view s = "\\\\";
-                ret.replace(i, 1, s);
-                i += s.size();
-                break;
-            }
-        }
-        ++i;
-    } while (i < ret.size());
+	escapeString(ret);
     return ret;
 }
 
-void fg::Exporter::setBufferPath(std::filesystem::path folder) {
+void fg::Exporter::setBufferPath(fs::path folder) {
     if (!folder.is_relative()) {
         return;
     }
     bufferFolder = std::move(folder);
 }
 
-void fg::Exporter::setImagePath(std::filesystem::path folder) {
+void fg::Exporter::setImagePath(fs::path folder) {
     if (!folder.is_relative()) {
         return;
     }
@@ -4199,7 +4280,7 @@ void fg::Exporter::writeBuffers(const Asset& asset, std::string& json) {
                     return;
                 }
                 auto path = getBufferFilePath(asset, bufferIdx);
-                json += std::string(R"("uri":")") + fg::escapeString(path.string()) + '"' + ',';
+                json += std::string(R"("uri":")") + fg::normalizeAndFormatPath(path) + '"' + ',';
                 bufferPaths.emplace_back(path);
 			},
 			[&](const sources::Vector& vector) {
@@ -4208,7 +4289,7 @@ void fg::Exporter::writeBuffers(const Asset& asset, std::string& json) {
 					return;
 				}
 				auto path = getBufferFilePath(asset, bufferIdx);
-				json += std::string(R"("uri":")") + fg::escapeString(path.string()) + '"' + ',';
+				json += std::string(R"("uri":")") + fg::normalizeAndFormatPath(path) + '"' + ',';
 				bufferPaths.emplace_back(path);
 			},
 			[&](const sources::ByteView& view) {
@@ -4217,7 +4298,7 @@ void fg::Exporter::writeBuffers(const Asset& asset, std::string& json) {
 					return;
 				}
                 auto path = getBufferFilePath(asset, bufferIdx);
-                json += std::string(R"("uri":")") + fg::escapeString(path.string()) + '"' + ',';
+                json += std::string(R"("uri":")") + fg::normalizeAndFormatPath(path) + '"' + ',';
                 bufferPaths.emplace_back(path);
 			},
 			[&](const sources::URI& uri) {
@@ -4400,7 +4481,7 @@ void fg::Exporter::writeImages(const Asset& asset, std::string& json) {
             },
             [&](const sources::Array& vector) {
                 auto path = getImageFilePath(asset, imageIdx, vector.mimeType);
-                json += std::string(R"("uri":")") + fg::escapeString(path.string()) + '"';
+                json += std::string(R"("uri":")") + fg::normalizeAndFormatPath(path) + '"';
 				if (vector.mimeType != MimeType::None) {
 					json += std::string(R"(,"mimeType":")") + std::string(getMimeTypeString(vector.mimeType)) + '"';
 				}
@@ -4408,7 +4489,7 @@ void fg::Exporter::writeImages(const Asset& asset, std::string& json) {
             },
 			[&](const sources::Vector& vector) {
 				auto path = getImageFilePath(asset, imageIdx, vector.mimeType);
-				json += std::string(R"("uri":")") + fg::escapeString(path.string()) + '"';
+				json += std::string(R"("uri":")") + fg::normalizeAndFormatPath(path) + '"';
 				if (vector.mimeType != MimeType::None) {
 					json += std::string(R"(,"mimeType":")") + std::string(getMimeTypeString(vector.mimeType)) + '"';
 				}
@@ -4854,7 +4935,7 @@ void fg::Exporter::writeMeshes(const Asset& asset, std::string& json) {
                 }
 
                 if (itp->type != PrimitiveType::Triangles) {
-                    json += R"(,"type":)" + std::to_string(to_underlying(itp->type));
+                    json += R"(,"mode":)" + std::to_string(to_underlying(itp->type));
                 }
 
 				if (!itp->mappings.empty()) {
@@ -5248,11 +5329,8 @@ fs::path fg::Exporter::getBufferFilePath(const Asset& asset, std::size_t index) 
     const auto& bufferName = asset.buffers[index].name;
     if (bufferName.empty()) {
         return bufferFolder / ("buffer" + std::to_string(index) + ".bin");
-    } else {
-        return bufferFolder / (bufferName + ".bin");
     }
-    std::string name = bufferName.empty() ? "buffer" : std::string(bufferName);
-    return bufferFolder / (name + std::to_string(index) + ".bin");
+	return bufferFolder / (bufferName + ".bin");
 }
 
 fs::path fg::Exporter::getImageFilePath(const Asset& asset, std::size_t index, MimeType mimeType) {
@@ -5279,8 +5357,10 @@ fs::path fg::Exporter::getImageFilePath(const Asset& asset, std::size_t index, M
     }
 
     const auto& imageName = asset.images[index].name;
-    std::string name = imageName.empty() ? "image" : std::string(imageName);
-    return imageFolder / (name + std::to_string(index) + std::string(extension));
+	if (imageName.empty()) {
+		return imageFolder / ("image" + std::to_string(index) + std::string(extension));
+	}
+	return imageFolder / (std::string(imageName) + std::string(extension));
 }
 
 std::string fg::Exporter::writeJson(const fastgltf::Asset &asset) {
@@ -5444,13 +5524,13 @@ fg::Expected<fg::ExportResult<std::vector<std::byte>>> fg::Exporter::writeGltfBi
 
 		std::visit(visitor {
 			[](auto arg) {},
-			[&](sources::Array& vector) {
+			[&](const sources::Array& vector) {
 				write(vector.bytes.data(), buffer.byteLength);
 			},
-			[&](sources::Vector& vector) {
+			[&](const sources::Vector& vector) {
 				write(vector.bytes.data(), buffer.byteLength);
 			},
-			[&](sources::ByteView& byteView) {
+			[&](const sources::ByteView& byteView) {
 				write(byteView.bytes.data(), buffer.byteLength);
 			},
 		}, buffer.data);
@@ -5460,13 +5540,23 @@ fg::Expected<fg::ExportResult<std::vector<std::byte>>> fg::Exporter::writeGltfBi
 }
 
 namespace fastgltf {
-	bool writeFile(const DataSource& dataSource, fs::path baseFolder, fs::path filePath) {
+	bool writeFile(const DataSource& dataSource, const fs::path& baseFolder, const fs::path& filePath) {
+		// Get the final normalized path. TODO: Perhaps move these filesystem checks to the parent function?
+		auto finalPath = (baseFolder / filePath).lexically_normal();
+		if (std::error_code ec; !fs::exists(finalPath.parent_path(), ec) || ec) {
+			// If the parent folder of the destination file does not exist, we'll create it.
+			fs::create_directory(finalPath.parent_path(), ec);
+			if (ec) {
+				return false;
+			}
+		}
+
 		return std::visit(visitor {
 			[](auto& arg) {
 				return false;
 			},
 			[&](const sources::Array& vector) {
-				std::ofstream file(baseFolder / filePath, std::ios::out | std::ios::binary);
+				std::ofstream file(finalPath, std::ios::out | std::ios::binary);
 				if (!file.is_open())
 					return false;
 				file.write(reinterpret_cast<const char *>(vector.bytes.data()),
@@ -5475,7 +5565,7 @@ namespace fastgltf {
 				return file.good();
 			},
 			[&](const sources::Vector& vector) {
-				std::ofstream file(baseFolder / filePath, std::ios::out | std::ios::binary);
+				std::ofstream file(finalPath, std::ios::out | std::ios::binary);
 				if (!file.is_open())
 					return false;
 				file.write(reinterpret_cast<const char *>(vector.bytes.data()),
@@ -5484,7 +5574,7 @@ namespace fastgltf {
 				return file.good();
 			},
 			[&](const sources::ByteView& view) {
-				std::ofstream file(baseFolder / filePath, std::ios::out | std::ios::binary);
+				std::ofstream file(finalPath, std::ios::out | std::ios::binary);
 				if (!file.is_open())
 					return false;
 				file.write(reinterpret_cast<const char *>(view.bytes.data()),
@@ -5498,7 +5588,7 @@ namespace fastgltf {
 	template<typename T>
 	bool writeFiles(const Asset& asset, ExportResult<T> &result, fs::path baseFolder) {
 		for (std::size_t i = 0; i < asset.buffers.size(); ++i) {
-			auto &path = result.bufferPaths[i];
+			auto& path = result.bufferPaths[i];
 			if (path.has_value()) {
 				if (!writeFile(asset.buffers[i].data, baseFolder, path.value()))
 					return false;
@@ -5506,7 +5596,7 @@ namespace fastgltf {
 		}
 
 		for (std::size_t i = 0; i < asset.images.size(); ++i) {
-			auto &path = result.imagePaths[i];
+			auto& path = result.imagePaths[i];
 			if (path.has_value()) {
 				if (!writeFile(asset.images[i].data, baseFolder, path.value()))
 					return false;
@@ -5516,8 +5606,15 @@ namespace fastgltf {
 	}
 } // namespace fastgltf
 
-fg::Error fg::FileExporter::writeGltfJson(const Asset& asset, std::filesystem::path target, ExportOptions options) {
-    auto expected = Exporter::writeGltfJson(asset, options);
+fg::Error fg::FileExporter::writeGltfJson(const Asset& asset, fs::path target, ExportOptions options) {
+	if (std::error_code ec; !fs::exists(target.parent_path(), ec) || ec) {
+		fs::create_directory(target.parent_path(), ec);
+		if (ec) {
+			return Error::InvalidPath;
+		}
+	}
+
+	auto expected = Exporter::writeGltfJson(asset, options);
 
     if (!expected) {
         return expected.error();
@@ -5538,7 +5635,14 @@ fg::Error fg::FileExporter::writeGltfJson(const Asset& asset, std::filesystem::p
     return Error::None;
 }
 
-fg::Error fg::FileExporter::writeGltfBinary(const Asset& asset, std::filesystem::path target, ExportOptions options) {
+fg::Error fg::FileExporter::writeGltfBinary(const Asset& asset, fs::path target, ExportOptions options) {
+	if (std::error_code ec; !fs::exists(target.parent_path(), ec) || ec) {
+		fs::create_directory(target.parent_path(), ec);
+		if (ec) {
+			return Error::InvalidPath;
+		}
+	}
+
     auto expected = Exporter::writeGltfBinary(asset, options);
 
     if (!expected) {

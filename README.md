@@ -37,8 +37,7 @@ Les plus urgentes :
 Accélération des calculs :
 - Ajout de "frustum culling" lors de la "geometrie pass" grâce à l'utilisation de boîtes englobantes et d'une hiérachie de scène. 
 - Ajout d'occlusion culling lors de la "geometrie pass".
-- Utilisation de micro meshes permetant une meilleur gestion de la mémoire ainsi que des LOD. 
-- Optimiser le type de texture utilisé (principalement dans la géométrie pass) pour booster les performances.
+- Utilisation de micro meshes permetant une meilleur gestion de la mémoire ainsi que des LOD.
  
 Amélioration de la qualité visuel :
 - Gestion d'une environement map (+IBL).
@@ -59,9 +58,8 @@ Rendre le monde plus vivant :
 ## Bugs
 
 - le bloom n'est pas stable d'une frame à l'autre
-- la génération des mipmap des texture d'OpenGl prend beaucoup trop de RAM 
-- les normals sembles ne pas être bonne parfois sur le calcule du shading (uniquement pour des objet utilisant du normal mapping) (usual suspect cosNL)
-- le normal mapping induit des zones complètement noir aux angles razant 
+- la génération des mipmap des texture d'OpenGl prend beaucoup trop de RAM
+- le normal induit des zones complètement noir aux angles razant quelquesoit la scène (compute lighting) (usual suspect cosNL)
 
 - imgui debug mode : cannot close settings : end/endchild
 
@@ -69,3 +67,6 @@ Rendre le monde plus vivant :
 - clear scene ne marchent pas => semblent provenir d'un bug sur les maps utilisé par le gpu 
 
 - la compilation ne se fait pas au bon endroit de l'arborecense
+
+- presences de plusieurs botleneck qui bride grandement le GPU (pass filterAndSortFrament + autre)
+- check si compute shader ne sont pas plus rentable pour le calcule de l'illumination des fragments

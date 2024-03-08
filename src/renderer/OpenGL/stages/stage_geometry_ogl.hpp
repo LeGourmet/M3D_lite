@@ -84,15 +84,12 @@ namespace M3D
 
 			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void resize(int p_width, int p_height) {
-				resizeColorMap(GL_RGB32F, GL_RGB, GL_FLOAT, p_width, p_height, _albedoMap);				//=> RGB_8 => unsigned
-				resizeColorMap(GL_RGB32F, GL_RGB, GL_FLOAT, p_width, p_height, _normalMap);				//=> RGB_16 => convert  [-1;1] [0;1]/[0;2]
-				resizeColorMap(GL_RG32F , GL_RG , GL_FLOAT, p_width, p_height, _metalnessRoughnessMap);	//=> RG_8   => unsigned
-				resizeColorMap(GL_RGB32F, GL_RGB, GL_FLOAT, p_width, p_height, _emissiveMap);			//=> RGB_16 => unsigned 
+				resizeColorMap(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, p_width, p_height, _albedoMap);
+				resizeColorMap(GL_RGB16F, GL_RGB, GL_FLOAT, p_width, p_height, _normalMap);
+				resizeColorMap(GL_RG8 , GL_RG , GL_UNSIGNED_BYTE, p_width, p_height, _metalnessRoughnessMap);
+				resizeColorMap(GL_RGB16F, GL_RGB, GL_FLOAT, p_width, p_height, _emissiveMap);
+				resizeColorMap(GL_R32F, GL_RED, GL_FLOAT, p_width, p_height, _rootTransparency);
 				resizeDepthMap(p_width, p_height, _depthMap);
-				
-				glBindTexture(GL_TEXTURE_2D, _rootTransparency);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, p_width, p_height, 0, GL_RED, GL_FLOAT, 0); // should be 32ui ?
-				glBindTexture(GL_TEXTURE_2D, 0);
 
 				_maxTransparentFragments = 10 * p_width * p_height;
 				glDeleteBuffers(1, &_ssboTransparency);

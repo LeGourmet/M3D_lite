@@ -231,11 +231,6 @@ namespace fastgltf {
         Weights = 4,
     };
 
-    enum class CameraType : std::uint8_t {
-        Perspective = 0,
-        Orthographic = 1,
-    };
-
     enum class AlphaMode : std::uint8_t {
         Opaque,
         Mask,
@@ -1316,6 +1311,7 @@ namespace fastgltf {
 		static void decodePercents(std::string& x) noexcept;
 
 		[[nodiscard]] auto string() const noexcept -> std::string_view;
+		[[nodiscard]] auto c_str() const noexcept -> const char*;
 
 		[[nodiscard]] auto scheme() const noexcept -> std::string_view;
 		[[nodiscard]] auto userinfo() const noexcept -> std::string_view;
@@ -1411,34 +1407,34 @@ namespace fastgltf {
     namespace sources {
         struct BufferView {
             std::size_t bufferViewIndex;
-            MimeType mimeType;
+            MimeType mimeType = MimeType::None;
         };
 
         struct URI {
             std::size_t fileByteOffset;
             fastgltf::URI uri;
-            MimeType mimeType;
+            MimeType mimeType = MimeType::None;
         };
 
         struct Array {
             StaticVector<std::uint8_t> bytes;
-            MimeType mimeType;
+            MimeType mimeType = MimeType::None;
         };
 
 		/** @note This type is not used by the fastgltf parser and is only used for exporting. Use sources::Array instead when importing intead. */
 		struct Vector {
 			std::vector<std::uint8_t> bytes;
-			MimeType mimeType;
+			MimeType mimeType = MimeType::None;
 		};
 
         struct CustomBuffer {
             CustomBufferId id;
-            MimeType mimeType;
+            MimeType mimeType = MimeType::None;
         };
 
         struct ByteView {
             span<const std::byte> bytes;
-            MimeType mimeType;
+            MimeType mimeType = MimeType::None;
         };
 
 		struct Fallback {};

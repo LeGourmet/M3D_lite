@@ -69,17 +69,6 @@ namespace M3D
 
             void setDirtyFalse() { _dirty = false; }
 
-            // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
-            void addInstance(SceneGraphNode* p_node) override {
-                Object::addInstance(p_node);
-                updateIntanceFovBox((unsigned int)_instances.size() - 1);
-            }
-
-            void updateIntanceFovBox(unsigned int p_instanceId) {
-                if (p_instanceId >= _instances.size()) return;
-                Mat4f invVP = glm::inverse(getProjectionMatrix() * getViewMatrix(p_instanceId));
-            }
-
         private:
             // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
             CAMERA_TYPE _type;
@@ -105,10 +94,6 @@ namespace M3D
                     case CAMERA_TYPE::ORTHOGRAPHIC: _projectionMatrix = glm::ortho(-0.5f * _xmag, 0.5f * _xmag, -0.5f * _ymag, 0.5f * _ymag, _znear, _zfar); break;
                     default: _projectionMatrix = MAT4F_ID;
                 }
-
-                for (int i = 0; i < _instances.size();i++)
-                    updateIntanceFovBox(i);
-                
                 _dirty = true;
             }
         };

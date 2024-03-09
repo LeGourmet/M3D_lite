@@ -155,11 +155,11 @@ namespace UserInterface
 
 					ImGui::TextColored(ImVec4(1, 1, 0, 1), "Anti-Aliasing");
 
-					if (ImGui::RadioButton("NONE", Application::getInstance().getRenderer().getAAType() == Renderer::AA_TYPE::NONE)) { Application::getInstance().getRenderer().setAAType(Renderer::AA_TYPE::NONE); }
+					if (ImGui::RadioButton("NONE", Application::getInstance().getRenderer().getAAType() == AA_TYPE::NONE)) { Application::getInstance().getRenderer().setAAType(AA_TYPE::NONE); }
 					ImGui::SameLine();
-					if (ImGui::RadioButton("FXAA", Application::getInstance().getRenderer().getAAType() == Renderer::AA_TYPE::FXAA)) { Application::getInstance().getRenderer().setAAType(Renderer::AA_TYPE::FXAA); }
+					if (ImGui::RadioButton("FXAA", Application::getInstance().getRenderer().getAAType() == AA_TYPE::FXAA)) { Application::getInstance().getRenderer().setAAType(AA_TYPE::FXAA); }
 					ImGui::SameLine();
-					if (ImGui::RadioButton("SMAA", Application::getInstance().getRenderer().getAAType() == Renderer::AA_TYPE::SMAA)) { Application::getInstance().getRenderer().setAAType(Renderer::AA_TYPE::SMAA); }
+					if (ImGui::RadioButton("SMAA", Application::getInstance().getRenderer().getAAType() == AA_TYPE::SMAA)) { Application::getInstance().getRenderer().setAAType(AA_TYPE::SMAA); }
 
 					ImGui::EndTabItem();
 				}

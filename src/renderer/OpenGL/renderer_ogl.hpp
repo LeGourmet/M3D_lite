@@ -28,13 +28,13 @@ namespace M3D
 			void drawFrame() override;
 			
 			void createMesh(Scene::Mesh* p_mesh) override;
-			void createTexture(Texture* p_texture) override;
+			void createTexture(Scene::Texture* p_texture) override;
 
 			void addInstanceMesh(Scene::Mesh* p_mesh, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) override;
 			void updateInstanceMesh(Scene::Mesh* p_mesh, unsigned int p_id, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) override;
 
 			void deleteMesh(Scene::Mesh* p_mesh) override;
-			void deleteTexture(Texture* p_texture) override;
+			void deleteTexture(Scene::Texture* p_texture) override;
 
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
@@ -43,7 +43,7 @@ namespace M3D
 			StagePostProcessingOGL*  _stagePostProcessingOGL;
 
 			std::map<Scene::Mesh*, MeshOGL*> _meshes;
-			std::map<Texture*, TextureOGL*> _textures;
+			std::map<Scene::Texture*, TextureOGL*> _textures;
 		};
 	}
 }

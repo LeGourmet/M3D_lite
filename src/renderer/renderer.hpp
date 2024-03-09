@@ -4,16 +4,16 @@
 #include <SDL_video.h>
 
 #include "utils/define.hpp"
-#include "utils/texture.hpp"
+#include "scene/objects/meshes/texture.hpp"
 
 #include "scene/objects/meshes/mesh.hpp"
 
 namespace M3D
 {
+    enum AA_TYPE { NONE, FXAA, SMAA };
+
     namespace Renderer
     {
-        enum AA_TYPE { NONE, FXAA, SMAA };
-
         class Renderer
         {
         public:
@@ -34,13 +34,13 @@ namespace M3D
             virtual void drawFrame() = 0;
 
             virtual void createMesh(Scene::Mesh* p_mesh) = 0;
-            virtual void createTexture(Texture* p_texture) = 0;
+            virtual void createTexture(Scene::Texture* p_texture) = 0;
 
             virtual void addInstanceMesh(Scene::Mesh* p_mesh, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) = 0;
             virtual void updateInstanceMesh(Scene::Mesh* p_mesh, unsigned int p_id, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) = 0;
 
             virtual void deleteMesh(Scene::Mesh* p_mesh) = 0;
-            virtual void deleteTexture(Texture* p_texture) = 0;
+            virtual void deleteTexture(Scene::Texture* p_texture) = 0;
 
         protected:
             float _bloomPower = 0.04f;

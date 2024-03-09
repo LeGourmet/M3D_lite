@@ -97,7 +97,7 @@ namespace M3D
 				glNamedBufferStorage(_ssboTransparency, _maxTransparentFragments * (13*sizeof(float)+sizeof(unsigned int)), nullptr, GL_DYNAMIC_STORAGE_BIT);
 			}
 
-			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures) {
+			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Scene::Texture*, TextureOGL*> p_textures) {
 				glViewport(0, 0, p_width, p_height);
 
 				glBindFramebuffer(GL_FRAMEBUFFER, _fbo);

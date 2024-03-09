@@ -2,7 +2,7 @@
 #define __MATERIAL_HPP__
 
 #include "utils/define.hpp"
-#include "utils/texture.hpp"
+#include "texture.hpp"
 
 namespace M3D
 {

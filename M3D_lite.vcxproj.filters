@@ -1595,7 +1595,7 @@
     <ClInclude Include="src\renderer\OpenGL\stages\stage_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\texture.hpp">
+    <ClInclude Include="src\scene\objects\meshes\texture.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="lib\imgui\imconfig.h">

@@ -67,7 +67,7 @@ Rendre le monde plus vivant :
 - certaines scene ne sont pas correctement load à cause de fastgltf (toycar crash, pub (texture 1 cannal to repeat))
 - clear scene ne marchent pas => semblent provenir d'un bug sur les maps utilisé par le gpu 
 
-- la compilation ne se fait pas au bon endroit de l'arborecense
+- la compilation ne se fait pas au bon endroit de l'arborecense (que sur gros pc!)
 
 - presences de plusieurs botleneck qui bride grandement le GPU (pass filterAndSortFrament + autre)
 - check si compute shader ne sont pas plus rentable pour le calcule de l'illumination des fragments

@@ -6,7 +6,7 @@
 #include "glm/gtc/integer.hpp"
 
 #include "utils/define.hpp"
-#include "utils/texture.hpp"
+#include "scene/objects/meshes/texture.hpp"
 
 namespace M3D
 {
@@ -16,7 +16,7 @@ namespace M3D
 		{
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-			TextureOGL(Texture* p_texture) {
+			TextureOGL(Scene::Texture* p_texture) {
 				glCreateTextures(GL_TEXTURE_2D, 1, &_id);
 
 				GLenum format, internalFormat;

@@ -95,7 +95,7 @@ namespace M3D
 				}
 			}
 
-			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures, GLuint p_HDRMap) {
+			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Scene::Texture*, TextureOGL*> p_textures, GLuint p_HDRMap) {
 				// --- anti-aliasing ---
 				glViewport(0, 0, p_width, p_height);
 				glBindFramebuffer(GL_FRAMEBUFFER, _fboAA);

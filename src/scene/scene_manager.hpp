@@ -7,11 +7,11 @@
 #include "controller/mouse_controller.hpp"
 
 #include "utils/image.hpp"
-#include "utils/texture.hpp"
 #include "utils/define.hpp"
 
 #include "objects/lights/light.hpp"
 #include "objects/meshes/mesh.hpp"
+#include "objects/meshes/texture.hpp"
 #include "objects/meshes/material.hpp"
 #include "objects/cameras/camera.hpp"
 #include "scene_graph/scene_graph_node.hpp"

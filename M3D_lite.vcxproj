@@ -543,7 +543,6 @@
     <ClInclude Include="src\renderer\OpenGL\stages\stage_post_processing_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\stages\stage_ogl.hpp" />
     <ClInclude Include="src\renderer\OpenGL\texture_ogl.hpp" />
-    <ClInclude Include="src\scene\objects\cameras\fov_box.hpp" />
     <ClInclude Include="src\scene\objects\meshes\material.hpp" />
     <ClInclude Include="src\scene\objects\meshes\sub_mesh.hpp" />
     <ClInclude Include="src\scene\objects\meshes\vertex.hpp" />

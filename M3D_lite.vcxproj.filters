@@ -1625,9 +1625,6 @@
     <ClInclude Include="lib\imgui\imstb_truetype.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\objects\cameras\fov_box.hpp">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="src\renderer\OpenGL\stages\stage_geometry_ogl.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>

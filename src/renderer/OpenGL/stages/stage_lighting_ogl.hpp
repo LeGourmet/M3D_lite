@@ -230,6 +230,7 @@ namespace M3D
 						glProgramUniform1i(_DirectLightingPass.getProgram(), _DirectLightingPass.getUniform("uLightTypePoint"), l.getType()!=LIGHT_TYPE::DIRECTIONAL);
 
 						/* --- billboard full screen --- 
+						// can use range for directional (FLT_MAX)
 						  _billBoardCoords[0] = Vec3f(-1., -1., 0., 1.);
 						  _billBoardCoords[1] = Vec3f( 1., -1., 0., 1.);
 						  _billBoardCoords[2] = Vec3f(-1.,  1., 0., 1.);

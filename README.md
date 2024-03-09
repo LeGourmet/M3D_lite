@@ -31,8 +31,8 @@ Depuis peu, le moteur implémente une méthode de "order independency transparency
 
 Les plus urgentes :
 - Implémentation du papier [Screen Space Indirect Lighting with Visibility Bitmask](https://arxiv.org/pdf/2301.11376.pdf) pour approximer l'illumination gobale de la scène.
-- Changement de la méthode de calcul d'ombrage par du ray tracing. Cette méthode permettra en plus d'avoir des ombres plus propre, de prendre en compte les ombres colorées projetées par les objets transparents. En contrepartie il sera plus couteux d'omptenir des ombres douces.
-- Implémentation d'une méthodes alternative d'anti-alliasing au FXAA déjà présent (SMAA ou TAA/TXAA/TSSAA).
+- Changement de la méthode de calcul d'ombrage par du ray tracing. Cette méthode permettra en plus d'avoir des ombres plus propre, de prendre en compte les ombres colorées projetées par les objets transparents.
+- Implémentation d'une méthodes alternative d'anti-alliasing au FXAA déjà présent (SMAA et/ou TAA/TXAA/TSSAA).
 
 Accélération des calculs :
 - Ajout de "frustum culling" lors de la "geometrie pass" grâce à l'utilisation de boîtes englobantes et d'une hiérachie de scène. 
@@ -48,7 +48,8 @@ Amélioration de la qualité visuel :
 - Ajout d'une méthode d'alpha to coverage et d'alpha distribution for alpha testing dans le but d'améliorer le rendu des objets transparent.
 - Ajout d'effet de post processing comme lens ghosting, vignetting ou autre filtres.
 - Revoir la méthode de génération du bloom effect et ajouter un treshold
- 
+- Revoir la méthode d'OIT pour réduire le coup en calcule des objets transparent 
+
 Rendre le monde plus vivant :
 - Rendu d'athmosphère grâce à la méthode de Sébastien Hillaire, [A Scalable and Production Ready Sky and Atmosphere Rendering Technique](https://sebh.github.io/publications/egsr2020.pdf).
 - Gestion du skinnig des meshes.
@@ -58,16 +59,14 @@ Rendre le monde plus vivant :
 ## Bugs
 
 - le bloom n'est pas stable d'une frame à l'autre
-- la génération des mipmap des texture d'OpenGl prend beaucoup trop de RAM
-- le normal induit des zones complètement noir aux angles razant quelquesoit la scène (compute lighting) (usual suspect cosNL)
-- brdf ne semble pas tout a fait donner la bonne illumination (chess)
+- brdf ne semble pas tout a fait donner la bonne illumination (chess), de plus la normal induit des zones complètement noir aux angles razant quelquesoit la scène (usual suspect cosNL) 
+- les points lights ne fonctionnent pas sur le petit pc
 
 - imgui debug mode : cannot close settings : end/endchild
-
 - certaines scene ne sont pas correctement load à cause de fastgltf (toycar crash, pub (texture 1 cannal to repeat))
 - clear scene ne marchent pas => semblent provenir d'un bug sur les maps utilisé par le gpu 
 
-- la compilation ne se fait pas au bon endroit de l'arborecense (que sur gros pc!)
-
 - presences de plusieurs botleneck qui bride grandement le GPU (pass filterAndSortFrament + autre)
 - check si compute shader ne sont pas plus rentable pour le calcule de l'illumination des fragments
+- la génération des mipmap des texture d'OpenGl prend beaucoup trop de RAM
+- la compilation ne se fait pas au bon endroit de l'arborecense (que sur gros pc!)

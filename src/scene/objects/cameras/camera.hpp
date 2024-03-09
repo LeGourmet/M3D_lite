@@ -4,7 +4,6 @@
 #include "glm/detail/_fixes.hpp"
 #include "glm/gtx/quaternion.hpp"
 
-#include "fov_box.hpp"
 #include "utils/define.hpp"
 #include "scene/objects/object.hpp"
 
@@ -73,14 +72,12 @@ namespace M3D
             // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
             void addInstance(SceneGraphNode* p_node) override {
                 Object::addInstance(p_node);
-                _instancesFovBox.push_back(FovBox());
                 updateIntanceFovBox((unsigned int)_instances.size() - 1);
             }
 
             void updateIntanceFovBox(unsigned int p_instanceId) {
                 if (p_instanceId >= _instances.size()) return;
                 Mat4f invVP = glm::inverse(getProjectionMatrix() * getViewMatrix(p_instanceId));
-                _instancesFovBox[p_instanceId].update(invVP);
             }
 
         private:
@@ -101,8 +98,6 @@ namespace M3D
             Mat4f _projectionMatrix = MAT4F_ID;
 
             bool  _dirty = false;
-
-            std::vector<FovBox> _instancesFovBox;
 
             void _updateProjectionMatrix(){
                 switch (_type) {

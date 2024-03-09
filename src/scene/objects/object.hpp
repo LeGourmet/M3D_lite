@@ -2,7 +2,7 @@
 #define __OBJECT_HPP__
 
 #include "utils/define.hpp"
-#include "scene/scene_graph/scene_graph_node.hpp"
+#include "scene/scene_graph_node.hpp"
 
 #include <vector>
 

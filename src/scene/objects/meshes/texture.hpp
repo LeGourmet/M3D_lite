@@ -16,7 +16,7 @@ namespace M3D
 			WRAPPING_TYPE		_wrappingR = WRAPPING_TYPE::REPEAT;
 			WRAPPING_TYPE		_wrappingS = WRAPPING_TYPE::REPEAT;
 			WRAPPING_TYPE		_wrappingT = WRAPPING_TYPE::REPEAT;
-			Image* _image = nullptr;
+			Image*				_image = nullptr;
 		};
 	}
 }

@@ -20,7 +20,7 @@ void main()
 
 	uv = aVertexTexCoords;
 
-	fragNormal = (Matrix_Normal * vec4(aVertexNormal,1.)).xyz;
+	fragNormal = (Matrix_Normal * vec4(aVertexNormal,0.)).xyz;
 
 	vec3 T	 = normalize( (Matrix_M * vec4(aVertexTangent,0.)).xyz );
 	vec3 B	 = normalize( (Matrix_M * vec4(aVertexBitangent,0.)).xyz );

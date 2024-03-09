@@ -143,10 +143,10 @@ namespace M3D
 									if (subMesh.getMaterial().isDoubleSide()) { glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
 									else { glDisable(GL_CULL_FACE); }
 
-									glProgramUniform4fv(_ShadowPass.getProgram(), _ShadowPass.getUniform("uAlbedo"), 1, glm::value_ptr(subMesh.getMaterial().getBaseColor()));
+									glProgramUniform4fv(_ShadowPass.getProgram(), _ShadowPass.getUniform("uAlbedo"), 1, glm::value_ptr(subMesh.getMaterial().getAlbedo()));
 									glProgramUniform1f(_ShadowPass.getProgram(), _ShadowPass.getUniform("uAlphaCutOff"), subMesh.getMaterial().getAlphaCutOff());
-									glProgramUniform1i(_ShadowPass.getProgram(), _ShadowPass.getUniform("uHasAlbedoMap"), subMesh.getMaterial().getBaseColorMap() != nullptr);
-									if (subMesh.getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures.at(subMesh.getMaterial().getBaseColorMap())->getId());
+									glProgramUniform1i(_ShadowPass.getProgram(), _ShadowPass.getUniform("uHasAlbedoMap"), subMesh.getMaterial().getAlbedoMap() != nullptr);
+									if (subMesh.getMaterial().getAlbedoMap() != nullptr) glBindTextureUnit(1, p_textures.at(subMesh.getMaterial().getAlbedoMap())->getId());
 
 									mesh.second->bind(j);
 									glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)subMesh.getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
@@ -186,10 +186,10 @@ namespace M3D
 									if (subMesh.getMaterial().isDoubleSide()) { glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
 									else { glDisable(GL_CULL_FACE); }
 
-									glProgramUniform4fv(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uAlbedo"), 1, glm::value_ptr(subMesh.getMaterial().getBaseColor()));
+									glProgramUniform4fv(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uAlbedo"), 1, glm::value_ptr(subMesh.getMaterial().getAlbedo()));
 									glProgramUniform1f(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uAlphaCutOff"), subMesh.getMaterial().getAlphaCutOff());
-									glProgramUniform1i(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uHasAlbedoMap"), subMesh.getMaterial().getBaseColorMap() != nullptr);
-									if (subMesh.getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures.at(subMesh.getMaterial().getBaseColorMap())->getId());
+									glProgramUniform1i(_ShadowCubePass.getProgram(), _ShadowCubePass.getUniform("uHasAlbedoMap"), subMesh.getMaterial().getAlbedoMap() != nullptr);
+									if (subMesh.getMaterial().getAlbedoMap() != nullptr) glBindTextureUnit(1, p_textures.at(subMesh.getMaterial().getAlbedoMap())->getId());
 
 									mesh.second->bind(j);
 									glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)subMesh.getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
@@ -271,7 +271,7 @@ namespace M3D
 				glUseProgram(_IndirectLightingPass.getProgram());
 
 				glProgramUniform3fv(_IndirectLightingPass.getProgram(), _IndirectLightingPass.getUniform("uCamPos"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition()));
-
+				
 				glBindVertexArray(_emptyVAO);
 				glDrawArrays(GL_TRIANGLES, 0, 3);
 				glBindVertexArray(0);

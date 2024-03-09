@@ -14,7 +14,7 @@ namespace M3D
         {
         public:
             // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-            Mesh(std::vector<SubMesh>& p_subMeshes) : Object() { this->_subMeshes = p_subMeshes; }
+            Mesh(std::vector<SubMesh>& p_subMeshes) : Object(), _subMeshes(p_subMeshes) { }
             ~Mesh() { }
 
             // ------------------------------------------------------ GETTERS ------------------------------------------------------

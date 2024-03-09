@@ -21,7 +21,7 @@ namespace M3D
             * p_arg1 is interpreted as fovy or xmag, it depend of the CAMERA_TYPE
             * p_arg2 is interpreted as aspect ratio or ymag, it depend of the CAMERA_TYPE
             */
-            Camera(float p_arg1, float p_arg2, float p_znear, float p_zfar, CAMERA_TYPE p_type) : _type(p_type) {
+            Camera(float p_arg1, float p_arg2, float p_znear, float p_zfar, CAMERA_TYPE p_type) : Object(), _type(p_type) {
                 switch (p_type) {
                     case CAMERA_TYPE::PERSPECTIVE:  _fovy = p_arg1; _aspectRatio = p_arg2; break;
                     case CAMERA_TYPE::ORTHOGRAPHIC: _xmag = p_arg1; _ymag = p_arg2;        break;

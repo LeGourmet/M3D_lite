@@ -125,9 +125,9 @@ namespace M3D
 						if (subMesh.getMaterial().isDoubleSide()) { glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
 						else { glDisable(GL_CULL_FACE); }
 
-						glProgramUniform4fv(_GeometryPass.getProgram(), _GeometryPass.getUniform("uAlbedo"), 1, glm::value_ptr(subMesh.getMaterial().getBaseColor()));
-						glProgramUniform1i(_GeometryPass.getProgram(), _GeometryPass.getUniform("uHasAlbedoMap"), subMesh.getMaterial().getBaseColorMap() != nullptr);
-						if (subMesh.getMaterial().getBaseColorMap() != nullptr) glBindTextureUnit(1, p_textures.at(subMesh.getMaterial().getBaseColorMap())->getId());
+						glProgramUniform4fv(_GeometryPass.getProgram(), _GeometryPass.getUniform("uAlbedo"), 1, glm::value_ptr(subMesh.getMaterial().getAlbedo()));
+						glProgramUniform1i(_GeometryPass.getProgram(), _GeometryPass.getUniform("uHasAlbedoMap"), subMesh.getMaterial().getAlbedoMap() != nullptr);
+						if (subMesh.getMaterial().getAlbedoMap() != nullptr) glBindTextureUnit(1, p_textures.at(subMesh.getMaterial().getAlbedoMap())->getId());
 
 						glProgramUniform1i(_GeometryPass.getProgram(), _GeometryPass.getUniform("uHasNormalMap"), subMesh.getMaterial().getNormalMap() != nullptr);
 						if (subMesh.getMaterial().getNormalMap() != nullptr) glBindTextureUnit(2, p_textures.at(subMesh.getMaterial().getNormalMap())->getId());

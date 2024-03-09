@@ -14,7 +14,7 @@
 #include "objects/meshes/texture.hpp"
 #include "objects/meshes/material.hpp"
 #include "objects/cameras/camera.hpp"
-#include "scene_graph/scene_graph_node.hpp"
+#include "scene_graph_node.hpp"
 
 #include <vector>
 #include <filesystem>

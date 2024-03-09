@@ -4,7 +4,7 @@
 #include "input_output/window.hpp"
 #include "scene/objects/cameras/camera.hpp"
 #include "scene/objects/lights/light.hpp"
-#include "scene/scene_graph/scene_graph_node.hpp"
+#include "scene/scene_graph_node.hpp"
 #include "scene/scene_manager.hpp"
 #include "renderer/renderer.hpp"
 
@@ -51,8 +51,8 @@ namespace UserInterface
 			_dispose();
 		}
 
-		//Application::getInstance().getSceneManager().loadNewScene("assets/musee.glb");
-		Application::getInstance().getSceneManager().loadNewScene("assets/sponza.glb");
+		Application::getInstance().getSceneManager().loadNewScene("assets/musee.glb");
+		//Application::getInstance().getSceneManager().loadNewScene("assets/sponza.glb");
 		//Application::getInstance().getSceneManager().loadNewScene("assets/emissive.glb");
 	}
 

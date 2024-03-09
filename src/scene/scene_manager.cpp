@@ -20,7 +20,7 @@ namespace M3D
 namespace Scene
 {
     SceneManager::SceneManager(const int p_width, const int p_height) {
-        addMaterial(Material(VEC4F_ONE, VEC3F_ZERO, 0.f, 0.f, 1.f, 0.f, true, nullptr, nullptr, nullptr, nullptr, nullptr));
+        addMaterial(Material(VEC4F_ONE, VEC3F_ZERO, 0.f, 0.f, 1.f, 0.f, true, nullptr, nullptr, nullptr, nullptr));
         
         addCamera(Camera(PIf/2.f, 1.f, 1e-2f, 1e3f ,CAMERA_TYPE::PERSPECTIVE));
         addNode(SceneGraphNode(VEC3F_Z, VEC3F_ONE, QUATF_ID));
@@ -239,7 +239,6 @@ namespace Scene
                 (m.pbrData.baseColorTexture.has_value() ? &_textures[startIdTextures + m.pbrData.baseColorTexture.value().textureIndex] : nullptr),
                 (m.pbrData.metallicRoughnessTexture.has_value() ? &_textures[startIdTextures + m.pbrData.metallicRoughnessTexture.value().textureIndex] : nullptr),
                 (m.normalTexture.has_value() ? &_textures[startIdTextures + m.normalTexture.value().textureIndex] : nullptr),
-                (m.occlusionTexture.has_value() ? &_textures[startIdTextures + m.occlusionTexture.value().textureIndex] : nullptr),
                 (m.emissiveTexture.has_value() ? &_textures[startIdTextures + m.emissiveTexture.value().textureIndex] : nullptr)
             ));
         }
@@ -358,16 +357,10 @@ namespace Scene
         _sceneGraphNodes.reserve(startIdSceneGraph + asset->nodes.size());
         for (fastgltf::Node& n : asset->nodes) {
             if (!std::holds_alternative<fastgltf::TRS>(n.transform)) throw std::runtime_error("Transform matrix need to be decompose!");
-            fastgltf::TRS transform = std::get<0>(n.transform);
-
-            Vec3f translation = (Vec3f)glm::make_vec3(transform.translation.data());
-            Vec3f scale = (Vec3f)glm::make_vec3(transform.scale.data());
-            Quatf rotation = Quatf((float)transform.rotation[3], (float)transform.rotation[0], (float)transform.rotation[1], (float)transform.rotation[2]);
-        
             addNode(SceneGraphNode(
-                (Vec3f)glm::make_vec3(transform.translation.data()),
-                (Vec3f)glm::make_vec3(transform.scale.data()),
-                Quatf((float)transform.rotation[3], (float)transform.rotation[0], (float)transform.rotation[1], (float)transform.rotation[2])
+                (Vec3f)glm::make_vec3(std::get<0>(n.transform).translation.data()),
+                (Vec3f)glm::make_vec3(std::get<0>(n.transform).scale.data()),
+                Quatf((float)std::get<0>(n.transform).rotation[3], (float)std::get<0>(n.transform).rotation[0], (float)std::get<0>(n.transform).rotation[1], (float)std::get<0>(n.transform).rotation[2])
             ));
 
             if (n.meshIndex.has_value()) { addInstance(_meshes[startIdMeshes + n.meshIndex.value()], &_sceneGraphNodes[_sceneGraphNodes.size() - 1]); }
@@ -375,11 +368,10 @@ namespace Scene
             else if (n.skinIndex.has_value()) {}
             else if (n.lightIndex.has_value()) { addInstance(_lights[startIdLights + n.lightIndex.value()], &_sceneGraphNodes[_sceneGraphNodes.size() - 1]); }
         }
-        for (int i = 0; i < (int)asset->nodes.size(); i++) {
-            for (size_t id : asset->nodes[i].children) {
+        for (int i = 0; i < (int)asset->nodes.size(); i++)
+            for (size_t id : asset->nodes[i].children)
                 _sceneGraphNodes[startIdSceneGraph + i].attach(&_sceneGraphNodes[startIdSceneGraph + id]);
-            }
-        }
+            
         std::cout << "scene graph nodes loaded: " << _sceneGraphNodes.size() - startIdSceneGraph << std::endl;
         
         if (_cameras.size() > 1 && _cameras[1].getNumberInstances() > 0) _mainCamera = Vec2i(1, 0);       

@@ -137,7 +137,7 @@
     <ClInclude Include="src\scene\objects\meshes\sub_mesh.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\scene_graph\scene_graph_node.hpp">
+    <ClInclude Include="src\scene\scene_graph_node.hpp">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="src\scene\objects\object.hpp">

@@ -27,19 +27,19 @@ namespace M3D
             inline const SceneGraphNode* getParent() const { return _parent; }
             inline const std::vector<SceneGraphNode*> getChilds() const { return _childs; }
 
+            // spec gltf use front=>Z, up=>Y, right=>-X
             inline const Vec3f getPosition() const { return _transformation * Vec4f( VEC3F_ZERO, 1.); }
-            inline const Vec3f getFront()    const { return _transformation * Vec4f(-VEC3F_Z, 0.); } // gltf use z as front
-            inline const Vec3f getBack()     const { return _transformation * Vec4f( VEC3F_Z, 0.); } // gltf use -z as back
+            inline const Vec3f getFront()    const { return _transformation * Vec4f(-VEC3F_Z, 0.); }
+            inline const Vec3f getBack()     const { return _transformation * Vec4f( VEC3F_Z, 0.); }
             inline const Vec3f getUp()       const { return _transformation * Vec4f( VEC3F_Y, 0.); }
             inline const Vec3f getDown()     const { return _transformation * Vec4f(-VEC3F_Y, 0.); }
-            inline const Vec3f getRight()    const { return _transformation * Vec4f( VEC3F_X, 0.); } // gltf use -X as right !?
-            inline const Vec3f getLeft()     const { return _transformation * Vec4f(-VEC3F_X, 0.); } // gltf use -X as right !?
-            
+            inline const Vec3f getRight()    const { return _transformation * Vec4f( VEC3F_X, 0.); }
+            inline const Vec3f getLeft()     const { return _transformation * Vec4f(-VEC3F_X, 0.); }
+
             inline const Quatf& getRotation() const { return _rotation; }
             inline const Vec3f& getScale() const { return _scale; }
             inline const Vec3f& getTranslation() const { return _translation; }
             inline const Mat4f& getLocalTransformation() const { return _localTransformation; }
-            
             inline const Mat4f& getTransformation() const { return _transformation; }
 
             inline const bool isDirty() const { return _dirty; }

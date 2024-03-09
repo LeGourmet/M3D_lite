@@ -60,6 +60,7 @@ Rendre le monde plus vivant :
 - le bloom n'est pas stable d'une frame à l'autre
 - la génération des mipmap des texture d'OpenGl prend beaucoup trop de RAM
 - le normal induit des zones complètement noir aux angles razant quelquesoit la scène (compute lighting) (usual suspect cosNL)
+- brdf ne semble pas tout a fait donner la bonne illumination (chess)
 
 - imgui debug mode : cannot close settings : end/endchild
 

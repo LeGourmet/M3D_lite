@@ -59,7 +59,7 @@ Rendre le monde plus vivant :
 ## Bugs
 
 - le bloom n'est pas stable d'une frame à l'autre
-- brdf ne semble pas tout a fait donner la bonne illumination (chess), de plus la normal induit des zones complètement noir aux angles razant quelquesoit la scène (usual suspect cosNL) 
+- brdf ne semble pas tout a fait donner la bonne illumination (chess)
 - les points lights ne fonctionnent pas sur le petit pc et fait enormément rammer
 
 - imgui debug mode : cannot close settings : end/endchild

@@ -166,7 +166,7 @@ void main(){
     }
 
     // --------- OPAQUE ---------
-    vec3 N = texture(uOpaqueNormalMap,uv).xyz; // convert ?
+    vec3 N = texture(uOpaqueNormalMap,uv).xyz;
 	if(N.x==0. && N.y==0. && N.z==0.) discard;
 
 	vec3 albedo = texture(uOpaqueAlbedoMap,uv).xyz;
@@ -181,7 +181,6 @@ void main(){
 
     vec3 V = normalize(uCamPos-fragPos.xyz);
     vec3 H = normalize(V+L);
-    if(dot(N,V)<0.) N = -N;
 
 	lightingIntensity *= computeShadow(N,L,fragPos.xyz);
 

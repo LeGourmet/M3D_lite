@@ -18,7 +18,7 @@ in vec2 uv;
 
 #define INPUT_SATURATION            1.
 #define INPUT_GAMMA                 1.
-#define INPUT_EXPOSURE              2.
+#define INPUT_EXPOSURE              1.5
 
 #define PUNCH_SATURATION            1.
 #define PUNCH_GAMMA                 1.8

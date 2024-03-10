@@ -59,12 +59,12 @@ Rendre le monde plus vivant :
 ## Bugs
 
 - le bloom n'est pas stable d'une frame à l'autre
-- brdf ne semble pas tout a fait donner la bonne illumination (chess)
 - les points lights ne fonctionnent pas sur le petit pc et fait enormément rammer
 
 - imgui debug mode : cannot close settings : end/endchild
 - certaines scene ne sont pas correctement load à cause de fastgltf (toycar crash, pub (texture 1 cannal to repeat))
 - clear scene ne marchent pas => semblent provenir d'un bug sur les maps utilisé par le gpu 
+- problème de vitesse de déplacement (lier au framerate => utilisation des unsigned int)
 
 - presences de plusieurs botleneck qui bride grandement le GPU (pass filterAndSortFrament + autre)
 - check si compute shader ne sont pas plus rentable pour le calcule de l'illumination des fragments

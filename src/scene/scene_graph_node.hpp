@@ -27,7 +27,6 @@ namespace M3D
             inline const SceneGraphNode* getParent() const { return _parent; }
             inline const std::vector<SceneGraphNode*> getChilds() const { return _childs; }
 
-            // spec gltf use front=>Z, up=>Y, right=>-X
             inline const Vec3f getPosition() const { return _transformation * Vec4f( VEC3F_ZERO, 1.); }
             inline const Vec3f getFront()    const { return _transformation * Vec4f(-VEC3F_Z, 0.); }
             inline const Vec3f getBack()     const { return _transformation * Vec4f( VEC3F_Z, 0.); }

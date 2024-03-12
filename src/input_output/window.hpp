@@ -17,7 +17,6 @@ namespace M3D
 
             // ------------------------------------------------------ GETTERS ------------------------------------------------------
             inline SDL_Window& get() const { return *_window; }
-            inline unsigned long long getTime() { return _time; }
             inline bool getVSync() { return _vSync; }
             inline unsigned int getTargetFps() { return _targetFPS; }
 
@@ -31,10 +30,7 @@ namespace M3D
             // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
             void captureEvents();
             
-            void chronoUpdate();
-            unsigned long long getDeltaTime();
-
-            void capFPS(unsigned long long p_elapsedTime);
+            void capFPS(float p_elapsedTime);
             // add loader d'audio 
             // add fonction qui permettent de supprimer des pistes
             // add fonction qui lis une piste / qui stop 
@@ -47,8 +43,6 @@ namespace M3D
             SDL_GLContext _glContext = nullptr; // todo virer pas bien !!
             
             // add audio => liste de piste preload au lancerment de la window + celles qui vont s'add ==> use set
-            // todo use cycle CPU pour fps et time plus précis
-            unsigned long long _time = 0;
             
             bool _vSync = true;
             unsigned int _targetFPS = 0;

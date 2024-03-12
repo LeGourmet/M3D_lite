@@ -29,6 +29,7 @@ layout( binding = 5 )           uniform samplerCubeShadow uShadowCubeMap;
 layout( binding = 6, r32ui )	uniform uimage2D  uRootTransparency;
 layout( binding = 7, std430 )	buffer            uLinkedListTransparencyFrags { TranspFragNode transparencyFrags[]; };
 //layout( binding = 8, std430 )	buffer            uLinkedListTransparencyShadow { vec3 transparencyShadows[]; };
+//+skybox
 
 uniform vec3 uCamPos;
 uniform mat4 uInvMatrix_VP;
@@ -150,7 +151,7 @@ void computeDataForPointLight(inout vec3 L, inout vec3 lightingIntensity, in vec
 void main(){
     // --------- TRANSPARENT ---------
     for(uint i=imageLoad(uRootTransparency, ivec2(gl_FragCoord.xy)).r ;i!=0; i=transparencyFrags[i].nextId){
-        vec4 fragPos = uInvMatrix_VP*vec4(2.*uv-1.,2.*transparencyFrags[i].depth-1.,1.);
+        vec4 fragPos = uInvMatrix_VP*vec4(2.*vec3(uv,transparencyFrags[i].depth)-1.,1.);
         if (abs(fragPos.a)>0.001)  fragPos /= fragPos.a;
 
         vec3 lightingIntensity = uLightEmissivity;// * transparencyShadows[i];
@@ -167,12 +168,12 @@ void main(){
 
     // --------- OPAQUE ---------
     vec3 N = texture(uOpaqueNormalMap,uv).xyz;
-	if(N.x==0. && N.y==0. && N.z==0.) discard;
+	if(N.x==0. && N.y==0. && N.z==0.) discard; // => skybox before return;
 
 	vec3 albedo = texture(uOpaqueAlbedoMap,uv).xyz;
 	vec2 metalnessRoughness = texture(uOpaqueMetalnessRoughnessMap,uv).xy;
 
-    vec4 fragPos = uInvMatrix_VP*vec4(2.*uv-1.,2.*texture(uOpaqueDepthMap,uv).x-1.,1.);
+    vec4 fragPos = uInvMatrix_VP*vec4(2.*vec3(uv,texture(uOpaqueDepthMap,uv).x)-1.,1.);
     if (abs(fragPos.a)>0.001)  fragPos /= fragPos.a;
 
     vec3 lightingIntensity = uLightEmissivity; //* texture(uOpaqueShadowMap,uv).xyz;

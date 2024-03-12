@@ -18,7 +18,7 @@ namespace M3D
             // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
             void pause();
             void resize(const int p_width, const int p_height);
-            void update(unsigned long long p_deltaTime);
+            void update(float p_deltaTime);
             void drawFrame();
 
             bool captureEvent(const SDL_Event& p_event);

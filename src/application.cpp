@@ -25,7 +25,7 @@ namespace M3D
 		_sceneManager	 = new Scene::SceneManager(_width, _height);
 		_gui			 = new UserInterface::GraphicalUserInterface(&_window->get(),_window->getGLContext());
 
-		_window->chronoUpdate();
+		_chrono.start();
 		while (_running) _update();
 	}
 
@@ -38,7 +38,7 @@ namespace M3D
 		//_gui->pause();
 	}
 	
-	void Application::resume() { _window->chronoUpdate(); }
+	void Application::resume() { _chrono.start(); }
 
 	void Application::resize(int p_width, int p_height) {
 		_width = p_width;
@@ -48,8 +48,10 @@ namespace M3D
 		_gui->resize(p_width, p_height);
 	}
 
-	void Application::_update() const {
-		unsigned long long deltaTime = _window->getDeltaTime();
+	void Application::_update() {
+		_chrono.stop();
+		float deltaTime = _chrono.elapsedTime();
+		_chrono.start();
 
 		_window->captureEvents();
 		_gui->update(deltaTime);

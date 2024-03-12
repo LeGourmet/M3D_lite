@@ -103,23 +103,13 @@ namespace M3D
             }
         }
 
-        void Window::chronoUpdate() {
-            _time = SDL_GetTicks();
-        }
-
-        unsigned long long Window::getDeltaTime() {
-            unsigned long long previousTime = _time;
-            chronoUpdate();
-            return _time - previousTime;
-        }
-
-        void Window::capFPS(unsigned long long p_elapsedTime) {
+        void Window::capFPS(float p_elapsedTime) {
             switch (_rendererType) {
                 case SDL_WINDOW_OPENGL: SDL_GL_SwapWindow(_window); break;
                 case SDL_WINDOW_VULKAN: break;
             }
 
-            if (!_vSync && _targetFPS != 0) SDL_Delay((unsigned int)glm::max<float>(0.f, (1000.f / (float)_targetFPS - (float)p_elapsedTime / (float)SDL_GetPerformanceFrequency())));
+            if (!_vSync && _targetFPS != 0) SDL_Delay((unsigned int)glm::round(glm::max<float>(0.f,1000.f/(float)_targetFPS-p_elapsedTime-1.5f)));
         }
 
         bool Window::_captureEvent(const SDL_Event& p_event) {
@@ -130,7 +120,7 @@ namespace M3D
                 if (keyDown)
                     switch (p_event.key.keysym.scancode) {
                     case SDL_SCANCODE_F1: _switchFullScreenToMaximized(); break;
-                    case SDL_SCANCODE_F2: Application::getInstance().getGraphicalUserInterface().toggleDisplayMode();
+                    case SDL_SCANCODE_F2: Application::getInstance().getGraphicalUserInterface().toggleDisplayMode(); break;
                     //case SDL_SCANCODE_F3+F4+F5: take video
                     case SDL_SCANCODE_PRINTSCREEN: _takeScreenShot(); break;
                     default: break;

@@ -59,7 +59,7 @@ namespace M3D
             void addInstance(Mesh& p_mesh, SceneGraphNode* p_node);
 
             void resize(const int p_width, const int p_height);
-            void update(unsigned long long p_deltaTime); // use float ?
+            void update(float p_deltaTime);
             bool captureEvent(const SDL_Event& p_event);
         
             void clearEvents();

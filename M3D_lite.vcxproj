@@ -560,6 +560,7 @@
     <ClInclude Include="src\scene\objects\meshes\mesh.hpp" />
     <ClInclude Include="src\scene\scene_manager.hpp" />
     <ClInclude Include="src\user_interface\graphical_user_interface.hpp" />
+    <ClInclude Include="src\utils\chrono.hpp" />
     <ClInclude Include="src\utils\define.hpp" />
     <ClInclude Include="src\input_output\window.hpp" />
     <ClInclude Include="src\utils\image.hpp" />

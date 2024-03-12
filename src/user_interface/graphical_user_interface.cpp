@@ -60,7 +60,7 @@ namespace UserInterface
 
 	void GraphicalUserInterface::pause() { }
 	
-	void GraphicalUserInterface::update(unsigned long long p_deltaTime) { }
+	void GraphicalUserInterface::update(float p_deltaTime) { }
 
 	void GraphicalUserInterface::drawFrame() { 
 		if (_hide) return;

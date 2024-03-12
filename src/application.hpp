@@ -1,6 +1,8 @@
 #ifndef __APPLICATION_HPP__
 #define __APPLICATION_HPP__
 
+#include "utils/chrono.hpp"
+
 #include <string>
 
 namespace M3D
@@ -56,8 +58,10 @@ namespace M3D
 		Scene::SceneManager*					_sceneManager{};
 		Renderer::Renderer*						_renderer{};
 
+		Chrono _chrono;
+
 		// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
-		void _update() const;
+		void _update();
 	};
 }
 

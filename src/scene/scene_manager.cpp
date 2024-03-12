@@ -69,7 +69,7 @@ namespace Scene
 
     void SceneManager::resize(const int p_width, const int p_height) { for (int i=0; i<_cameras.size() ;i++) _cameras[i].setScreenSize(p_width,p_height); }
 
-    void SceneManager::update(unsigned long long p_deltaTime) {
+    void SceneManager::update(float p_deltaTime) {
         SceneGraphNode* cameraInstance = _cameras[_mainCamera.x].getInstance(_mainCamera.y);
         
         Vec3f rotation = VEC3F_ZERO;
@@ -94,8 +94,8 @@ namespace Scene
         if (_isKeyPressed(SDL_SCANCODE_R)) translation.y++; // front
         if (_isKeyPressed(SDL_SCANCODE_F)) translation.y--;*/
             
-        rotation *= p_deltaTime * 0.0001;
-        translation *= p_deltaTime * 0.001;
+        rotation *= p_deltaTime * 0.1;
+        translation *= p_deltaTime;
 
         cameraInstance->translate(translation);
         cameraInstance->rotate(rotation);

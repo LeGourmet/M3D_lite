@@ -38,6 +38,8 @@ Accélération des calculs :
 - Ajout de "frustum culling" lors de la "geometrie pass" grâce à l'utilisation de boîtes englobantes et d'une hiérachie de scène. 
 - Ajout d'occlusion culling lors de la "geometrie pass".
 - Utilisation de micro meshes permetant une meilleur gestion de la mémoire ainsi que des LOD.
+- batcher les envoies de données des vertex vers le GPU (123123 => 112233)
+- utiliser les uniforms buffer (ubo) pour transmettre les informations de la caméra, des lumières et des meshes au GPU
  
 Amélioration de la qualité visuel :
 - Gestion d'une environement map (+IBL).
@@ -64,7 +66,6 @@ Rendre le monde plus vivant :
 - imgui debug mode : cannot close settings : end/endchild
 - certaines scene ne sont pas correctement load à cause de fastgltf (toycar crash, pub (texture 1 cannal to repeat))
 - clear scene ne marchent pas => semblent provenir d'un bug sur les maps utilisé par le gpu 
-- problème de vitesse de déplacement (lier au framerate => utilisation des unsigned int)
 
 - presences de plusieurs botleneck qui bride grandement le GPU (pass filterAndSortFrament + autre)
 - check si compute shader ne sont pas plus rentable pour le calcule de l'illumination des fragments

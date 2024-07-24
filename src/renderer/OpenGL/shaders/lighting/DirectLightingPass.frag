@@ -101,32 +101,34 @@ vec3 computeShadow(in vec3 N, in vec3 L, in vec3 fragPos){
 }
 
 vec3 brdf(in vec3 N, in vec3 H, in vec3 L, in vec3 V, in vec3 albedo, in float metalness, in float roughness){
-    float cosNV = max(1e-5,abs(dot(N,V)));
+    float r  = clamp(roughness, 0.04, 0.999);
+		  r  = pow2(r);
+	float r2 = pow2(r);
+	
+	float cosNV = max(1e-5,abs(dot(N,V)));
 	float cosNL = max(0.,dot(N,L));
+	float cosHN = clamp(dot(H,N),0.,1.-1e-10);
 	float cosHL = max(0.,dot(H,L));
-	float cosHN = max(0.,dot(H,N));
+	float cosHV = max(0.,dot(H,V));
 
-    float r = clamp(roughness, 0.01, 0.99);
-		  r = pow2(r);
-    float r2 = pow2(r);
+	float DielF = schlick(0.04, 1., cosHV);
 
     // --- diffuse ---
 	float Rr = r*2.*cosHL*cosHL+0.5;
     float Fl = pow5(1.-cosNL);
     float Fv = pow5(1.-cosNV);
 	vec3 diffuse = albedo * ((1.-0.5*Fl) * (1.-0.5*Fv) + Rr*(Fl+Fv+Fl*Fv*(Rr-1.)))/PI;
-
+	float diffuseRate = (1.f-metalness);
+	
 	// --- specular ---
-    vec3 f0 = mix(vec3(schlick(0.04,1.,cosHL)), albedo, metalness);
-    vec3 F = schlick(f0, vec3(1.), cosHL);
-	float D = r2/max(1e-5,(PI*pow2(cosHN*cosHN*(r2-1.)+1.)));
-    float V2 = 0.5/max(1e-5,(cosNL*sqrt((cosNV-cosNV*r2)*cosNV+r2) + cosNV*sqrt((cosNL-cosNL*r2)*cosNL+r2)));
+	vec3 f0 = mix(vec3(1.), albedo, metalness);
+    vec3 F = schlick(f0, vec3(1.), cosHV);
+	float D = r2/max(1e-10,(PI*pow2(cosHN*cosHN*(r2-1.)+1.)));
+    float V2 = 0.5/max(1e-5,(cosNL*sqrt(cosNV*cosNV*(1.-r2)+r2) + cosNV*sqrt(cosNL*cosNL*(1.-r2)+r2)));
     vec3 specular = F*D*V2;
+	float specularRate = DielF;
 
-    vec3 dielectric = mix(diffuse,specular,schlick(0.66,1.,cosHL)); // 0.66 not physicaly base but better results 
-	vec3 conductor = specular;
-
-    return mix(dielectric,conductor,metalness) * cosNL;
+    return (diffuse*diffuseRate + specular*specularRate)/max(1e-5,diffuseRate+specularRate) * cosNL;
 }
 
 // --------- TRANSPARENCY BSDF add ? ---------

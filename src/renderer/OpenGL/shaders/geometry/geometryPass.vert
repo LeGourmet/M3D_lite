@@ -22,9 +22,11 @@ void main()
 
 	fragNormal = (Matrix_Normal * vec4(aVertexNormal,0.)).xyz;
 
-	vec3 T	 = normalize( (Matrix_M * vec4(aVertexTangent,0.)).xyz );
-	vec3 B	 = normalize( (Matrix_M * vec4(aVertexBitangent,0.)).xyz );
 	vec3 N	 = normalize( (Matrix_M * vec4(aVertexNormal,0.)).xyz );
+	vec3 T	 = normalize( (Matrix_M * vec4(aVertexTangent,0.)).xyz );
+	T = normalize(T - dot(T, N) * N);
+	vec3 B = normalize(cross(N, T));
+	//vec3 B	 = normalize( (Matrix_M * vec4(aVertexBitangent,0.)).xyz );
 	TBN = mat3(T,B,N);
 
 	gl_Position = Matrix_MVP * vec4(aVertexPosition, 1.);

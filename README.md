@@ -71,3 +71,4 @@ Rendre le monde plus vivant :
 - check si compute shader ne sont pas plus rentable pour le calcule de l'illumination des fragments
 - la génération des mipmap des texture d'OpenGl prend beaucoup trop de RAM
 - la compilation ne se fait pas au bon endroit de l'arborecense (que sur gros pc!)
+- les normals map semblent avoir des problèmes (front-facing ou autre)

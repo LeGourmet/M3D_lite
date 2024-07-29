@@ -41,6 +41,9 @@ namespace Scene
     const Mat4f SceneManager::getMainCameraViewMatrix() { return _cameras[_mainCamera.x].getViewMatrix(_mainCamera.y); }
     const Mat4f SceneManager::getMainCameraProjectionMatrix() { return _cameras[_mainCamera.x].getProjectionMatrix(); }
 
+    void SceneManager::setMovementSensitivity(float p_value) { _movementSensitivity = p_value; }
+    void SceneManager::setRotationSensitivity(float p_value) { _rotationSensitivity = p_value; }
+
     void SceneManager::loadNewScene(const std::filesystem::path& p_path) { clearScene(); _loadFile(p_path); resize(Application::getInstance().getWidth(), Application::getInstance().getHeight()); }
     void SceneManager::addAsset(const std::filesystem::path& p_path) { _loadFile(p_path); resize(Application::getInstance().getWidth(), Application::getInstance().getHeight()); }
 
@@ -87,15 +90,9 @@ namespace Scene
         if (_isKeyPressed(SDL_SCANCODE_D) || _isKeyPressed(SDL_SCANCODE_RIGHT)) translation += cameraInstance->getRight();
         if (_isKeyPressed(SDL_SCANCODE_R)) translation += cameraInstance->getUp();
         if (_isKeyPressed(SDL_SCANCODE_F)) translation += cameraInstance->getDown();
-        /*if (_isKeyPressed(SDL_SCANCODE_W) || _isKeyPressed(SDL_SCANCODE_UP)) rotation.z++;// left
-        if (_isKeyPressed(SDL_SCANCODE_S) || _isKeyPressed(SDL_SCANCODE_DOWN)) rotation.z--;
-        if (_isKeyPressed(SDL_SCANCODE_A) || _isKeyPressed(SDL_SCANCODE_LEFT)) rotation.x++;//up
-        if (_isKeyPressed(SDL_SCANCODE_D) || _isKeyPressed(SDL_SCANCODE_RIGHT)) rotation.x--;
-        if (_isKeyPressed(SDL_SCANCODE_R)) translation.y++; // front
-        if (_isKeyPressed(SDL_SCANCODE_F)) translation.y--;*/
             
-        rotation *= p_deltaTime * 0.1;
-        translation *= p_deltaTime;
+        rotation *= p_deltaTime * _rotationSensitivity;
+        translation *= p_deltaTime * _movementSensitivity;
 
         cameraInstance->translate(translation);
         cameraInstance->rotate(rotation);

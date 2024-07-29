@@ -17,7 +17,8 @@ namespace M3D
 		public:
 			// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
 			Light(LIGHT_TYPE p_type, const Vec3f& p_color, const float p_intensity, const float p_innerConeAngle = PIf, const float p_outerConeAngle = PIf)
-				: Object(), _type(p_type), _color(p_color), _intensity(p_intensity / 683.f), _cosInnerConeAngle(glm::cos(p_innerConeAngle)), _cosOuterConeAngle(glm::cos(p_outerConeAngle)){
+				: Object(), _type(p_type), _color(p_color), _intensity(p_intensity/683.f), _cosInnerConeAngle(glm::cos(p_innerConeAngle)), _cosOuterConeAngle(glm::cos(p_outerConeAngle)){
+				//_intensity = ((p_type == LIGHT_TYPE::DIRECTIONAL) ? p_intensity/683.f : p_intensity*4.f*PIf/683.f);
 				_range = ((p_type==LIGHT_TYPE::DIRECTIONAL) ? FLT_MAX : (float)glm::sqrt(256.f*_intensity*glm::max<float>(_color.x,glm::max<float>(_color.y,_color.z))));
 			}
 

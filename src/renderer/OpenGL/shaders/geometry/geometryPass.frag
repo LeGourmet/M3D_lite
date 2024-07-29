@@ -55,6 +55,7 @@ void main(){
 		opaqueNormal = normal;
 		opaqueMetalnessRoughness = MetalnessRoughness;
 		opaqueEmissive = emissivity;
+
 	}else{	// transparent
 		uint currentId = atomicCounterIncrement(uCounterTransparency);
 

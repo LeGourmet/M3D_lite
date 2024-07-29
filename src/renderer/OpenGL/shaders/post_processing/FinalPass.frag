@@ -13,15 +13,13 @@ in vec2 uv;
 // https://github.com/MrLixm/AgXc/blob/main/reshade/reshade-shaders/Shaders/AgX.fx
 // https://github.com/MrLixm/AgXc/blob/main/obs/obs-script/AgX.hlsl
 
-#define INPUT_HIGHLIGHT_GAIN_GAMMA  1.
+#define INPUT_HIGHLIGHT_GAIN_GAMMA  0.
 #define INPUT_HIGHLIGHT_GAIN        0.
-
 #define INPUT_SATURATION            1.
-#define INPUT_GAMMA                 1.
-#define INPUT_EXPOSURE              1.5
-
+#define INPUT_GAMMA                 1.45
+#define INPUT_EXPOSURE              0.
+#define PUNCH_GAMMA                 1.
 #define PUNCH_SATURATION            1.
-#define PUNCH_GAMMA                 1.8
 #define PUNCH_EXPOSURE              0.
 
 #define LUT_BLOCK_SIZE 32
@@ -62,6 +60,7 @@ vec3 convertOpenDomainToNormalizedLog2(vec3 color, float minimum_ev, float maxim
 
 void main(){
     vec3 col = texture(uTexture,uv).xyz;//+uBloomPower*texture(uBloom,uv).xyz;
+    //fragColor = vec4(col,1.); return;
 
     // --- Open Grading ---
     col += col * vec3(powsafe(getLuminance(col), INPUT_HIGHLIGHT_GAIN_GAMMA)) * INPUT_HIGHLIGHT_GAIN;

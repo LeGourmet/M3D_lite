@@ -565,6 +565,7 @@
     <ClInclude Include="src\input_output\window.hpp" />
     <ClInclude Include="src\utils\image.hpp" />
     <ClInclude Include="src\scene\objects\meshes\texture.hpp" />
+    <ClInclude Include="src\utils\random.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\SDL3\src\hidapi\windows\ddk_build\hidapi.def" />

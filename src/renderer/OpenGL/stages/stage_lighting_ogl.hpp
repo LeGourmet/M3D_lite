@@ -114,8 +114,10 @@ namespace M3D
 
 			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Scene::Texture*, TextureOGL*> p_textures, GLuint p_albedoMap, GLuint p_normalMap, GLuint p_metalnessRoughnessMap, GLuint p_emissiveMap, GLuint p_depthMap, GLuint p_rootTransparency, GLuint p_ssboTransparency) {
 				// --- clear buffer ---
-				glCopyImageSubData(p_emissiveMap, GL_TEXTURE_2D, 0, 0, 0, 0, _lightingMap, GL_TEXTURE_2D, 0, 0, 0, 0, p_width, p_height, 1);
-				
+				glViewport(0, 0, p_width, p_height);
+				glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
+				glClear(GL_COLOR_BUFFER_BIT);
+
 				// --- direct lighting ---
 				for (Scene::Light l : Application::getInstance().getSceneManager().getLights())
 					for (unsigned int i = 0; i < l.getNumberInstances();i++) {
@@ -156,7 +158,8 @@ namespace M3D
 							glDisable(GL_CULL_FACE);
 							glDisable(GL_DEPTH_TEST);
 							glBindFramebuffer(GL_FRAMEBUFFER, 0);
-						}else{
+						}
+						else{
 							glViewport(0, 0, _shadowMapResolution, _shadowMapResolution);
 							glBindFramebuffer(GL_FRAMEBUFFER, _fboShadowCube);
 
@@ -213,11 +216,12 @@ namespace M3D
 						glBindTextureUnit(0, p_albedoMap);
 						glBindTextureUnit(1, p_normalMap);
 						glBindTextureUnit(2, p_metalnessRoughnessMap);
-						glBindTextureUnit(3, p_depthMap);
-						glBindTextureUnit(4, _shadowMap);
-						glBindTextureUnit(5, _shadowCubeMap);
-						glBindImageTexture(6, p_rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
-						glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, p_ssboTransparency);
+						glBindTextureUnit(3, p_emissiveMap);
+						glBindTextureUnit(4, p_depthMap);
+						glBindTextureUnit(5, _shadowMap);
+						glBindTextureUnit(6, _shadowCubeMap);
+						glBindImageTexture(7, p_rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
+						glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, p_ssboTransparency);
 
 						glProgramUniform3fv(_DirectLightingPass.getProgram(), _DirectLightingPass.getUniform("uCamPos"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition()));
 						glProgramUniformMatrix4fv(_DirectLightingPass.getProgram(), _DirectLightingPass.getUniform("uInvMatrix_VP"), 1, false, glm::value_ptr(glm::inverse(Application::getInstance().getSceneManager().getMainCameraProjectionMatrix() * Application::getInstance().getSceneManager().getMainCameraViewMatrix())));
@@ -276,18 +280,6 @@ namespace M3D
 				glDrawArrays(GL_TRIANGLES, 0, 3);
 				glBindVertexArray(0);
 
-				// --- Final Mix --- (rename apply transparent mask)
-				glUseProgram(_FinalMixLightingPass.getProgram());
-
-				glBindTextureUnit(0, _lightingMap);
-				//+ indirect lighting map
-				glBindImageTexture(1, p_rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
-				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, p_ssboTransparency);
-
-				glBindVertexArray(_emptyVAO);
-				glDrawArrays(GL_TRIANGLES, 0, 3);
-				glBindVertexArray(0);
-
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			}
 
@@ -313,7 +305,6 @@ namespace M3D
 
 			ProgramOGL _DirectLightingPass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/DirectLightingPass.frag");
 			ProgramOGL _IndirectLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/IndirectLightingPass.frag");
-			ProgramOGL _FinalMixLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/FinalMixLightingPass.frag");
 
 		};
 	}

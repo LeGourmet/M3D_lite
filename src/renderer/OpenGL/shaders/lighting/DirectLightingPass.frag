@@ -22,12 +22,14 @@ layout( location = 0 ) out vec4 fragColor;
 layout( binding = 0 )           uniform sampler2D uOpaqueAlbedoMap;
 layout( binding = 1 )           uniform sampler2D uOpaqueNormalMap;
 layout( binding = 2 )           uniform sampler2D uOpaqueMetalnessRoughnessMap;
-layout( binding = 3 )           uniform sampler2D uOpaqueDepthMap;
-layout( binding = 4 )           uniform sampler2DShadow uShadowMap;
-layout( binding = 5 )           uniform samplerCubeShadow uShadowCubeMap;
+layout( binding = 3 )           uniform sampler2D uOpaqueEmissiveMap;
+layout( binding = 4 )           uniform sampler2D uOpaqueDepthMap;
+layout( binding = 5 )           uniform sampler2DShadow uShadowMap;
+layout( binding = 6 )           uniform samplerCubeShadow uShadowCubeMap;
+layout( binding = 7, r32ui )	uniform uimage2D  uRootTransparency;
+layout( binding = 8, std430 )	buffer            uLinkedListTransparencyFrags { TranspFragNode transparencyFrags[]; };
+
 //layout( binding = 4 )           uniform sampler2D uOpaqueShadowMap;
-layout( binding = 6, r32ui )	uniform uimage2D  uRootTransparency;
-layout( binding = 7, std430 )	buffer            uLinkedListTransparencyFrags { TranspFragNode transparencyFrags[]; };
 //layout( binding = 8, std430 )	buffer            uLinkedListTransparencyShadow { vec3 transparencyShadows[]; };
 //+skybox
 
@@ -100,48 +102,96 @@ vec3 computeShadow(in vec3 N, in vec3 L, in vec3 fragPos){
     return vec3(shadow);
 }
 
-vec3 brdf(in vec3 N, in vec3 H, in vec3 L, in vec3 V, in vec3 albedo, in float metalness, in float roughness){
+vec3 evaluateBSDF(in vec3 N, in vec3 L, in vec3 V, in vec3 albedo, in float metalness, in float roughness, in float transmitness){
     float r  = clamp(roughness, 0.04, 0.999);
 		  r  = pow2(r);
 	float r2 = pow2(r);
+
+	//return vec3((abs(dot(N,V))<1e-1) ? vec3(1.,0.,0.) : vec3(0.,0.,1.));
+
+	bool isUpside = dot(N,V)>=0.f;
+
+	vec3 H = (isUpside) ? V+L : -V-L;
+	if(dot(H,H)<1e-5) H = N;
+	H=normalize(H);
+	if(dot(N,H)<1e-5) H = -H;
+
+	float cosNV = max(1e-5,abs(dot(N,V)));
+	float cosHV = max(0.,dot(H,V));
+	float cosHN = clamp(dot(H,N),0.,1.-1e-10);
+	
+	float DielF = schlick(0.04, 1., cosHV);
+
+	float diffuseRate = (1.-transmitness) * (1.-metalness);
+	float specularRate = DielF;
+	float transmitRate = transmitness * (1.-metalness) * (1.-DielF);
+	float totalRate = diffuseRate + specularRate + transmitRate;
+	
+	if(isUpside){
+		float cosNL = max(0.,dot(N,L));
+		float cosHL = max(0.,dot(H,L));
+
+		// --- diffuse ---
+		float Rr = r*2.*cosHL*cosHL+0.5;
+		float Fl = pow5(1.-cosNL);
+		float Fv = pow5(1.-cosNV);
+		vec3 diffuse = albedo * ((1.-0.5*Fl) * (1.-0.5*Fv) + Rr*(Fl+Fv+Fl*Fv*(Rr-1.)))/PI;
+		
+		// --- specular ---
+		vec3 f0 = mix(vec3(1.), albedo, metalness);
+		vec3 F = schlick(f0, vec3(1.), cosHV);
+		float D = r2/max(1e-10,(PI*pow2(cosHN*cosHN*(r2-1.)+1.)));
+		float V2 = 0.5/max(1e-5,(cosNL*sqrt(cosNV*cosNV*(1.-r2)+r2) + cosNV*sqrt(cosNL*cosNL*(1.-r2)+r2)));
+		vec3 specular = F*D*V2;
+		
+		return (diffuse*diffuseRate + specular*specularRate)/totalRate * cosNL;
+	}
+
+	float cosNL = max(0.,dot(-N,L));
+	float cosHL = max(0.,dot(-H,L));
+
+	// --- transmit ---
+	float D = r2/max(1e-10,(PI*pow2(cosHN*cosHN*(r2-1.)+1.)));
+	float V2 = 2./max(1e-5,(cosNL*sqrt(cosNV*cosNV*(1.-r2)+r2) + cosNV*sqrt(cosNL*cosNL*(1.-r2)+r2)));
+	vec3 transmit = sqrt(albedo) * (1.-DielF) * D * V2 * cosHL * cosHV / pow2(cosHV+cosHL);
+	
+    return (transmit*transmitRate)/totalRate * cosNL;
+}
+
+vec3 evaluateBRDF(in vec3 N, in vec3 L, in vec3 V, in vec3 albedo, in float metalness, in float roughness){
+    float r  = clamp(roughness, 0.04, 0.999);
+		  r  = pow2(r);
+	float r2 = pow2(r);
+
+	vec3 H = normalize(V+L);
 	
 	float cosNV = max(1e-5,abs(dot(N,V)));
-	float cosNL = max(0.,dot(N,L));
-	float cosHN = clamp(dot(H,N),0.,1.-1e-10);
-	float cosHL = max(0.,dot(H,L));
 	float cosHV = max(0.,dot(H,V));
+	float cosHN = clamp(dot(H,N),0.,1.-1e-10);
+	float cosNL = max(0.,dot(N,L));
+	float cosHL = max(0.,dot(H,L));
 
 	float DielF = schlick(0.04, 1., cosHV);
 
-    // --- diffuse ---
-	float Rr = r*2.*cosHL*cosHL+0.5;
-    float Fl = pow5(1.-cosNL);
-    float Fv = pow5(1.-cosNV);
-	vec3 diffuse = albedo * ((1.-0.5*Fl) * (1.-0.5*Fv) + Rr*(Fl+Fv+Fl*Fv*(Rr-1.)))/PI;
-	float diffuseRate = (1.f-metalness);
+	float diffuseRate = (1.-metalness);
+	float specularRate = DielF;
+	float totalRate = diffuseRate + specularRate;
 	
+	// --- diffuse ---
+	float Rr = r*2.*cosHL*cosHL+0.5;
+	float Fl = pow5(1.-cosNL);
+	float Fv = pow5(1.-cosNV);
+	vec3 diffuse = albedo * ((1.-0.5*Fl) * (1.-0.5*Fv) + Rr*(Fl+Fv+Fl*Fv*(Rr-1.)))/PI;
+		
 	// --- specular ---
 	vec3 f0 = mix(vec3(1.), albedo, metalness);
-    vec3 F = schlick(f0, vec3(1.), cosHV);
+	vec3 F = schlick(f0, vec3(1.), cosHV);
 	float D = r2/max(1e-10,(PI*pow2(cosHN*cosHN*(r2-1.)+1.)));
-    float V2 = 0.5/max(1e-5,(cosNL*sqrt(cosNV*cosNV*(1.-r2)+r2) + cosNV*sqrt(cosNL*cosNL*(1.-r2)+r2)));
-    vec3 specular = F*D*V2;
-	float specularRate = DielF;
-
-    return (diffuse*diffuseRate + specular*specularRate)/max(1e-5,diffuseRate+specularRate) * cosNL;
+	float V2 = 0.5/max(1e-5,(cosNL*sqrt(cosNV*cosNV*(1.-r2)+r2) + cosNV*sqrt(cosNL*cosNL*(1.-r2)+r2)));
+	vec3 specular = F*D*V2;
+		
+	return (diffuse*diffuseRate + specular*specularRate)/totalRate * cosNL;
 }
-
-// --------- TRANSPARENCY BSDF add ? ---------
-/*  float cosNL = max(0.,dot(-N, transmitRay.getDirection()));
-	float DielF = schlick(0., 1., max(0.,dot(H,V)));
-                    
-    float XL = sqrt(r2 + (1. - r2) * cosNL * cosNL);
-    float XV = sqrt(r2 + (1. - r2) * cosNV * cosNV);
-    float G1L = 2. * cosNL / max(1e-5, (cosNL + XL));
-    float G1V = 2. * cosNV / max(1e-5, (cosNV + XV));
-    float G2 = 2. * cosNL * cosNV / max(1e-5, (cosNV * XL + cosNL * XV));
-	
-    vec3 transmit = sqrt(vec3(albedo)) * (1.-DielF)*G2*pow2(p_ni/p_no)/max(1e-5,G1L);  // D should be somewere + need to reintroduce pdf */
 
 void computeDataForPointLight(inout vec3 L, inout vec3 lightingIntensity, in vec3 fragPos) {
     L = uLightPosition-fragPos;
@@ -151,41 +201,49 @@ void computeDataForPointLight(inout vec3 L, inout vec3 lightingIntensity, in vec
 }
 
 void main(){
-    // --------- TRANSPARENT ---------
+	vec3 rayColor = vec3(1.);
+
+	// --------- TRANSPARENT ---------
     for(uint i=imageLoad(uRootTransparency, ivec2(gl_FragCoord.xy)).r ;i!=0; i=transparencyFrags[i].nextId){
         vec4 fragPos = uInvMatrix_VP*vec4(2.*vec3(uv,transparencyFrags[i].depth)-1.,1.);
-        if (abs(fragPos.a)>0.001)  fragPos /= fragPos.a;
+        if (abs(fragPos.a)>1e-5)  fragPos /= fragPos.a;
 
         vec3 lightingIntensity = uLightEmissivity;// * transparencyShadows[i];
         vec3 L = -uLightDirection;
         if(uLightTypePoint) computeDataForPointLight(L,lightingIntensity,fragPos.xyz);
 
         vec3 V = normalize(uCamPos-fragPos.xyz);
-	    vec3 H = normalize(V+L);
         vec3 N = transparencyFrags[i].normal;
-        if(dot(N,V)<0.) N = -N;
 
-        transparencyFrags[i].emissive += brdf(N,H,L,V,transparencyFrags[i].albedo.xyz,transparencyFrags[i].metalness,transparencyFrags[i].roughness) * lightingIntensity;
-    }
+		float a = transparencyFrags[i].albedo.a;
+
+		fragColor.xyz += transparencyFrags[i].emissive*rayColor;
+		fragColor.xyz += transparencyFrags[i].albedo.a*evaluateBRDF(N,L,V,transparencyFrags[i].albedo.xyz,transparencyFrags[i].metalness,transparencyFrags[i].roughness) * rayColor * lightingIntensity;
+		rayColor *= (1.-transparencyFrags[i].albedo.a)*transparencyFrags[i].albedo.xyz;
+	}
 
     // --------- OPAQUE ---------
     vec3 N = texture(uOpaqueNormalMap,uv).xyz;
-	if(N.x==0. && N.y==0. && N.z==0.) discard; // => skybox before return;
+	if(N.x==0. && N.y==0. && N.z==0.) {	//skybox
+		fragColor.xyz += vec3(0.1)*rayColor;
+		return;
+	}
 
 	vec3 albedo = texture(uOpaqueAlbedoMap,uv).xyz;
 	vec2 metalnessRoughness = texture(uOpaqueMetalnessRoughnessMap,uv).xy;
+	vec3 emissivity = texture(uOpaqueEmissiveMap,uv).xyz;
 
     vec4 fragPos = uInvMatrix_VP*vec4(2.*vec3(uv,texture(uOpaqueDepthMap,uv).x)-1.,1.);
-    if (abs(fragPos.a)>0.001)  fragPos /= fragPos.a;
+    if (abs(fragPos.a)>1e-5)  fragPos /= fragPos.a;
 
     vec3 lightingIntensity = uLightEmissivity; //* texture(uOpaqueShadowMap,uv).xyz;
     vec3 L = -uLightDirection;
     if(uLightTypePoint) computeDataForPointLight(L,lightingIntensity,fragPos.xyz);
 
     vec3 V = normalize(uCamPos-fragPos.xyz);
-    vec3 H = normalize(V+L);
 
 	lightingIntensity *= computeShadow(N,L,fragPos.xyz);
 
-    fragColor = vec4(brdf(N,H,L,V,albedo,metalnessRoughness.x,metalnessRoughness.y) * lightingIntensity, 1.);
+	fragColor.xyz += emissivity*rayColor;
+    fragColor.xyz += evaluateBSDF(N,L,V,albedo,metalnessRoughness.x,metalnessRoughness.y,0.) * rayColor * lightingIntensity;
 }

@@ -11,7 +11,6 @@ namespace M3D
         {
         public:
             // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-            GraphicalUserInterface();
             GraphicalUserInterface(SDL_Window* p_window, const SDL_GLContext& p_glContext);
             ~GraphicalUserInterface();
 

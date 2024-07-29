@@ -18,7 +18,6 @@ namespace M3D
 {
 namespace UserInterface
 {
-	GraphicalUserInterface::GraphicalUserInterface() { Application::getInstance().getSceneManager().loadNewScene("assets/musee.gltf"); }
 	GraphicalUserInterface::GraphicalUserInterface(SDL_Window* p_window, const SDL_GLContext& p_glContext) {
 		try
 		{
@@ -71,7 +70,12 @@ namespace UserInterface
 
 		ImGuiIO& io = ImGui::GetIO();
 
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
 		if (ImGui::BeginMainMenuBar()) {
+			if (ImGui::BeginMenu("File")) {
+				if(ImGui::MenuItem("Screenshot")) {}
+				ImGui::EndMenu();
+			}
 			if (ImGui::BeginMenu("ScreenSettings")) {
 				int targetFPS = Application::getInstance().getWindow().getTargetFps();
 				if (ImGui::InputInt("Target FPS", &targetFPS, 1, 10)) Application::getInstance().getWindow().setTargetFPS(targetFPS);
@@ -105,6 +109,16 @@ namespace UserInterface
 							if (!path.empty())
 								Application::getInstance().getSceneManager().addAsset(path);
 					}
+
+					/*ImGui::Separator();
+
+					ImGui::TextColored(ImVec4(1, 1, 0, 1), "Movements");
+
+					float movSensi = Application::getInstance().getSceneManager().getMovementSensitivity() * 100.f;
+					if (ImGui::SliderFloat("movement sensitivity", &movSensi, 0.f, 1000.f, "%0.1f")) Application::getInstance().getSceneManager().setMovementSensitivity(movSensi * 0.01f);
+
+					float rotSensi = Application::getInstance().getSceneManager().getRotationSensitivity() * 1000.f;
+					if (ImGui::SliderFloat("rotation sensitivity", &rotSensi, 0.f, 10.f, "%0.1f")) Application::getInstance().getSceneManager().setRotationSensitivity(rotSensi * 0.001f);*/
 
 					ImGui::Separator();
 
@@ -161,6 +175,51 @@ namespace UserInterface
 					ImGui::SameLine();
 					if (ImGui::RadioButton("SMAA", Application::getInstance().getRenderer().getAAType() == AA_TYPE::SMAA)) { Application::getInstance().getRenderer().setAAType(AA_TYPE::SMAA); }
 
+					ImGui::EndTabItem();
+				}
+
+				if (ImGui::BeginTabItem("Simulation")) {
+					/*ImGui::TextColored(ImVec4(1, 1, 0, 1), "Parameters");
+
+					if (ImGui::RadioButton("SPHERE", Application::getInstance().getSceneManager().getAtmosphereSimulation().getDropsBoxType() == DROPS_BOX_TYPE::SPHERE))
+						Application::getInstance().getSceneManager().getAtmosphereSimulation().setDropsBoxType(DROPS_BOX_TYPE::SPHERE);
+					ImGui::SameLine();
+					if (ImGui::RadioButton("CUBE", Application::getInstance().getSceneManager().getAtmosphereSimulation().getDropsBoxType() == DROPS_BOX_TYPE::CUBE))
+						Application::getInstance().getSceneManager().getAtmosphereSimulation().setDropsBoxType(DROPS_BOX_TYPE::CUBE);
+					ImGui::SameLine();
+					if (ImGui::RadioButton("FRUSTUM", Application::getInstance().getSceneManager().getAtmosphereSimulation().getDropsBoxType() == DROPS_BOX_TYPE::FRUSTUM))
+						Application::getInstance().getSceneManager().getAtmosphereSimulation().setDropsBoxType(DROPS_BOX_TYPE::FRUSTUM);
+
+					float rainIntensity = Application::getInstance().getSceneManager().getAtmosphereSimulation().getRainIntensity();
+					if (ImGui::SliderFloat("rain intensity (mm/h)", &rainIntensity, 0.f, 10.f, "%0.1f")) Application::getInstance().getSceneManager().getAtmosphereSimulation().setRainIntensity(rainIntensity);
+
+					float dropsBoxZfar = Application::getInstance().getSceneManager().getAtmosphereSimulation().getDropsBoxZfar();
+					if (ImGui::SliderFloat("drops zfar (m)", &dropsBoxZfar, 0.f, 200.f, "%1.f")) Application::getInstance().getSceneManager().getAtmosphereSimulation().setDropsBoxZfar(dropsBoxZfar);
+
+					ImGui::Separator();
+					ImGui::TextColored(ImVec4(1, 1, 0, 1), "Informations");
+
+					ImGui::Text("Number of drops:           %.0f", Application::getInstance().getSceneManager().getAtmosphereSimulation().getDropsNbNeeded());
+					ImGui::Text("Number max of drops:       %.0f", Application::getInstance().getSceneManager().getAtmosphereSimulation().getDropsNbMax());
+					ImGui::Text("Drops diameter min:        %.0f (mm)", Application::getInstance().getSceneManager().getAtmosphereSimulation().getDropsSizeMin());
+					ImGui::Text("Drops diameter max:        %.0f (mm)", Application::getInstance().getSceneManager().getAtmosphereSimulation().getDropsSizeMax());
+					ImGui::Text("Drops box area:            %.0f (m^3)", Application::getInstance().getSceneManager().getAtmosphereSimulation().getDropsBoxArea());
+
+					ImGui::Separator();
+					ImGui::TextColored(ImVec4(1, 1, 0, 1), "Wind directional");
+
+					float rainDirectional_len = glm::length(Application::getInstance().getSceneManager().getAtmosphereSimulation().getWindDirectional());
+					Vec3f rainDirectional_dir = (rainDirectional_len < 0.01f) ? VEC3F_ZERO : Application::getInstance().getSceneManager().getAtmosphereSimulation().getWindDirectional() / rainDirectional_len;
+
+					if (ImGui::SliderFloat3("wind direction", &rainDirectional_dir[0], -1.f, 1.f, "%0.1f")) {
+						float tmp = glm::length(rainDirectional_dir);
+						Application::getInstance().getSceneManager().getAtmosphereSimulation().setWindDirectional((tmp < 0.01f) ? VEC3F_ZERO : rainDirectional_dir / tmp * glm::max<float>(0.01f, rainDirectional_len));
+					}
+
+					if (ImGui::SliderFloat("wind power (m/s)", &rainDirectional_len, 0.01f, 50.f, "%1.f"))
+						Application::getInstance().getSceneManager().getAtmosphereSimulation().setWindDirectional(rainDirectional_dir * rainDirectional_len);
+
+					*/
 					ImGui::EndTabItem();
 				}
 

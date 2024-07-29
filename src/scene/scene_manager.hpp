@@ -35,12 +35,19 @@ namespace M3D
             inline const std::vector<Light>& getLights() const { return _lights; }
             inline const std::vector<Camera>& getCameras() const { return _cameras; }
 
+            inline const float getMovementSensitivity() const { return _movementSensitivity; }
+            inline const float getRotationSensitivity() const { return _rotationSensitivity; }
+
             // sure => todo virer ou coder mieu
             Camera& getMainCamera();
             SceneGraphNode* getMainCameraSceneGraphNode();
             const Mat4f getMainCameraTransformation();
             const Mat4f getMainCameraViewMatrix();
             const Mat4f getMainCameraProjectionMatrix();
+
+            // ----------------------------------------------------- SETTERS -------------------------------------------------------
+            void setMovementSensitivity(float p_value);
+            void setRotationSensitivity(float p_value);
 
             // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
             void loadNewScene(const std::filesystem::path& p_path);
@@ -76,6 +83,9 @@ namespace M3D
             // skining and animation
             // env map
             // dirty ?
+
+            float _movementSensitivity = 1.f;
+            float _rotationSensitivity = 0.1f;
 
             std::vector<SceneGraphNode> _sceneGraphNodes;
             Vec2i _mainCamera;

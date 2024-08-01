@@ -259,11 +259,15 @@ namespace Scene
                 if (itNormal == p.attributes.end()) throw std::runtime_error("Fail to load file: primitive must contain normal buffer.");
                 fastgltf::Accessor& a_normal = asset->accessors[itNormal->second];
 
+                auto itTangent = p.findAttribute("TANGENT");
+                if (itTangent == p.attributes.end()) throw std::runtime_error("Fail to load file: primitive must contain tangent buffer.");
+                fastgltf::Accessor& a_tangent = asset->accessors[itTangent->second];
+
                 auto itTexcoord = p.findAttribute("TEXCOORD_0");
                 if (itTexcoord == p.attributes.end()) throw std::runtime_error("Fail to load file: primitive must contain texcoord0 buffer.");
                 fastgltf::Accessor& a_texcoord = asset->accessors[itTexcoord->second];
 
-                if (!((a_position.count == a_normal.count) && (a_normal.count == a_texcoord.count))) throw std::runtime_error("Fail to load file: primitive vertices must have the same number of position, normal and texcoord0.");
+                if (!((a_position.count == a_normal.count) && (a_position.count == a_texcoord.count) && (a_position.count == a_tangent.count))) throw std::runtime_error("Fail to load file: primitive vertices must have the same number of position, normal, tangent and texcoord0.");
                 if (a_texcoord.componentType != fastgltf::ComponentType::Float) throw std::runtime_error("Fail to load file: texcoord0 must be float only.");
 
                 fastgltf::Accessor& a_indices = asset->accessors[p.indicesAccessor.value()];
@@ -299,6 +303,11 @@ namespace Scene
                 if (!std::holds_alternative<fastgltf::sources::Array>(asset->buffers[bv_normal.bufferIndex].data)) throw std::runtime_error("Fail to load file: primitive normals type must be array!");
                 const float* normalsBuffer = reinterpret_cast<const float*>(std::get<3>(asset->buffers[bv_normal.bufferIndex].data).bytes.data() + a_normal.byteOffset + bv_normal.byteOffset);
 
+                if (!a_tangent.bufferViewIndex.has_value()) throw std::runtime_error("Fail to load file: primitive tangents must be define.");
+                fastgltf::BufferView& bv_tangent = asset->bufferViews[a_tangent.bufferViewIndex.value()];
+                if (!std::holds_alternative<fastgltf::sources::Array>(asset->buffers[bv_tangent.bufferIndex].data)) throw std::runtime_error("Fail to load file: primitive tangents type must be array!");
+                const float* tangentsBuffer = reinterpret_cast<const float*>(std::get<3>(asset->buffers[bv_tangent.bufferIndex].data).bytes.data() + a_tangent.byteOffset + bv_tangent.byteOffset);
+
                 if (!a_texcoord.bufferViewIndex.has_value()) throw std::runtime_error("Fail to load file: primitive texcoord0 must be define.");
                 fastgltf::BufferView& bv_texcoord = asset->bufferViews[a_texcoord.bufferViewIndex.value()];
                 if (!std::holds_alternative<fastgltf::sources::Array>(asset->buffers[bv_normal.bufferIndex].data)) throw std::runtime_error("Fail to load file: primitive texcoord0 type must be array!");
@@ -310,12 +319,9 @@ namespace Scene
                     Vertex v = Vertex{
                         ._position = glm::make_vec3(&positionsBuffer[i * 3]),
                         ._normal = glm::normalize(glm::make_vec3(&normalsBuffer[i * 3])),
+                        ._tangent = glm::normalize(glm::make_vec3(&tangentsBuffer[i * 4])),
                         ._uv = glm::make_vec2(&uvsBuffer[i * 2])
                     };
-                    v._tangent = glm::cross(v._normal, VEC3F_X);
-                    if (glm::length(v._tangent) < 0.1) v._tangent = glm::cross(v._normal, VEC3F_Y);
-                    v._tangent = glm::normalize(v._tangent);
-                    v._bitangent = glm::normalize(glm::cross(v._normal, v._tangent));
                     vertices.push_back(v);
                 }
                 subMeshes.push_back(SubMesh(&_materials[((p.materialIndex.has_value()) ? startIdMaterials + p.materialIndex.value() : 0)], vertices, indices));

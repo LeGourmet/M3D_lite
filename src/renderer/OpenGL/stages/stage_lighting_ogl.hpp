@@ -76,7 +76,18 @@ namespace M3D
 				_DirectLightingPass.addUniform("uLightTypePoint");
 
 				// --- indirect lighting ---
+				glCreateFramebuffers(1, &_fboIndirectLighting);
+				generateMap(&_indirectLightingMap, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+				attachColorMap(_fboIndirectLighting, _indirectLightingMap, 0);
+
 				_IndirectLightingPass.addUniform("uCamPos");
+				_IndirectLightingPass.addUniform("uCamDir");
+				_IndirectLightingPass.addUniform("uInvMatrix_VP");
+				_IndirectLightingPass.addUniform("uScreenResolution");
+
+				// --- final mix lighting ---
+				_FinalMixLightingPass.addUniform("uCamPos");
+				_FinalMixLightingPass.addUniform("uInvMatrix_VP");
 				
 				// --- others ---
 				glCreateBuffers(1, &_billBoardVBO);
@@ -92,10 +103,12 @@ namespace M3D
 
 			~StageLightingOGL() {
 				glDeleteTextures(1, &_lightingMap);
+				glDeleteTextures(1, &_indirectLightingMap);
 				glDeleteTextures(1, &_shadowCubeMap);
 				glDeleteTextures(1, &_shadowMap);
 
 				glDeleteFramebuffers(1, &_fboLighting);
+				glDeleteFramebuffers(1, &_fboIndirectLighting);
 				glDeleteFramebuffers(1, &_fboShadowCube);
 				glDeleteFramebuffers(1, &_fboShadow);
 
@@ -110,15 +123,14 @@ namespace M3D
 			// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 			void resize(int p_width, int p_height) {
 				resizeColorMap(GL_RGB16F, GL_RGB, GL_FLOAT, p_width, p_height, _lightingMap);
+				resizeColorMap(GL_RGB16F, GL_RGB, GL_FLOAT, p_width, p_height, _indirectLightingMap);
 			}
 
 			void execute(int p_width, int p_height, std::map<Scene::Mesh*, MeshOGL*> p_meshes, std::map<Scene::Texture*, TextureOGL*> p_textures, GLuint p_albedoMap, GLuint p_normalMap, GLuint p_metalnessRoughnessMap, GLuint p_emissiveMap, GLuint p_depthMap, GLuint p_rootTransparency, GLuint p_ssboTransparency) {
 				// --- clear buffer ---
-				glViewport(0, 0, p_width, p_height);
-				glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
-				glClear(GL_COLOR_BUFFER_BIT);
+				glCopyImageSubData(p_emissiveMap, GL_TEXTURE_2D, 0, 0, 0, 0, _lightingMap, GL_TEXTURE_2D, 0, 0, 0, 0, p_width, p_height, 1);
 
-				// --- direct lighting ---
+				// --- Direct Lighting ---
 				for (Scene::Light l : Application::getInstance().getSceneManager().getLights())
 					for (unsigned int i = 0; i < l.getNumberInstances();i++) {
 						//-deterime point to cast ray shadow (point/spot => position ; sun depend of intersection of LDir and World AABB)
@@ -216,12 +228,11 @@ namespace M3D
 						glBindTextureUnit(0, p_albedoMap);
 						glBindTextureUnit(1, p_normalMap);
 						glBindTextureUnit(2, p_metalnessRoughnessMap);
-						glBindTextureUnit(3, p_emissiveMap);
-						glBindTextureUnit(4, p_depthMap);
-						glBindTextureUnit(5, _shadowMap);
-						glBindTextureUnit(6, _shadowCubeMap);
-						glBindImageTexture(7, p_rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
-						glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, p_ssboTransparency);
+						glBindTextureUnit(3, p_depthMap);
+						glBindTextureUnit(4, _shadowMap);
+						glBindTextureUnit(5, _shadowCubeMap);
+						glBindImageTexture(6, p_rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
+						glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, p_ssboTransparency);
 
 						glProgramUniform3fv(_DirectLightingPass.getProgram(), _DirectLightingPass.getUniform("uCamPos"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition()));
 						glProgramUniformMatrix4fv(_DirectLightingPass.getProgram(), _DirectLightingPass.getUniform("uInvMatrix_VP"), 1, false, glm::value_ptr(glm::inverse(Application::getInstance().getSceneManager().getMainCameraProjectionMatrix() * Application::getInstance().getSceneManager().getMainCameraViewMatrix())));
@@ -268,14 +279,46 @@ namespace M3D
 						glBindFramebuffer(GL_FRAMEBUFFER, 0);
 					}
 
-				// --- indirect lighting ---
+				// --- Indirect Lighting ---
 				glViewport(0, 0, p_width, p_height);
-				glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
+				glBindFramebuffer(GL_FRAMEBUFFER, _fboIndirectLighting);
+
+				glClear(GL_COLOR_BUFFER_BIT);
 
 				glUseProgram(_IndirectLightingPass.getProgram());
 
 				glProgramUniform3fv(_IndirectLightingPass.getProgram(), _IndirectLightingPass.getUniform("uCamPos"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition()));
+				glProgramUniform3fv(_IndirectLightingPass.getProgram(), _IndirectLightingPass.getUniform("uCamDir"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getFront()));
+				glProgramUniform2fv(_IndirectLightingPass.getProgram(), _IndirectLightingPass.getUniform("uScreenResolution"), 1, glm::value_ptr(Vec2f(p_width,p_height)));
+				glProgramUniformMatrix4fv(_IndirectLightingPass.getProgram(), _IndirectLightingPass.getUniform("uInvMatrix_VP"), 1, false, glm::value_ptr(glm::inverse(Application::getInstance().getSceneManager().getMainCameraProjectionMatrix()* Application::getInstance().getSceneManager().getMainCameraViewMatrix())));
+
+				glBindTextureUnit(0, _lightingMap);
+				glBindTextureUnit(1, p_albedoMap);
+				glBindTextureUnit(2, p_normalMap);
+				glBindTextureUnit(3, p_metalnessRoughnessMap);
+				glBindTextureUnit(4, p_depthMap);
+
+				glBindVertexArray(_emptyVAO);
+				glDrawArrays(GL_TRIANGLES, 0, 3);
+				glBindVertexArray(0);
+
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+				// --- Final Mix ---
+				glViewport(0, 0, p_width, p_height);
+				glBindFramebuffer(GL_FRAMEBUFFER, _fboLighting);
+
+				glUseProgram(_FinalMixLightingPass.getProgram());
+
+				glProgramUniform3fv(_FinalMixLightingPass.getProgram(), _FinalMixLightingPass.getUniform("uCamPos"), 1, glm::value_ptr(Application::getInstance().getSceneManager().getMainCameraSceneGraphNode()->getPosition()));
+				glProgramUniformMatrix4fv(_FinalMixLightingPass.getProgram(), _FinalMixLightingPass.getUniform("uInvMatrix_VP"), 1, false, glm::value_ptr(glm::inverse(Application::getInstance().getSceneManager().getMainCameraProjectionMatrix()* Application::getInstance().getSceneManager().getMainCameraViewMatrix())));
 				
+				glBindTextureUnit(0, _lightingMap);
+				glBindTextureUnit(1, _indirectLightingMap);
+				glBindTextureUnit(2, p_normalMap);
+				glBindImageTexture(3, p_rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
+				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, p_ssboTransparency);
+
 				glBindVertexArray(_emptyVAO);
 				glDrawArrays(GL_TRIANGLES, 0, 3);
 				glBindVertexArray(0);
@@ -286,10 +329,12 @@ namespace M3D
 		private:
 			// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
 			GLuint _fboLighting			= GL_INVALID_INDEX;
+			GLuint _fboIndirectLighting	= GL_INVALID_INDEX;
 			GLuint _fboShadowCube		= GL_INVALID_INDEX;
 			GLuint _fboShadow			= GL_INVALID_INDEX;
 
 			GLuint _lightingMap			= GL_INVALID_INDEX;
+			GLuint _indirectLightingMap	= GL_INVALID_INDEX;
 			GLuint _shadowCubeMap		= GL_INVALID_INDEX;
 			GLuint _shadowMap			= GL_INVALID_INDEX;
 
@@ -301,10 +346,10 @@ namespace M3D
 
 			ProgramOGL _ShadowPass					= ProgramOGL("src/renderer/OpenGL/shaders/shadow/Shadow.vert", "", "src/renderer/OpenGL/shaders/shadow/Shadow.frag");
 			ProgramOGL _ShadowCubePass				= ProgramOGL("src/renderer/OpenGL/shaders/shadow/CubeShadow.vert", "src/renderer/OpenGL/shaders/shadow/CubeShadow.geom", "src/renderer/OpenGL/shaders/shadow/CubeShadow.frag");
-			//ProgramOGL _GenerateShadowMaps		= ProgramOGL("src/renderer/OpenGL/shaders/shadow/QuadScreen.vert", "src/renderer/OpenGL/shaders/shadow/GenerateShadowMaps.frag"); // cast shadow ray (indirect call compute)  
-
+			
 			ProgramOGL _DirectLightingPass			= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/DirectLightingPass.frag");
 			ProgramOGL _IndirectLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/IndirectLightingPass.frag");
+			ProgramOGL _FinalMixLightingPass		= ProgramOGL("src/renderer/OpenGL/shaders/utils/QuadScreen.vert", "", "src/renderer/OpenGL/shaders/lighting/FinalMixLightingPass.frag");
 
 		};
 	}

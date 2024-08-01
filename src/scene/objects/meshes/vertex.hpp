@@ -10,9 +10,8 @@ namespace M3D
 		struct Vertex {
 			Vec3f _position;
 			Vec3f _normal;
-			Vec2f _uv;
 			Vec3f _tangent;
-			Vec3f _bitangent;
+			Vec2f _uv;
 		};
 	}
 }

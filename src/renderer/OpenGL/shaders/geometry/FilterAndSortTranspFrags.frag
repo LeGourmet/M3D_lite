@@ -6,6 +6,7 @@ struct TranspFragNode {
 	float metalness;
     float roughness;
     vec3 emissive;
+	vec3 directLighting;
     float depth;
     uint nextId;
 };

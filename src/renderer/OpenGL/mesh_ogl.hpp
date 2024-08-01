@@ -31,9 +31,8 @@ namespace M3D
 					glVertexArrayVertexBuffer(_vaoSubMeshes[i], 0, _vboSubMeshes[i], 0, sizeof(Scene::Vertex));
 					_bindValue(_vaoSubMeshes[i], 0, 3, offsetof(Scene::Vertex, _position), 0);
 					_bindValue(_vaoSubMeshes[i], 1, 3, offsetof(Scene::Vertex, _normal), 0);
-					_bindValue(_vaoSubMeshes[i], 2, 2, offsetof(Scene::Vertex, _uv), 0);
-					_bindValue(_vaoSubMeshes[i], 3, 3, offsetof(Scene::Vertex, _tangent), 0);
-					_bindValue(_vaoSubMeshes[i], 4, 3, offsetof(Scene::Vertex, _bitangent), 0);
+					_bindValue(_vaoSubMeshes[i], 2, 3, offsetof(Scene::Vertex, _tangent), 0);
+					_bindValue(_vaoSubMeshes[i], 3, 2, offsetof(Scene::Vertex, _uv), 0);
 
 					glNamedBufferData(_vboSubMeshes[i], p_mesh->getSubMeshes()[i].getVertices().size() * sizeof(Scene::Vertex), p_mesh->getSubMeshes()[i].getVertices().data(), GL_STATIC_DRAW);
 					glNamedBufferData(_eboSubMeshes[i], p_mesh->getSubMeshes()[i].getIndices().size() * sizeof(unsigned int), p_mesh->getSubMeshes()[i].getIndices().data(), GL_STATIC_DRAW);

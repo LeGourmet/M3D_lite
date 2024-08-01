@@ -71,4 +71,7 @@ Rendre le monde plus vivant :
 - check si compute shader ne sont pas plus rentable pour le calcule de l'illumination des fragments
 - la génération des mipmap des texture d'OpenGl prend beaucoup trop de RAM
 - la compilation ne se fait pas au bon endroit de l'arborecense (que sur gros pc!)
-- les normals map semblent avoir des problèmes (front-facing ou autre)
+- metalness map est gégeu à l'application
+- le dot N,V ne donnent pas le résultat esconté (<0 la ou il ne faudrait pas)
+- shadowmap asombrissent le smooth des normals
+- le compute de l'emissivité est à chier

@@ -2,9 +2,8 @@
 
 layout( location = 0 ) in vec3 aVertexPosition;
 layout( location = 1 ) in vec3 aVertexNormal;
-layout( location = 2 ) in vec2 aVertexTexCoords;
-layout( location = 3 ) in vec3 aVertexTangent;
-layout( location = 4 ) in vec3 aVertexBitangent;
+layout( location = 2 ) in vec3 aVertexTangent;
+layout( location = 3 ) in vec2 aVertexTexCoords;
 
 layout(std430, binding = 0) buffer aTransformations { mat4 data_SSBO[]; };
 
@@ -26,7 +25,6 @@ void main()
 	vec3 T	 = normalize( (Matrix_M * vec4(aVertexTangent,0.)).xyz );
 	T = normalize(T - dot(T, N) * N);
 	vec3 B = normalize(cross(N, T));
-	//vec3 B	 = normalize( (Matrix_M * vec4(aVertexBitangent,0.)).xyz );
 	TBN = mat3(T,B,N);
 
 	gl_Position = Matrix_MVP * vec4(aVertexPosition, 1.);

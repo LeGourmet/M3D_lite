@@ -6,6 +6,7 @@ struct TranspFragNode {
 	float metalness;
     float roughness;
     vec3 emissive;
+	vec3 directLighting;
     float depth;
     uint nextId;
 };
@@ -45,8 +46,8 @@ void main(){
 	vec4 albedo = (uHasAlbedoMap ? texture(uAlbedoMap,uv) : vec4(1.))*uAlbedo;
 
 	vec3 normal = normalize(uHasNormalMap ? (TBN*(texture(uNormalMap,uv).xyz*2.-1.)) : ((gl_FrontFacing) ? fragNormal : -fragNormal));
-	vec2 MetalnessRoughness = (uHasMetalnessRoughnessMap ? texture(uMetalnessRoughnessMap,uv).zy : vec2(uMetalness,uRoughness));
-	vec3 emissivity = (uHasEmissiveMap ? texture(uEmissiveMap,uv).xyz : uEmissiveColor) * uEmissiveStrength;
+	vec2 MetalnessRoughness = (uHasMetalnessRoughnessMap ? texture(uMetalnessRoughnessMap,uv).zy : vec2(1.)) * vec2(uMetalness,uRoughness);
+	vec3 emissivity = (uHasEmissiveMap ? texture(uEmissiveMap,uv).xyz : vec3(1.)) * uEmissiveColor * uEmissiveStrength;
 
 	if(uAlphaCutOff<1.){ // opaque
 		if(albedo.a<uAlphaCutOff) discard;
@@ -67,6 +68,7 @@ void main(){
 			transparencyFrags[currentId].roughness = MetalnessRoughness.y;
 			transparencyFrags[currentId].emissive = emissivity;
 			transparencyFrags[currentId].depth = gl_FragCoord.z;
+			transparencyFrags[currentId].directLighting = vec3(0.);
 			transparencyFrags[currentId].nextId = nextId;
 		}
 

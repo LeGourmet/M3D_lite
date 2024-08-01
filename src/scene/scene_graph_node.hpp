@@ -28,12 +28,12 @@ namespace M3D
             inline const std::vector<SceneGraphNode*> getChilds() const { return _childs; }
 
             inline const Vec3f getPosition() const { return _transformation * Vec4f( VEC3F_ZERO, 1.); }
-            inline const Vec3f getFront()    const { return _transformation * Vec4f(-VEC3F_Z, 0.); }
-            inline const Vec3f getBack()     const { return _transformation * Vec4f( VEC3F_Z, 0.); }
-            inline const Vec3f getUp()       const { return _transformation * Vec4f( VEC3F_Y, 0.); }
-            inline const Vec3f getDown()     const { return _transformation * Vec4f(-VEC3F_Y, 0.); }
-            inline const Vec3f getRight()    const { return _transformation * Vec4f( VEC3F_X, 0.); }
-            inline const Vec3f getLeft()     const { return _transformation * Vec4f(-VEC3F_X, 0.); }
+            inline const Vec3f getFront()    const { return glm::normalize(Vec3f(_transformation* Vec4f(-VEC3F_Z, 0.))); }
+            inline const Vec3f getBack()     const { return glm::normalize(Vec3f(_transformation * Vec4f( VEC3F_Z, 0.))); }
+            inline const Vec3f getUp()       const { return glm::normalize(Vec3f(_transformation * Vec4f( VEC3F_Y, 0.))); }
+            inline const Vec3f getDown()     const { return glm::normalize(Vec3f(_transformation * Vec4f(-VEC3F_Y, 0.))); }
+            inline const Vec3f getRight()    const { return glm::normalize(Vec3f(_transformation * Vec4f( VEC3F_X, 0.))); }
+            inline const Vec3f getLeft()     const { return glm::normalize(Vec3f(_transformation * Vec4f(-VEC3F_X, 0.))); }
 
             inline const Quatf& getRotation() const { return _rotation; }
             inline const Vec3f& getScale() const { return _scale; }

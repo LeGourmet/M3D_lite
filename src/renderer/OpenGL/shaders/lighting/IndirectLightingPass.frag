@@ -1,4 +1,4 @@
-#version 450
+#version 460
 
 #define PI_TWO 1.5707963267
 #define PI     3.1415926535
@@ -82,7 +82,7 @@ void main() {
     vec3 eyeTan = (abs(eye.y)>0.999) ? vec3(1.,0.,0.) : normalize(cross(eye,vec3(0.,1.,0.)));
     vec3 eyeBit = (abs(eye.y)>0.999) ? vec3(0.,0.,1.) : normalize(cross(eyeTan,eye));        
     
-    vec3 V = normalize(uCamPos-P);
+    //vec3 V = normalize(uCamPos-P);
 
     vec3 VN = normalize(vec3(dot(N,eyeTan),dot(N,eyeBit),dot(N,eye)));
     vec3 VP = vec3(dot(P,eyeTan),dot(P,eyeBit),dot(P,eye));             // vec3(dot(PPos-Pos,Tan),dot(PPos-Pos,Bit),dot(PPos-Pos,Eye));

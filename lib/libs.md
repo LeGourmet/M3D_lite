@@ -5,7 +5,7 @@
 | SDL3 | 08/03/2024 | https://github.com/libsdl-org/SDL |
 | imgui | 08/03/2024 | https://github.com/ocornut/imgui |
 | portable file dialogs | 11/11/2022 | https://github.com/samhocevar/portable-file-dialogs |
-| OpenGl | --- | https://github.com/skaslev/gl3w |
+| OpenGl | 28/03/2024 | https://github.com/skaslev/gl3w |
 | fastgltf | 08/03/2024 | https://github.com/spnda/fastgltf |
 | simdjson | 27/02/2024 | https://github.com/simdjson/simdjson |
 | stb | 14/12/2023 | https://github.com/nothings/stb |

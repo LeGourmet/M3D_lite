@@ -1,4 +1,4 @@
-#version 450
+#version 460
 
 // ------ references ------ 
 // - [1] : https://github.com/kosua20/Rendu/blob/master/resources/common/shaders/screens/fxaa.frag

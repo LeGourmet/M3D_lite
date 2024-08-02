@@ -14,6 +14,8 @@ namespace Renderer
 		if (gl3wInit()) throw std::exception("gl3wInit() failed");
 		if (!gl3wIsSupported(4, 5)) throw std::exception("OpenGL version not supported");
 
+		glClearColor(0.f, 0.f, 0.f, 0.f);
+
 		_stageGeometryOGL			= new StageGeometryOGL();
 		_stageLightingOGL			= new StageLightingOGL();
 		_stagePostProcessingOGL		= new StagePostProcessingOGL();
@@ -36,7 +38,6 @@ namespace Renderer
 	}
 
 	void RendererOGL::drawFrame() {
-		glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.a);
 		_stageGeometryOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures);
 		_stageLightingOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageGeometryOGL->getAlbedoMap(), _stageGeometryOGL->getNormalMap(), _stageGeometryOGL->getMetalnessRoughnessMap(), _stageGeometryOGL->getEmissiveMap(), _stageGeometryOGL->getDepthMap(), _stageGeometryOGL->getRootTransparency(), _stageGeometryOGL->getSSBOTransparency());
 		_stagePostProcessingOGL->execute(Application::getInstance().getWidth(), Application::getInstance().getHeight(), _meshes, _textures, _stageLightingOGL->getLightingMap());

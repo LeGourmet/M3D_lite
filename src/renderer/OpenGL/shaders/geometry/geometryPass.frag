@@ -43,11 +43,11 @@ in vec3 fragNormal;
 in mat3 TBN;
 
 void main(){
-	vec4 albedo = (uHasAlbedoMap ? texture(uAlbedoMap,uv) : vec4(1.))*uAlbedo;
+	vec4 albedo = (uHasAlbedoMap ? pow(texture(uAlbedoMap,uv),vec4(2.2)) : vec4(1.))*uAlbedo;
 
 	vec3 normal = normalize(uHasNormalMap ? (TBN*(texture(uNormalMap,uv).xyz*2.-1.)) : ((gl_FrontFacing) ? fragNormal : -fragNormal));
 	vec2 MetalnessRoughness = (uHasMetalnessRoughnessMap ? texture(uMetalnessRoughnessMap,uv).zy : vec2(1.)) * vec2(uMetalness,uRoughness);
-	vec3 emissivity = (uHasEmissiveMap ? texture(uEmissiveMap,uv).xyz : vec3(1.)) * uEmissiveColor * uEmissiveStrength;
+	vec3 emissivity = (uHasEmissiveMap ? pow(texture(uEmissiveMap,uv).xyz,vec3(2.2)) : vec3(1.)) * uEmissiveColor * uEmissiveStrength;
 
 	if(uAlphaCutOff<1.){ // opaque
 		if(albedo.a<uAlphaCutOff) discard;

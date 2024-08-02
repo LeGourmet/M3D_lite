@@ -151,7 +151,7 @@ vec3 evaluateBRDF(in vec3 N, in vec3 L, in vec3 V, in vec3 albedo, in float meta
 	   float V2 = 2./max(1e-5,(cosNL*sqrt(cosNV*cosNV*(1.-r2)+r2) + cosNV*sqrt(cosNL*cosNL*(1.-r2)+r2)));
 	   vec3 transmit = sqrt(albedo) * (1.-DielF) * D * V2 * cosHL * cosHV / pow2(cosHV+cosHL); */
 
-	return (diffuse*diffuseRate + specular*specularRate + transmitRate)/totalRate * cosNL;
+	return (diffuse*diffuseRate + specular*specularRate)/totalRate * cosNL;
 }
 
 void main(){

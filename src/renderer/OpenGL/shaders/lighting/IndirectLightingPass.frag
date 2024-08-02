@@ -70,6 +70,7 @@ int CountBits(int val) {
 }
 
 void main() {    
+    fragColor = vec4(0.,0.,0.,1.); return;
     // sould be iFrame and not 0
     seed = uint(0*(int(uScreenResolution.x*uScreenResolution.y)))+uint(uv.x*uScreenResolution.x+uv.y*uScreenResolution.y*uScreenResolution.x);
 
@@ -94,7 +95,7 @@ void main() {
 
     float RandPhi = (mod(floor(mod(uv.x*uScreenResolution.x,4.))+floor(mod(uv.y*uScreenResolution.y,4.))*4.,16.)+rand())*PI/32.;
        
-    for(int i=0; i<32 ;i++){
+    for(int i=0; i<4 ;i++){
         /*vec3 H = sampleGGXVNDF(V,N,r,r);    // random ? Z up ?
         float specularRate = 0.04 + (1.-0.04) * pow(max(0.,dot(H,V)),5);
         vec3 L = (rand()<specularRate/(specularRate+1.-m)) ? normalize(reflect(eye,H)) : sampleHemisphere(N); // random ? Z up ?
@@ -128,8 +129,8 @@ void main() {
             if(NorDot<0.) continue; // utile ?
             float TanDist = length(TRUC_CHELOU-NorDot*VN);
             
-            float AngleMax = max(0.,ceil(atan(NorDot,TanDist)/PI_TWO*32.));
-            float AngleMin = max(0.,floor(atan(NorDot-0.03*max(1.,StepDist*0.07),TanDist)/PI_TWO*32.));
+            float AngleMax = max(0.,ceil(atan(NorDot,TanDist)/PI_TWO*32.));                             // sample touche the sector 
+            float AngleMin = max(0.,floor(atan(NorDot-0.03*max(1.,StepDist*0.07),TanDist)/PI_TWO*32.)); // sample covers the entire sector
             
             int FragBitMask = (int(pow(2.,AngleMax-AngleMin))-1) << int(AngleMin);
             

@@ -24,7 +24,6 @@ namespace M3D
 
             // ------------------------------------------------------ GETTERS ------------------------------------------------------
             inline float getBloomPower() { return _bloomPower; }
-            inline Vec4f& getClearColor() { return _clearColor; }
             inline AA_TYPE getAAType() { return _aaType; }
 
             inline void setAAType(AA_TYPE p_aa_type) { _aaType = p_aa_type; }
@@ -44,7 +43,6 @@ namespace M3D
 
         protected:
             float _bloomPower = 0.04f;
-            Vec4f _clearColor = VEC4F_ZERO;
             AA_TYPE _aaType = AA_TYPE::FXAA;
         };
     }

@@ -74,4 +74,3 @@ Rendre le monde plus vivant :
 - metalness map est gégeu à l'application
 - le dot N,V ne donnent pas le résultat esconté (<0 la ou il ne faudrait pas)
 - shadowmap asombrissent le smooth des normals
-- le compute de l'emissivité est à chier

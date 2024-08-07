@@ -13,12 +13,12 @@ in vec2 uv;
 // https://github.com/MrLixm/AgXc/blob/main/reshade/reshade-shaders/Shaders/AgX.fx
 // https://github.com/MrLixm/AgXc/blob/main/obs/obs-script/AgX.hlsl
 
-#define INPUT_HIGHLIGHT_GAIN_GAMMA  0.
-#define INPUT_HIGHLIGHT_GAIN        0.
+#define INPUT_HIGHLIGHT_GAIN_GAMMA  1.
+#define INPUT_HIGHLIGHT_GAIN        1.
 #define INPUT_SATURATION            1.
-#define INPUT_GAMMA                 1.25
+#define INPUT_GAMMA                 1.
 #define INPUT_EXPOSURE              0.
-#define PUNCH_GAMMA                 1.
+#define PUNCH_GAMMA                 2.2
 #define PUNCH_SATURATION            1.
 #define PUNCH_EXPOSURE              0.
 
@@ -27,29 +27,22 @@ in vec2 uv;
 #define LUT_PIXEL_SIZE 1./LUT_DIMENSIONS
 
 const mat3 agx_compressed_matrix = mat3(
-    0.84247906, 0.0784336, 0.07922375,
-    0.04232824, 0.87846864, 0.07916613,
-    0.04237565, 0.0784336, 0.87914297
+    0.842479062253094, 0.0423282422610123, 0.0423756549057051,
+    0.0784335999999992,  0.878468636469772,  0.0784336,
+    0.0792237451477643, 0.0791661274605434, 0.879142973793104
 );
 
 const mat3 agx_compressed_matrix_inverse = mat3(
-    1.1968790, -0.09802088, -0.09902975,
-    -0.05289685, 1.15190313, -0.09896118,
-    -0.05297163, -0.09804345, 1.15107368
+    1.19687900512017, -0.0528968517574562, -0.0529716355144438,
+    -0.0980208811401368, 1.15190312990417, -0.0980434501171241,
+    -0.0990297440797205, -0.0989611768448433, 1.15107367264116
 );
+
 
 vec3 powsafe(vec3 color, float power) { return pow(abs(color), vec3(power)) * sign(color); }
 float powsafe(float color, float power) { return pow(abs(color), power) * sign(color); }
 float getLuminance(vec3 color){ return dot(color, vec3(0.2126390058715103, 0.7151686787677559, 0.07219231536073371)); }
 vec3 saturation(vec3 color, float saturationAmount) { return mix( vec3(getLuminance(color)), color, saturationAmount); }
-
-vec3 cctf_decoding_sRGB(vec3 color) { 
-    return vec3(
-    (color.x<=0.04045) ? (color.x/12.92) : (powsafe((color.x+0.055)/1.055,2.4)),
-    (color.y<=0.04045) ? (color.y/12.92) : (powsafe((color.y+0.055)/1.055,2.4)),
-    (color.z<=0.04045) ? (color.z/12.92) : (powsafe((color.z+0.055)/1.055,2.4))
-    );
-}
 
 vec3 convertOpenDomainToNormalizedLog2(vec3 color, float minimum_ev, float maximum_ev){
     color = max(vec3(0.), color);
@@ -71,7 +64,7 @@ void main(){
     // * agx log * 
 	col = max(vec3(0.),col);
     col = agx_compressed_matrix*col;
-    col = convertOpenDomainToNormalizedLog2(col, -10., 6.5);
+    col = convertOpenDomainToNormalizedLog2(col, -12.47393, 4.026069);
     col = clamp(col, 0., 1.);
 
     // * agX lut *

@@ -31,8 +31,8 @@ layout( binding = 7, std430 )	buffer            uLinkedListTransparencyFrags { T
 
 uniform vec3 uCamPos;
 uniform mat4 uInvMatrix_VP;
-uniform float uShadowFar; 
-uniform mat4 uLightMatrix_VP;
+uniform float uShadowFar;		// delete
+uniform mat4 uLightMatrix_VP;	// delete
 
 uniform vec3 uLightPosition;
 uniform vec3 uLightDirection;
@@ -154,6 +154,10 @@ vec3 evaluateBRDF(in vec3 N, in vec3 L, in vec3 V, in vec3 albedo, in float meta
 	return (diffuse*diffuseRate + specular*specularRate)/totalRate * cosNL;
 }
 
+vec3 evaluateBTDF(in vec3 N, in vec3 L, in vec3 V, in vec3 albedo, in float metalness, in float roughness, in float transmitness){
+	return vec3(0.);
+}
+
 void main(){
 	// --------- TRANSPARENT ---------
     for(uint i=imageLoad(uRootTransparency, ivec2(gl_FragCoord.xy)).r ;i!=0; i=transparencyFrags[i].nextId){
@@ -165,8 +169,10 @@ void main(){
 		vec3 L, lightingIntensity;
 		computeDataLight(L,lightingIntensity,fragPos.xyz);
 
-		// should be evaluateBSDF instead
-		transparencyFrags[i].directLighting.xyz += evaluateBRDF(N,L,V,transparencyFrags[i].albedo.xyz,transparencyFrags[i].metalness,transparencyFrags[i].roughness,1.-transparencyFrags[i].albedo.a) * lightingIntensity; // * transparencyShadows[i];
+		//if(dot(L,V)<0.) transparencyFrags[i].directLighting.xyz += evaluateBTDF(N,L,V,transparencyFrags[i].albedo.xyz,transparencyFrags[i].metalness,transparencyFrags[i].roughness,1.-transparencyFrags[i].albedo.a) * lightingIntensity; // * computeShadow(N,L,fragPos.xyz);
+		//else transparencyFrags[i].directLighting.xyz += evaluateBRDF(N,L,V,transparencyFrags[i].albedo.xyz,transparencyFrags[i].metalness,transparencyFrags[i].roughness,1.-transparencyFrags[i].albedo.a) * lightingIntensity; // * computeShadow(N,L,fragPos.xyz);
+		
+		transparencyFrags[i].directLighting.xyz += evaluateBRDF(N,L,V,transparencyFrags[i].albedo.xyz,transparencyFrags[i].metalness,transparencyFrags[i].roughness,1.-transparencyFrags[i].albedo.a) * lightingIntensity; // * computeShadow(N,L,fragPos.xyz);
 	}
 
     // --------- OPAQUE ---------
@@ -183,5 +189,5 @@ void main(){
 	vec3 L, lightingIntensity;
 	computeDataLight(L,lightingIntensity,fragPos.xyz);
 
-    fragColor.xyz += evaluateBRDF(N,L,V,albedo,metalnessRoughness.x,metalnessRoughness.y,0.) * lightingIntensity * computeShadow(N,L,fragPos.xyz); //* texture(uOpaqueShadowMap,uv).xyz;
+    fragColor.xyz += evaluateBRDF(N,L,V,albedo,metalnessRoughness.x,metalnessRoughness.y,0.) * lightingIntensity * computeShadow(N,L,fragPos.xyz);
 }

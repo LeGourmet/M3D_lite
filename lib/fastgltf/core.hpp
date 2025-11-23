@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 - 2024 spnda
+ * Copyright (C) 2022 - 2025 Sean Apeler
  * This file is part of fastgltf <https://github.com/spnda/fastgltf>.
  *
  * Permission is hereby granted, free of charge, to any person
@@ -24,10 +24,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#pragma once
+#ifndef FASTGLTF_CORE_HPP
+#define FASTGLTF_CORE_HPP
 
+#if !defined(FASTGLTF_USE_STD_MODULE) || !FASTGLTF_USE_STD_MODULE
+#include <fstream>
 #include <memory>
 #include <tuple>
+#endif
 
 #include <fastgltf/types.hpp>
 
@@ -49,9 +53,9 @@ namespace simdjson::dom {
 } // namespace simdjson::dom
 
 namespace fastgltf {
-	enum class Error : std::uint64_t;
+	FASTGLTF_EXPORT enum class Error : std::uint64_t;
 
-	template <typename T>
+	FASTGLTF_EXPORT template <typename T>
 	class Expected;
 } // namespace fastgltf
 
@@ -67,7 +71,6 @@ namespace std {
 
 namespace fastgltf {
     struct BinaryGltfChunk;
-    class GltfDataBuffer;
 
     enum class Error : std::uint64_t {
 		None = 0,
@@ -88,9 +91,10 @@ namespace fastgltf {
 		InvalidURI = 11, ///< A URI from a buffer or image failed to be parsed.
 		InvalidFileData = 12, ///< The file data is invalid, or the file type could not be determined.
 		FailedWritingFiles = 13, ///< The exporter failed to write some files (buffers/images) to disk.
+		FileBufferAllocationFailed = 14, ///< The constructor of GltfDataBuffer failed to allocate a sufficiently large buffer.
     };
 
-	inline std::string_view getErrorName(Error error) {
+	FASTGLTF_EXPORT constexpr std::string_view getErrorName(Error error) {
 		switch (error) {
 			case Error::None: return "None";
 			case Error::InvalidPath: return "InvalidPath";
@@ -106,11 +110,12 @@ namespace fastgltf {
 			case Error::InvalidURI: return "InvalidURI";
             case Error::InvalidFileData: return "InvalidFileData";
             case Error::FailedWritingFiles: return "FailedWritingFiles";
+			case Error::FileBufferAllocationFailed: return "FileBufferAllocationFailed";
 			default: FASTGLTF_UNREACHABLE
 		}
 	}
 
-	inline std::string_view getErrorMessage(Error error) {
+	FASTGLTF_EXPORT constexpr std::string_view getErrorMessage(Error error) {
 		switch (error) {
 			case Error::None: return "";
 			case Error::InvalidPath: return "The glTF directory passed to load*GLTF is invalid";
@@ -126,12 +131,13 @@ namespace fastgltf {
 			case Error::InvalidURI: return "A URI from a buffer or image failed to be parsed.";
             case Error::InvalidFileData: return "The file data is invalid, or the file type could not be determined.";
             case Error::FailedWritingFiles: return "The exporter failed to write some files (buffers/images) to disk.";
+			case Error::FileBufferAllocationFailed: return "The constructor of GltfDataBuffer failed to allocate a sufficiently large buffer.";
 			default: FASTGLTF_UNREACHABLE
 		}
 	}
 
 	// clang-format off
-    enum class Extensions : std::uint64_t {
+    FASTGLTF_EXPORT enum class Extensions : std::uint64_t {
         None = 0,
 
         // See https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_texture_transform/README.md
@@ -204,6 +210,37 @@ namespace fastgltf {
 
 		// See https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_materials_variants
 		KHR_materials_variants = 1 << 24,
+
+		// See https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_accessor_float64
+		KHR_accessor_float64 = 1 << 25,
+
+		// See https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_draco_mesh_compression
+		KHR_draco_mesh_compression = 1 << 26,
+
+#if FASTGLTF_ENABLE_KHR_IMPLICIT_SHAPES
+		// See https://github.com/KhronosGroup/glTF/pull/2370
+		KHR_implicit_shapes = 1 << 27,
+#endif
+
+#if FASTGLTF_ENABLE_KHR_PHYSICS_RIGID_BODIES
+		// See https://github.com/KhronosGroup/glTF/pull/2424
+		KHR_physics_rigid_bodies = 1 << 28,
+#endif
+
+		// See https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Vendor/GODOT_single_root
+		GODOT_single_root = 1 << 29,
+
+		// See https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_materials_diffuse_transmission
+		KHR_materials_diffuse_transmission = 1 << 30,
+
+		// See https://github.com/KhronosGroup/glTF/pull/2410
+		KHR_node_visibility = 1ULL << 31,
+
+		// See https://github.com/KhronosGroup/glTF/pull/2422
+		KHR_node_selectability = 1ULL << 32,
+
+		// See https://github.com/KhronosGroup/glTF/pull/2426
+		KHR_node_hoverability = 1ULL << 33,
     };
     // clang-format on
 
@@ -214,17 +251,19 @@ namespace fastgltf {
     FASTGLTF_ASSIGNMENT_OP_TEMPLATE_MACRO(Extensions, Extensions, &)
     FASTGLTF_UNARY_OP_TEMPLATE_MACRO(Extensions, ~)
 
-	constexpr Extensions operator-(const Extensions& a, const std::underlying_type_t<Extensions>& b) noexcept {
+	FASTGLTF_EXPORT constexpr Extensions operator-(const Extensions& a, const std::underlying_type_t<Extensions>& b) noexcept {
 		static_assert(std::is_enum_v<Extensions>);
 		return static_cast<Extensions>(to_underlying(a) - b);
 	}
 
     // clang-format off
-    enum class Options : std::uint64_t {
+    FASTGLTF_EXPORT enum class Options : std::uint64_t {
         None                            = 0,
         /**
          * This allows 5130 as an accessor component type. 5130 is the OpenGL constant GL_DOUBLE,
          * which is by default not listed as an allowed component type in the glTF spec.
+         * The KHR_accessor_float64 extension offers the same functionality, so if your assets
+         * require double precision floats, using that extension instead is encouraged.
          *
          * The glTF normally only allows these component types:
          * https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#accessor-data-types
@@ -241,7 +280,7 @@ namespace fastgltf {
          * a byte offset and length into the GLB file, which can be useful when using APIs like
          * DirectStorage or Metal IO.
          */
-        LoadGLBBuffers                  = 1 << 3,
+		LoadGLBBuffers [[deprecated("This is now default behaviour")]]   = 1 << 3,
 
         /**
          * Loads all external buffers into CPU memory. If disabled, fastgltf will only provide
@@ -260,16 +299,6 @@ namespace fastgltf {
         DecomposeNodeMatrices           = 1 << 5,
 
         /**
-         * This option makes fastgltf minimise the JSON file before parsing. In most cases,
-         * minimising it beforehand actually reduces the time spent. However, there are plenty
-         * of cases where this option slows down parsing drastically, which from my testing seem
-         * to all be glTFs which contain embedded buffers and/or are already minimised. Note that
-         * fastgltf only minimises the string if the data was loaded using GltfDataBuffer::loadFromFile
-         * or GltfDataBuffer::copyBytes, and that the bytes will also be overwritten.
-         */
-        MinimiseJsonBeforeParsing       = 1 << 6,
-
-        /**
          * Loads all external images into CPU memory. It does not decode any texture data. Complementary
          * to LoadExternalBuffers.
          */
@@ -283,7 +312,7 @@ namespace fastgltf {
 		GenerateMeshIndices             = 1 << 8,
     };
 
-    enum class ExportOptions : std::uint64_t {
+    FASTGLTF_EXPORT enum class ExportOptions : std::uint64_t {
         None                            = 0,
 
         /**
@@ -314,9 +343,13 @@ namespace fastgltf {
         constexpr std::string_view EXT_mesh_gpu_instancing = "EXT_mesh_gpu_instancing";
         constexpr std::string_view EXT_meshopt_compression = "EXT_meshopt_compression";
         constexpr std::string_view EXT_texture_webp = "EXT_texture_webp";
+		constexpr std::string_view GODOT_single_root = "GODOT_single_root";
+		constexpr std::string_view KHR_accessor_float64 = "KHR_accessor_float64";
+		constexpr std::string_view KHR_draco_mesh_compression = "KHR_draco_mesh_compression";
         constexpr std::string_view KHR_lights_punctual = "KHR_lights_punctual";
 		constexpr std::string_view KHR_materials_anisotropy = "KHR_materials_anisotropy";
         constexpr std::string_view KHR_materials_clearcoat = "KHR_materials_clearcoat";
+		constexpr std::string_view KHR_materials_diffuse_transmission = "KHR_materials_diffuse_transmission";
 		constexpr std::string_view KHR_materials_dispersion = "KHR_materials_dispersion";
         constexpr std::string_view KHR_materials_emissive_strength = "KHR_materials_emissive_strength";
         constexpr std::string_view KHR_materials_ior = "KHR_materials_ior";
@@ -328,6 +361,9 @@ namespace fastgltf {
 		constexpr std::string_view KHR_materials_variants = "KHR_materials_variants";
         constexpr std::string_view KHR_materials_volume = "KHR_materials_volume";
         constexpr std::string_view KHR_mesh_quantization = "KHR_mesh_quantization";
+        constexpr std::string_view KHR_node_visibility = "KHR_node_visibility";
+        constexpr std::string_view KHR_node_selectability = "KHR_node_selectability";
+        constexpr std::string_view KHR_node_hoverability = "KHR_node_hoverability";
         constexpr std::string_view KHR_texture_basisu = "KHR_texture_basisu";
         constexpr std::string_view KHR_texture_transform = "KHR_texture_transform";
 	    constexpr std::string_view MSFT_packing_normalRoughnessMetallic = "MSFT_packing_normalRoughnessMetallic";
@@ -337,24 +373,31 @@ namespace fastgltf {
 #if FASTGLTF_ENABLE_DEPRECATED_EXT
         constexpr std::string_view KHR_materials_pbrSpecularGlossiness = "KHR_materials_pbrSpecularGlossiness";
 #endif
+
+#if FASTGLTF_ENABLE_KHR_IMPLICIT_SHAPES
+		constexpr std::string_view KHR_implicit_shapes = "KHR_implicit_shapes";
+#endif
+
+#if FASTGLTF_ENABLE_KHR_PHYSICS_RIGID_BODIES
+		constexpr std::string_view KHR_physics_rigid_bodies = "KHR_physics_rigid_bodies";
+#endif
     } // namespace extensions
 
 	// clang-format off
 	// An array of pairs of string representations of extension identifiers and their respective enum
 	// value used for enabling/disabling the loading of it. This also represents all extensions that
 	// fastgltf supports and understands.
-#if FASTGLTF_ENABLE_DEPRECATED_EXT
-	static constexpr std::size_t SUPPORTED_EXTENSION_COUNT = 23;
-#else
-	static constexpr std::size_t SUPPORTED_EXTENSION_COUNT = 22;
-#endif
-	static constexpr std::array<std::pair<std::string_view, Extensions>, SUPPORTED_EXTENSION_COUNT> extensionStrings = {{
+	static constexpr auto extensionStrings = to_array<std::pair<std::string_view, Extensions>>({
 		{ extensions::EXT_mesh_gpu_instancing,                  Extensions::EXT_mesh_gpu_instancing },
 		{ extensions::EXT_meshopt_compression,                  Extensions::EXT_meshopt_compression },
 		{ extensions::EXT_texture_webp,                         Extensions::EXT_texture_webp },
+		{ extensions::GODOT_single_root,                        Extensions::GODOT_single_root },
+		{ extensions::KHR_accessor_float64,                     Extensions::KHR_accessor_float64 },
+		{ extensions::KHR_draco_mesh_compression,               Extensions::KHR_draco_mesh_compression },
 		{ extensions::KHR_lights_punctual,                      Extensions::KHR_lights_punctual },
 		{ extensions::KHR_materials_anisotropy,                 Extensions::KHR_materials_anisotropy },
 		{ extensions::KHR_materials_clearcoat,                  Extensions::KHR_materials_clearcoat },
+		{ extensions::KHR_materials_diffuse_transmission,       Extensions::KHR_materials_diffuse_transmission },
 		{ extensions::KHR_materials_dispersion,                 Extensions::KHR_materials_dispersion },
 		{ extensions::KHR_materials_emissive_strength,          Extensions::KHR_materials_emissive_strength },
 		{ extensions::KHR_materials_ior,                        Extensions::KHR_materials_ior },
@@ -366,17 +409,28 @@ namespace fastgltf {
 		{ extensions::KHR_materials_variants,                   Extensions::KHR_materials_variants },
 		{ extensions::KHR_materials_volume,                     Extensions::KHR_materials_volume },
 		{ extensions::KHR_mesh_quantization,                    Extensions::KHR_mesh_quantization },
+		{ extensions::KHR_node_visibility,                      Extensions::KHR_node_visibility },
+		{ extensions::KHR_node_selectability,                   Extensions::KHR_node_selectability },
+		{ extensions::KHR_node_hoverability,                    Extensions::KHR_node_hoverability },
 		{ extensions::KHR_texture_basisu,                       Extensions::KHR_texture_basisu },
 		{ extensions::KHR_texture_transform,                    Extensions::KHR_texture_transform },
 		{ extensions::MSFT_packing_normalRoughnessMetallic,     Extensions::MSFT_packing_normalRoughnessMetallic },
 		{ extensions::MSFT_packing_occlusionRoughnessMetallic,  Extensions::MSFT_packing_occlusionRoughnessMetallic },
 		{ extensions::MSFT_texture_dds,                         Extensions::MSFT_texture_dds },
-
 #if FASTGLTF_ENABLE_DEPRECATED_EXT
 		{ extensions::KHR_materials_pbrSpecularGlossiness,Extensions::KHR_materials_pbrSpecularGlossiness },
 #endif
-	}};
+
+#if FASTGLTF_ENABLE_KHR_IMPLICIT_SHAPES
+        {extensions::KHR_implicit_shapes,						Extensions::KHR_implicit_shapes},
+#endif
+
+#if FASTGLTF_ENABLE_KHR_PHYSICS_RIGID_BODIES
+		{ extensions::KHR_physics_rigid_bodies,					Extensions::KHR_physics_rigid_bodies },
+#endif
+	});
 	// clang-format on
+	static constexpr std::size_t SUPPORTED_EXTENSION_COUNT = extensionStrings.size();
 
 	/**
 	 * Returns the name of the passed glTF extension.
@@ -384,6 +438,7 @@ namespace fastgltf {
 	 * @note If \p extensions has more than one bit set (multiple extensions), this
 	 * will return the name of the first set bit.
 	 */
+	FASTGLTF_EXPORT
 #if FASTGLTF_CPP_20
 	constexpr
 #else
@@ -402,11 +457,12 @@ namespace fastgltf {
 	/**
 	 * Returns a list of extension names based on the given extension flags.
 	 */
-	inline auto stringifyExtensionBits(Extensions extensions) -> decltype(Asset::extensionsRequired) {
+	FASTGLTF_EXPORT inline auto stringifyExtensionBits(const Extensions extensions) -> decltype(Asset::extensionsRequired) {
 		decltype(Asset::extensionsRequired) stringified;
 		for (std::uint8_t i = 0; i < std::numeric_limits<std::underlying_type_t<Extensions>>::digits; ++i) {
 			// The 1 has to be cast to the underlying type as uint8_t(1) << 9 will overflow and be effectively the same as uint8_t(1).
-			auto curExtension = static_cast<Extensions>(std::underlying_type_t<Extensions>(1) << i);
+			auto curExtension = static_cast<Extensions>(
+				static_cast<std::underlying_type_t<Extensions>>(1) << i);
 			if ((extensions & curExtension) == Extensions::None)
 				continue;
 
@@ -420,69 +476,6 @@ namespace fastgltf {
 		}
 		return stringified;
 	}
-
-#if !FASTGLTF_DISABLE_CUSTOM_MEMORY_POOL
-	class ChunkMemoryResource : public std::pmr::memory_resource {
-		/**
-		 * The default size of the individual blocks we allocate.
-		 */
-		constexpr static std::size_t blockSize = 2048;
-
-		struct Block {
-			std::unique_ptr<std::byte[]> data;
-			std::size_t size;
-
-			std::byte* dataPointer;
-		};
-		SmallVector<Block, 4> blocks;
-		std::size_t blockIdx = 0;
-
-	public:
-		explicit ChunkMemoryResource() {
-			allocateNewBlock();
-		}
-
-		void allocateNewBlock() {
-			auto& block = blocks.emplace_back();
-			block.data = std::unique_ptr<std::byte[]>(new std::byte[blockSize]);
-			block.dataPointer = block.data.get();
-			block.size = blockSize;
-		}
-
-		[[nodiscard]] void* do_allocate(std::size_t bytes, std::size_t alignment) override {
-			auto& block = blocks[blockIdx];
-			auto availableSize = static_cast<std::size_t>(block.dataPointer - block.data.get());
-			if ((availableSize + bytes) > block.size) {
-				// The block can't fit the new allocation. We'll just create a new block and use that.
-				allocateNewBlock();
-				++blockIdx;
-				return do_allocate(bytes, alignment);
-			}
-
-			void* alloc = block.dataPointer;
-			std::size_t space = availableSize;
-			if (std::align(alignment, availableSize, alloc, space) == nullptr) {
-				// Not enough space after alignment
-				allocateNewBlock();
-				++blockIdx;
-				return do_allocate(bytes, alignment);
-			}
-
-			// Get the number of bytes used for padding, and calculate the new offset using that
-			block.dataPointer = block.dataPointer + (availableSize - space) + bytes;
-			return alloc;
-		}
-
-		void do_deallocate([[maybe_unused]] void* p, [[maybe_unused]] std::size_t bytes, [[maybe_unused]] std::size_t alignment) override {
-			// We currently do nothing, as we don't keep track of what portions of the blocks are still used.
-			// Therefore, we keep all blocks alive until the destruction of this resource (parser).
-		}
-
-		[[nodiscard]] bool do_is_equal(const std::pmr::memory_resource& other) const noexcept override {
-			return this == std::addressof(other);
-		}
-	};
-#endif
 
 	/**
 	 * A type that stores an error together with an expected value.
@@ -499,14 +492,14 @@ namespace fastgltf {
 		T value;
 
 	public:
-		explicit Expected(Error error) : err(error) {}
-		explicit Expected(T&& value) : err(Error::None), value(std::move(value)) {}
+		Expected(Error error) : err(error) {}
+		Expected(T&& value) : err(Error::None), value(std::forward<T>(value)) {}
 
-		Expected(const Expected<T>& other) = delete;
-		Expected(Expected<T>&& other) noexcept : err(other.err), value(std::move(other.value)) {}
+		Expected(const Expected& other) = delete;
+		Expected(Expected&& other) noexcept : err(other.err), value(std::move(other.value)) {}
 
-		Expected<T>& operator=(const Expected<T>& other) = delete;
-		Expected<T>& operator=(Expected<T>&& other) noexcept {
+		Expected& operator=(const Expected& other) = delete;
+		Expected& operator=(Expected&& other) noexcept {
 			err = other.err;
 			value = std::move(other.value);
 			return *this;
@@ -535,13 +528,13 @@ namespace fastgltf {
 		}
 
 		template <std::size_t I>
-		auto& get() noexcept {
+		[[nodiscard]] auto& get() noexcept {
 			if constexpr (I == 0) return err;
 			else if constexpr (I == 1) return value;
 		}
 
 		template <std::size_t I>
-		const auto& get() const noexcept {
+		[[nodiscard]] const auto& get() const noexcept {
 			if constexpr (I == 0) return err;
 			else if constexpr (I == 1) return value;
 		}
@@ -550,7 +543,7 @@ namespace fastgltf {
 		 * Returns the address of the value of T.
 		 * When error() returns anything but Error::None, the returned value is undefined.
 		 */
-		T* operator->() noexcept {
+		[[nodiscard]] T* operator->() noexcept {
 			assert(err == Error::None);
 			return std::addressof(value);
 		}
@@ -559,43 +552,247 @@ namespace fastgltf {
 		 * Returns the address of the const value of T.
 		 * When error() returns anything but Error::None, the returned value is undefined.
 		 */
-		const T* operator->() const noexcept {
+		[[nodiscard]] const T* operator->() const noexcept {
 			assert(err == Error::None);
 			return std::addressof(value);
 		}
 
-		T&& operator*() && noexcept {
+		[[nodiscard]] T&& operator*() && noexcept {
 			assert(err == Error::None);
 			return std::move(value);
 		}
 
-		operator bool() const noexcept {
+		[[nodiscard]] operator bool() const noexcept {
 			return err == Error::None;
 		}
 	};
 
-    struct BufferInfo {
+    FASTGLTF_EXPORT struct BufferInfo {
         void* mappedMemory;
         CustomBufferId customId;
     };
 
-    using BufferMapCallback = BufferInfo(std::uint64_t bufferSize, void* userPointer);
-    using BufferUnmapCallback = void(BufferInfo* bufferInfo, void* userPointer);
-    using Base64DecodeCallback = void(std::string_view base64, std::uint8_t* dataOutput, std::size_t padding, std::size_t dataOutputSize, void* userPointer);
-	using ExtrasParseCallback = void(simdjson::dom::object* extras, std::size_t objectIndex, Category objectType, void* userPointer);
-	using ExtrasWriteCallback = std::optional<std::string>(std::size_t objectIndex, Category objectType, void* userPointer);
+    FASTGLTF_EXPORT using BufferMapCallback = BufferInfo(std::uint64_t bufferSize, void* userPointer);
+    FASTGLTF_EXPORT using BufferUnmapCallback = void(BufferInfo* bufferInfo, void* userPointer);
+    FASTGLTF_EXPORT using Base64DecodeCallback = void(std::string_view base64, std::uint8_t* dataOutput, std::size_t padding, std::size_t dataOutputSize, void* userPointer);
+	FASTGLTF_EXPORT using ExtrasParseCallback = void(simdjson::dom::object* extras, std::size_t objectIndex, Category objectType, void* userPointer);
+	FASTGLTF_EXPORT using ExtrasWriteCallback = std::optional<std::string>(std::size_t objectIndex, Category objectType, void* userPointer);
 
-    /**
-     * Enum to represent the type of a glTF file. glTFs can either be the standard JSON file with
-     * paths to buffers or with a base64 embedded buffers, or they can be in a so called GLB
-     * container format which has two or more chunks of binary data, where one represents buffers
-     * and the other contains the JSON string.
-     */
-    enum class GltfType : std::uint8_t {
-        glTF,
-        GLB,
-        Invalid,
-    };
+	/**
+	 * This interface defines how the parser can read the bytes making up a glTF or GLB file.
+	 */
+	FASTGLTF_EXPORT class GltfDataGetter {
+	public:
+		virtual ~GltfDataGetter() noexcept = default;
+
+		/**
+		 * The read functions expect the implementation to store an offset from the start
+		 * of the buffer/file to the current position. The parse process will always linearly
+		 * access the memory, meaning it will go through the memory once from start to finish.
+		 */
+		virtual void read(void* ptr, std::size_t count) = 0;
+		/**
+		 * Reads a chunk of memory from the current offset, with some amount of padding.
+		 * This padding is necessary for the simdjson parser, but can be initialized to anything.
+		 * The memory pointed to by the span only needs to live until the next call to read().
+		 */
+		[[nodiscard]] virtual span<std::byte> read(std::size_t count, std::size_t padding) = 0;
+
+		/**
+		 * Reset is used to put the offset index back to the start of the buffer/file.
+		 * This is only necessary for functionality like determineGltfFileType. However, reset()
+		 * will be called at the beginning of every parse process.
+		 */
+		virtual void reset() = 0;
+
+		[[nodiscard]] virtual std::size_t bytesRead() = 0;
+		[[nodiscard]] virtual std::size_t totalSize() = 0;
+	};
+
+	FASTGLTF_EXPORT class GltfDataBuffer : public GltfDataGetter {
+	protected:
+		std::unique_ptr<std::byte[]> buffer;
+
+		std::size_t allocatedSize = 0;
+		std::size_t dataSize = 0;
+
+		std::size_t idx = 0;
+
+		Error error = Error::None;
+
+		void allocateAndCopy(const std::byte* bytes) noexcept;
+
+		explicit GltfDataBuffer(const std::filesystem::path& path) noexcept;
+		explicit GltfDataBuffer(const std::byte* bytes, std::size_t count) noexcept;
+#if FASTGLTF_CPP_20
+		explicit GltfDataBuffer(std::span<std::byte> span) noexcept;
+#endif
+
+	public:
+		explicit GltfDataBuffer() noexcept = default;
+		GltfDataBuffer(const GltfDataBuffer& other) = delete;
+		GltfDataBuffer& operator=(const GltfDataBuffer& other) = delete;
+		GltfDataBuffer(GltfDataBuffer&& other) noexcept = default;
+		GltfDataBuffer& operator=(GltfDataBuffer&& other) noexcept = default;
+		~GltfDataBuffer() noexcept override = default;
+
+		static Expected<GltfDataBuffer> FromPath(const std::filesystem::path& path) noexcept {
+			GltfDataBuffer buffer(path);
+			if (buffer.error != Error::None) {
+				return buffer.error;
+			}
+			return buffer;
+		}
+
+		static Expected<GltfDataBuffer> FromBytes(const std::byte* bytes, std::size_t count) noexcept {
+			GltfDataBuffer buffer(bytes, count);
+			if (buffer.error != Error::None) {
+				return buffer.error;
+			}
+			return buffer;
+		}
+
+#if FASTGLTF_CPP_20
+		static Expected<GltfDataBuffer> FromSpan(std::span<std::byte> data) noexcept {
+			GltfDataBuffer buffer(data);
+			if (buffer.buffer.get() == nullptr) {
+				return buffer.error;
+			}
+			return buffer;
+		}
+#endif
+
+		void read(void* ptr, std::size_t count) override;
+
+		[[nodiscard]] span<std::byte> read(std::size_t count, std::size_t padding) override;
+
+		void reset() override;
+
+		[[nodiscard]] std::size_t bytesRead() override;
+
+		[[nodiscard]] std::size_t totalSize() override;
+
+		[[nodiscard]] explicit operator span<std::byte>() const {
+			return span(buffer.get(), dataSize);
+		}
+	};
+
+#if defined(_WIN32)
+#include <winapifamily.h>
+#endif
+
+#if defined(__APPLE__) || defined(__linux__) || (defined(_WIN32) && !(defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_APP)))
+#define FASTGLTF_HAS_MEMORY_MAPPED_FILE 1
+	/**
+	 * Memory-maps a file. This uses mmap on macOS and Linux, and MapViewOfFile on Windows, and is not available elsewhere.
+	 * You should check for FASTGLTF_HAS_MEMORY_MAPPED_FILE before using this class.
+	 */
+	FASTGLTF_EXPORT class MappedGltfFile : public GltfDataGetter {
+		void* mappedFile = nullptr;
+#if defined(_WIN32)
+		// Windows requires us to keep the file handle alive. Win32 HANDLE is a void*.
+		void* fileHandle = nullptr;
+		void* fileMapping = nullptr;
+#endif
+		std::uint64_t fileSize = 0;
+
+		std::size_t idx = 0;
+
+		Error error = Error::None;
+
+		explicit MappedGltfFile(const std::filesystem::path& path) noexcept;
+
+	public:
+		explicit MappedGltfFile() = default;
+		MappedGltfFile(const MappedGltfFile& other) = delete;
+		MappedGltfFile& operator=(const MappedGltfFile& other) = delete;
+		MappedGltfFile(MappedGltfFile&& other) noexcept;
+		MappedGltfFile& operator=(MappedGltfFile&& other) noexcept;
+		~MappedGltfFile() noexcept override;
+
+		/** Memory maps a file. If this fails, you can check std::strerror for a more exact error. */
+		static Expected<MappedGltfFile> FromPath(const std::filesystem::path& path) noexcept {
+			MappedGltfFile buffer(path);
+			if (buffer.error != Error::None) {
+				return buffer.error;
+			}
+			return buffer;
+		}
+
+		void read(void* ptr, std::size_t count) override;
+
+		[[nodiscard]] span<std::byte> read(std::size_t count, std::size_t padding) override;
+
+		void reset() override;
+
+		[[nodiscard]] std::size_t bytesRead() override;
+
+		[[nodiscard]] std::size_t totalSize() override;
+
+		[[nodiscard]] explicit operator span<std::byte>() const {
+			return span(static_cast<std::byte*>(mappedFile), fileSize);
+		}
+	};
+#endif
+
+	FASTGLTF_EXPORT class GltfFileStream : public GltfDataGetter {
+		std::ifstream fileStream;
+		std::vector<std::ifstream::char_type> buf;
+
+		std::size_t fileSize;
+
+	public:
+		explicit GltfFileStream(const std::filesystem::path& path);
+		~GltfFileStream() noexcept override = default;
+
+		[[nodiscard]] bool isOpen() const;
+
+		void read(void* ptr, std::size_t count) override;
+
+		[[nodiscard]] span<std::byte> read(std::size_t count, std::size_t padding) override;
+
+		void reset() override;
+
+		[[nodiscard]] std::size_t bytesRead() override;
+
+		[[nodiscard]] std::size_t totalSize() override;
+	};
+
+    #if defined(__ANDROID__)
+	FASTGLTF_EXPORT void setAndroidAssetManager(AAssetManager* assetManager) noexcept;
+
+    FASTGLTF_EXPORT class AndroidGltfDataBuffer : public GltfDataBuffer {
+		explicit AndroidGltfDataBuffer(const std::filesystem::path& path, std::uint64_t byteOffset) noexcept;
+
+    public:
+        explicit AndroidGltfDataBuffer() noexcept = default;
+        AndroidGltfDataBuffer(const AndroidGltfDataBuffer& other) = delete;
+        AndroidGltfDataBuffer& operator=(const AndroidGltfDataBuffer& other) = delete;
+        AndroidGltfDataBuffer(AndroidGltfDataBuffer&& other) noexcept = default;
+        AndroidGltfDataBuffer& operator=(AndroidGltfDataBuffer&& other) noexcept = default;
+        ~AndroidGltfDataBuffer() noexcept override = default;
+
+		static Expected<AndroidGltfDataBuffer> FromAsset(const std::filesystem::path& path, std::uint64_t byteOffset = 0) noexcept {
+			AndroidGltfDataBuffer buffer(path, byteOffset);
+			if (buffer.buffer.get() == nullptr) {
+				return buffer.error;
+			}
+			return buffer;
+		}
+	};
+	#endif
+
+	/**
+	 * Enum to represent the type of a glTF file. glTFs can either be the standard JSON file with
+	 * paths to buffers or with a base64 embedded buffers, or they can be in a so called GLB
+	 * container format which has two or more chunks of binary data, where one represents buffers
+	 * and the other contains the JSON string.
+	 */
+	FASTGLTF_EXPORT enum class GltfType : std::uint8_t {
+		glTF,
+		GLB,
+		Invalid,
+	};
 
 	/**
 	 * This function starts reading into the buffer and tries to determine what type of glTF container it is.
@@ -606,96 +803,14 @@ namespace fastgltf {
 	 * @return The type of the glTF file, either glTF, GLB, or Invalid if it was not determinable. If this function
 	 * returns Invalid it is highly likely that the buffer does not actually represent a valid glTF file.
 	 */
-    GltfType determineGltfFileType(GltfDataBuffer* buffer);
-
-    /**
-     * Gets the amount of byte padding required on the GltfDataBuffer, as simdjson requires to be
-     * able to overflow as it uses SIMD to load N bytes at a time.
-     */
-    std::size_t getGltfBufferPadding() noexcept;
-
-    /**
-     * This class holds a chunk of data that makes up a JSON string that the glTF parser will use
-     * and read from.
-     */
-    class GltfDataBuffer {
-        friend class Parser;
-        friend GltfType determineGltfFileType(GltfDataBuffer* buffer);
-
-    protected:
-        std::size_t allocatedSize = 0;
-        std::size_t dataSize = 0;
-        std::byte* bufferPointer = nullptr;
-
-        std::unique_ptr<std::byte[]> buffer;
-
-        std::filesystem::path filePath = {};
-
-    public:
-        explicit GltfDataBuffer() noexcept;
-
-		/**
-		 * Constructs a new GltfDataBuffer from a span object, copying its data as there
-		 * is no guarantee for the allocation size to have the adequate padding.
-		 */
-		explicit GltfDataBuffer(span<std::byte> data) noexcept;
-
-        virtual ~GltfDataBuffer() noexcept;
-
-        /**
-         * Saves the given pointer including the given range.
-         * If the capacity of the allocation minus the used size is smaller than fastgltf::getGltfBufferPadding,
-         * this function will re-allocate and copy the bytes.
-         * Also, it will set the padding bytes all to 0, so be sure to not use that for any other data.
-         */
-        bool fromByteView(std::uint8_t* bytes, std::size_t byteCount, std::size_t capacity) noexcept;
-
-        /**
-         * This will create a copy of the passed bytes and allocate an adequately sized buffer.
-         */
-        bool copyBytes(const std::uint8_t* bytes, std::size_t byteCount) noexcept;
-
-        /**
-         * Loads the file with a optional byte offset into a memory buffer.
-         */
-        bool loadFromFile(const std::filesystem::path& path, std::uint64_t byteOffset = 0) noexcept;
-
-        /**
-         * Returns the size, in bytes,
-         * @return
-         */
-        [[nodiscard]] std::size_t getBufferSize() const noexcept {
-			return dataSize;
-		}
-
-        [[nodiscard]] explicit operator span<std::byte>() {
-            return span<std::byte>(bufferPointer, dataSize);
-        }
-    };
-
-    #if defined(__ANDROID__)
-	void setAndroidAssetManager(AAssetManager* assetManager) noexcept;
-
-    class AndroidGltfDataBuffer : public GltfDataBuffer {
-    public:
-        explicit AndroidGltfDataBuffer() noexcept;
-        ~AndroidGltfDataBuffer() noexcept = default;
-
-        /**
-         * Loads a file from within an Android APK.
-         *
-         * @note This requires a valid AAssetManager to have been specified through fastgltf::setAndroidAssetManager.
-         */
-        bool loadFromAndroidAsset(const std::filesystem::path& path, std::uint64_t byteOffset = 0) noexcept;
-    };
-	#endif
+	FASTGLTF_EXPORT GltfType determineGltfFileType(GltfDataGetter& data);
 
 	/**
 	 * This function further validates all the input more strictly that is parsed from the glTF.
 	 * Realistically, this should not be necessary in Release applications, but could be helpful
 	 * when debugging an asset related issue.
 	*/
-	[[nodiscard]] Error validate(const Asset& asset);
+	FASTGLTF_EXPORT [[nodiscard]] Error validate(const Asset& asset);
 
     /**
      * Some internals the parser passes on to each glTF instance.
@@ -724,7 +839,7 @@ namespace fastgltf {
 		ParserInternalConfig config = {};
 		DataSource glbBuffer;
 #if !FASTGLTF_DISABLE_CUSTOM_MEMORY_POOL
-		std::shared_ptr<ChunkMemoryResource> resourceAllocator;
+		std::shared_ptr<std::pmr::monotonic_buffer_resource> resourceAllocator;
 #endif
 		std::filesystem::path directory;
 		Options options = Options::None;
@@ -732,7 +847,10 @@ namespace fastgltf {
 		static auto getMimeTypeFromString(std::string_view mime) -> MimeType;
 		static void fillCategories(Category& inputCategories) noexcept;
 
-		[[nodiscard]] auto decodeDataUri(URIView& uri) const noexcept -> Expected<DataSource>;
+		template <typename T>
+		Error parseAttributes(simdjson::dom::object& object, T& attributes);
+
+		[[nodiscard]] auto decodeDataUri(const URIView& uri) const noexcept -> Expected<DataSource>;
 		[[nodiscard]] auto loadFileFromUri(URIView& uri) const noexcept -> Expected<DataSource>;
 #if defined(__ANDROID__)
 		[[nodiscard]] auto loadFileFromApk(const std::filesystem::path& filepath) const noexcept -> Expected<DataSource>;
@@ -740,22 +858,33 @@ namespace fastgltf {
 
 		Error generateMeshIndices(Asset& asset) const;
 
-		Error parseAccessors(simdjson::dom::array& array, Asset& asset);
+		Error parseAccessors(const simdjson::dom::array& array, Asset& asset);
 		Error parseAnimations(simdjson::dom::array& array, Asset& asset);
 		Error parseBuffers(simdjson::dom::array& array, Asset& asset);
-		Error parseBufferViews(simdjson::dom::array& array, Asset& asset);
+		Error parseBufferViews(const simdjson::dom::array& array, Asset& asset);
 		Error parseCameras(simdjson::dom::array& array, Asset& asset);
-		Error parseExtensions(simdjson::dom::object& extensionsObject, Asset& asset);
+		Error parseExtensions(const simdjson::dom::object& extensionsObject, Asset& asset);
 		Error parseImages(simdjson::dom::array& array, Asset& asset);
-		Error parseLights(simdjson::dom::array& array, Asset& asset);
+		Error parseLights(const simdjson::dom::array& array, Asset& asset);
 		Error parseMaterialExtensions(simdjson::dom::object& object, Material& material);
 		Error parseMaterials(simdjson::dom::array& array, Asset& asset);
+		Error parsePrimitiveExtensions(const simdjson::dom::object& object, Primitive& primitive);
 		Error parseMeshes(simdjson::dom::array& array, Asset& asset);
 		Error parseNodes(simdjson::dom::array& array, Asset& asset);
-		Error parseSamplers(simdjson::dom::array& array, Asset& asset);
-		Error parseScenes(simdjson::dom::array& array, Asset& asset);
-		Error parseSkins(simdjson::dom::array& array, Asset& asset);
-		Error parseTextures(simdjson::dom::array& array, Asset& asset);
+		Error parseSamplers(const simdjson::dom::array& array, Asset& asset);
+		Error parseScenes(const simdjson::dom::array& array, Asset& asset);
+		Error parseSkins(const simdjson::dom::array& array, Asset& asset);
+		Error parseTextures(const simdjson::dom::array& array, Asset& asset);
+#if FASTGLTF_ENABLE_KHR_IMPLICIT_SHAPES
+		Error parseShapes(const simdjson::dom::array& shapes, Asset& asset);
+#endif
+#if FASTGLTF_ENABLE_KHR_PHYSICS_RIGID_BODIES
+		Error parsePhysicsMaterials(const simdjson::dom::array& physicsMaterials, Asset& asset);
+		Error parseCollisionFilters(const simdjson::dom::array& collisionFilters, Asset& asset);
+		Error parsePhysicsJoints(const simdjson::dom::array& physicsJoints, Asset& asset);
+
+		Error parsePhysicsRigidBody(simdjson::dom::object& khr_physics_rigid_bodies, Node& node);
+#endif
 		Expected<Asset> parse(simdjson::dom::object root, Category categories);
 
     public:
@@ -774,21 +903,21 @@ namespace fastgltf {
          *
          * @return An Asset wrapped in an Expected type, which may contain an error if one occurred.
          */
-        [[nodiscard]] Expected<Asset> loadGltf(GltfDataBuffer* buffer, std::filesystem::path directory, Options options = Options::None, Category categories = Category::All);
+        [[nodiscard]] Expected<Asset> loadGltf(GltfDataGetter& buffer, std::filesystem::path directory, Options options = Options::None, Category categories = Category::All);
 
         /**
          * Loads a glTF file from pre-loaded bytes representing a JSON file.
          *
          * @return An Asset wrapped in an Expected type, which may contain an error if one occurred.
          */
-        [[nodiscard]] Expected<Asset> loadGltfJson(GltfDataBuffer* buffer, std::filesystem::path directory, Options options = Options::None, Category categories = Category::All);
+        [[nodiscard]] Expected<Asset> loadGltfJson(GltfDataGetter& buffer, std::filesystem::path directory, Options options = Options::None, Category categories = Category::All);
 
 		/**
 		 * Loads a glTF file embedded within a GLB container, which may contain the first buffer of the glTF asset.
 		 *
          * @return An Asset wrapped in an Expected type, which may contain an error if one occurred.
 		 */
-		[[nodiscard]] Expected<Asset> loadGltfBinary(GltfDataBuffer* buffer, std::filesystem::path directory, Options options = Options::None, Category categories = Category::All);
+		[[nodiscard]] Expected<Asset> loadGltfBinary(GltfDataGetter& buffer, std::filesystem::path directory, Options options = Options::None, Category categories = Category::All);
 
         /**
          * This function can be used to set callbacks so that you can control memory allocation for
@@ -835,7 +964,7 @@ namespace fastgltf {
      */
     std::string escapeString(std::string_view string);
 
-    template <typename T>
+    FASTGLTF_EXPORT template <typename T>
     struct ExportResult {
         T output;
 
@@ -850,7 +979,7 @@ namespace fastgltf {
      * into memory structures, which can then be used to manually write them to disk.
      * If you want to let fastgltf handle the file writing too, use fastgltf::FileExporter.
      */
-    class Exporter {
+    FASTGLTF_EXPORT class Exporter {
     protected:
         Error errorCode = Error::None;
         ExportOptions options = ExportOptions::None;
@@ -866,6 +995,7 @@ namespace fastgltf {
         std::vector<std::optional<std::filesystem::path>> imagePaths;
 
         void writeAccessors(const Asset& asset, std::string& json);
+        void writeAnimations(const Asset& asset, std::string& json);
         void writeBuffers(const Asset& asset, std::string& json);
         void writeBufferViews(const Asset& asset, std::string& json);
         void writeCameras(const Asset& asset, std::string& json);
@@ -878,6 +1008,14 @@ namespace fastgltf {
         void writeScenes(const Asset& asset, std::string& json);
         void writeSkins(const Asset& asset, std::string& json);
         void writeTextures(const Asset& asset, std::string& json);
+#if FASTGLTF_ENABLE_KHR_IMPLICIT_SHAPES
+		void writeShapes(const Asset& asset, std::string& json);
+#endif
+#if FASTGLTF_ENABLE_KHR_PHYSICS_RIGID_BODIES
+		void writePhysicsMaterials(const Asset& asset, std::string& json);
+		void writeCollisionFilters(const Asset& asset, std::string& json);
+		void writePhysicsJoints(const Asset& asset, std::string& json);
+#endif
         void writeExtensions(const Asset& asset, std::string& json);
 
         std::filesystem::path getBufferFilePath(const Asset& asset, std::size_t index);
@@ -922,7 +1060,7 @@ namespace fastgltf {
 	 * This exporter builds upon Exporter by writing all files automatically to the
 	 * given paths.
 	 */
-	class FileExporter : public Exporter {
+	FASTGLTF_EXPORT class FileExporter : public Exporter {
         using Exporter::writeGltfJson;
         using Exporter::writeGltfBinary;
 
@@ -932,7 +1070,7 @@ namespace fastgltf {
          * all buffers and textures to disk using the buffer and image paths set using Exporter::setBufferPath and
          * Exporter::setImagePath.
          */
-		Error writeGltfJson(const Asset& asset, std::filesystem::path target, ExportOptions options = ExportOptions::None);
+		Error writeGltfJson(const Asset& asset, const std::filesystem::path& target, ExportOptions options = ExportOptions::None);
 
 		/**
 		 * Writes a glTF binary (GLB) blob from the given asset to the specified target file. This will also write
@@ -944,10 +1082,12 @@ namespace fastgltf {
          *
 		 * \see Exporter::writeGltfBinary
 		 */
-        Error writeGltfBinary(const Asset& asset, std::filesystem::path target, ExportOptions options = ExportOptions::None);
+        Error writeGltfBinary(const Asset& asset, const std::filesystem::path& target, ExportOptions options = ExportOptions::None);
 	};
 } // namespace fastgltf
 
 #ifdef _MSC_VER
 #pragma warning(pop)
+#endif
+
 #endif

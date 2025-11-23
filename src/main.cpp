@@ -1,10 +1,6 @@
-#define GLM_ENABLE_EXPERIMENTAL
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-
 #include "application.hpp"
 
-#include <iostream>
+#include "input_output/log/console.hpp"
 
 using namespace M3D;
 
@@ -17,7 +13,7 @@ int main( int argc, char * argv[] )
 	}
 	catch ( const std::exception & e )
 	{
-		std::cerr << "Exception caught: " << std::endl << e.what() << std::endl;
+		console.printError(e.what());
 		return EXIT_FAILURE;
 	}
 }

@@ -3,11 +3,11 @@
 #include "input_output/window.hpp"
 #include "user_interface/graphical_user_interface.hpp"
 #include "scene/scene_manager.hpp"
-#include "renderer/OpenGL/renderer_ogl.hpp"
+#include "renderer/renderer.hpp"
 
 namespace M3D
 {
-	Application::Application() : _width(1280), _height(720), _title("My M3D"), _running(false) {}
+	Application::Application() : _width(1280), _height(720), _title("M3D"), _running(false) {}
 
 	Application::~Application() {
 		delete _sceneManager;
@@ -17,13 +17,12 @@ namespace M3D
 	}
 
 	void Application::start() {
-		_running = true;
+		_running		= true;
 		
-		// decide if use ogl or vulkan and if we are on / linux / mac / android / windows
-		_window			 = new InputOutput::Window(SDL_WINDOW_OPENGL);
-		_renderer		 = new Renderer::RendererOGL(&_window->get());
-		_sceneManager	 = new Scene::SceneManager(_width, _height);
-		_gui			 = new UserInterface::GraphicalUserInterface(&_window->get(),_window->getGLContext());
+		_window			= new Window();
+		_renderer		= new Renderer(&_window->get());
+		_sceneManager	= new SceneManager(_width, _height);
+		_gui			= new GraphicalUserInterface(&_window->get(),_window->getGLContext());
 
 		_chrono.start();
 		while (_running) _update();
@@ -40,7 +39,7 @@ namespace M3D
 	
 	void Application::resume() { _chrono.start(); }
 
-	void Application::resize(int p_width, int p_height) {
+	void Application::resize(uint p_width, uint p_height) {
 		_width = p_width;
 		_height = p_height;
 		_sceneManager->resize(p_width,p_height);
@@ -59,7 +58,7 @@ namespace M3D
 
 		_renderer->drawFrame();			// &_window->get() / context ?
 		_gui->drawFrame();				// &_window->get() / context ?
-
-		_window->capFPS(deltaTime);
+	
+		_window->swapBuffers();
 	}
 }

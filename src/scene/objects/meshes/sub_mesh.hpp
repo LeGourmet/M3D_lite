@@ -1,5 +1,4 @@
-#ifndef __SUB_MESH_HPP__
-#define __SUB_MESH_HPP__
+#pragma once
 
 #include "vertex.hpp" 
 #include "material.hpp"
@@ -8,32 +7,27 @@
 
 namespace M3D
 {
-namespace Scene
-{
-    class SubMesh
-    {
-    public:
-        // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-        SubMesh(Material* p_material, std::vector<Vertex>& p_vertices, std::vector<unsigned int>& p_indices) {
-            _material = p_material;
-            _vertices = p_vertices;
-            _indices = p_indices;
-        }
+	class SubMesh
+	{
+	public:
+		// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
+		SubMesh(Material* p_material, std::vector<Vertex>& p_vertices, std::vector<uint>& p_indices) {
+			_material = p_material;
+			_vertices = p_vertices;
+			_indices = p_indices;
+		}
 
-        ~SubMesh() {}
+		~SubMesh() {}
 
-        // ------------------------------------------------------ GETTERS ------------------------------------------------------
-        inline const Material& getMaterial() const { return *_material; }
-        inline std::vector<Vertex>& getVertices() { return _vertices; }
-        inline std::vector<unsigned int>& getIndices() { return _indices; }
+		// ------------------------------------------------------ GETTERS ------------------------------------------------------
+		inline const Material& getMaterial() const { return *_material; }
+		inline std::vector<Vertex>& getVertices() { return _vertices; }
+		inline std::vector<uint>& getIndices() { return _indices; }
 
-    private:
-        // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-        Material*                   _material;
-        std::vector<Vertex>         _vertices;
-        std::vector<unsigned int>   _indices;
-    };
+	private:
+		// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+		Material* _material;
+		std::vector<Vertex>         _vertices;
+		std::vector<uint>   _indices;
+	};
 }
-}
-
-#endif

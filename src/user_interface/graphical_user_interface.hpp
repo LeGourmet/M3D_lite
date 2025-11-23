@@ -1,38 +1,32 @@
-#ifndef __GRAPHICAL_USER_INTERFACE_HPP__
-#define __GRAPHICAL_USER_INTERFACE_HPP__
+#pragma once
 
-#include <SDL_events.h>
+#include "utils/defines.hpp"
+#include <SDL3/SDL_events.h>
+
+#include "imgui.h"
 
 namespace M3D
 {
-    namespace UserInterface
-    {
-        class GraphicalUserInterface
-        {
-        public:
-            // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-            GraphicalUserInterface(SDL_Window* p_window, const SDL_GLContext& p_glContext);
-            ~GraphicalUserInterface();
+	class GraphicalUserInterface
+	{
+	public:
+		// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
+		GraphicalUserInterface(SDL_Window* p_window, const SDL_GLContext& p_glContext);
+		~GraphicalUserInterface();
 
-            // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
-            void pause();
-            void resize(const int p_width, const int p_height);
-            void update(float p_deltaTime);
-            void drawFrame();
+		// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
+		void pause();
+		void resize(const uint p_width, const uint p_height);
+		void update(float p_deltaTime);
+		void drawFrame();
 
-            bool captureEvent(const SDL_Event& p_event);
-            void clearEvents();
+		bool captureEvent(const SDL_Event& p_event);
+		void clearEvents();
 
-            void toggleDisplayMode();
+	private:
+		// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+		bool _hide = false;
 
-        private:
-            // ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-            bool _hide = false;
-
-            // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
-            void _dispose();
-        };
-    }
+		ImFont* _font;
+	};
 }
-
-#endif

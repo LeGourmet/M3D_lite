@@ -1,0 +1,113 @@
+#pragma once
+
+#include "GL/gl3w.h"
+
+#include "utils/defines.hpp"
+
+#include "scene/objects/meshes/mesh.hpp"
+#include "scene/objects/meshes/sub_mesh.hpp"
+#include "scene/objects/meshes/vertex.hpp"
+
+namespace M3D
+{
+	class MeshOGL
+	{
+	public:
+		// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
+		MeshOGL(Mesh* p_mesh) {
+			glCreateBuffers(1, &_ssbo_transform_matrix);
+			glCreateBuffers(1, &_ssbo_culling_instance);
+
+			_vaoSubMeshes.resize(p_mesh->getSubMeshes().size());
+			_vboSubMeshes.resize(p_mesh->getSubMeshes().size());
+			_eboSubMeshes.resize(p_mesh->getSubMeshes().size());
+
+			glCreateVertexArrays((GLsizei)p_mesh->getSubMeshes().size(), _vaoSubMeshes.data());
+			glCreateBuffers((GLsizei)p_mesh->getSubMeshes().size(), _vboSubMeshes.data());
+			glCreateBuffers((GLsizei)p_mesh->getSubMeshes().size(), _eboSubMeshes.data());
+
+			for (uint i = 0; i < p_mesh->getSubMeshes().size();i++) {
+				glVertexArrayVertexBuffer(_vaoSubMeshes[i], 0, _vboSubMeshes[i], 0, sizeof(Vertex));
+				_bindValue(_vaoSubMeshes[i], 0, 3, offsetof(Vertex, _position), 0);
+				_bindValue(_vaoSubMeshes[i], 1, 3, offsetof(Vertex, _normal), 0);
+				_bindValue(_vaoSubMeshes[i], 2, 3, offsetof(Vertex, _tangent), 0);
+				_bindValue(_vaoSubMeshes[i], 3, 2, offsetof(Vertex, _uv), 0);
+
+				glNamedBufferData(_vboSubMeshes[i], p_mesh->getSubMeshes()[i].getVertices().size() * sizeof(Vertex), p_mesh->getSubMeshes()[i].getVertices().data(), GL_STATIC_DRAW);
+				glNamedBufferData(_eboSubMeshes[i], p_mesh->getSubMeshes()[i].getIndices().size() * sizeof(uint), p_mesh->getSubMeshes()[i].getIndices().data(), GL_STATIC_DRAW);
+
+				glVertexArrayElementBuffer(_vaoSubMeshes[i], _eboSubMeshes[i]);
+			}
+		}
+
+		~MeshOGL() {
+			for (uint i = 0; i < _vaoSubMeshes.size();i++) {
+				glDisableVertexArrayAttrib(_vaoSubMeshes[i], 0);
+				glDisableVertexArrayAttrib(_vaoSubMeshes[i], 1);
+				glDisableVertexArrayAttrib(_vaoSubMeshes[i], 2);
+				glDisableVertexArrayAttrib(_vaoSubMeshes[i], 3);
+				glDisableVertexArrayAttrib(_vaoSubMeshes[i], 4);
+			}
+			glDeleteVertexArrays((GLsizei)_vaoSubMeshes.size(), _vaoSubMeshes.data());
+
+			glDeleteBuffers((GLsizei)_vboSubMeshes.size(), _vboSubMeshes.data());
+			glDeleteBuffers((GLsizei)_eboSubMeshes.size(), _eboSubMeshes.data());
+			glDeleteBuffers(1, &_ssbo_transform_matrix);
+			glDeleteBuffers(1, &_ssbo_culling_instance);
+		}
+
+		// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
+		void bind(uint p_i) {
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _ssbo_transform_matrix);
+			//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _ssbo_culling_instance);
+			glBindVertexArray(_vaoSubMeshes[p_i]);
+		}
+
+		void addInstance(Mat4f p_M_matrix, Mat4f p_V_matrix, Mat4f p_P_matrix) {
+			glDeleteBuffers(1, &_ssbo_transform_matrix);
+
+			_instance_transformation.push_back(p_M_matrix);
+			_instance_transformation.push_back(p_P_matrix * p_V_matrix * p_M_matrix);
+			_instance_transformation.push_back(glm::transpose(glm::inverse(p_M_matrix)));
+
+			glCreateBuffers(1, &_ssbo_transform_matrix);
+			glNamedBufferStorage(_ssbo_transform_matrix, _instance_transformation.size() * sizeof(Mat4f), _instance_transformation.data(), GL_DYNAMIC_STORAGE_BIT);
+
+			glDeleteBuffers(1, &_ssbo_culling_instance);
+			glCreateBuffers(1, &_ssbo_culling_instance);
+			glNamedBufferStorage(_ssbo_culling_instance, _instance_transformation.size() * sizeof(Mat4f), nullptr, GL_DYNAMIC_STORAGE_BIT);
+		}
+
+		void updateTransformMatrix(uint p_id, Mat4f p_M_matrix, Mat4f p_V_matrix, Mat4f p_P_matrix) {
+			_instance_transformation[p_id] = p_M_matrix;
+			_instance_transformation[p_id + 1] = p_P_matrix * p_V_matrix * p_M_matrix;
+			_instance_transformation[p_id + 2] = glm::transpose(glm::inverse(p_M_matrix));
+
+			glNamedBufferSubData(_ssbo_transform_matrix, p_id * 3 * sizeof(Mat4f), sizeof(Mat4f) * 3, &_instance_transformation[p_id]);
+		}
+
+		void updateCullingInstance(std::vector<bool> p_instance_culling, uint p_instanceNotCullNb) {
+			if (p_instanceNotCullNb == 0) return;
+			//glNamedBufferSubData(_ssbo_culling_instance, 0, sizeof(bool)*p_instanceNotCullNb, &p_instance_culling[0]);
+		}
+
+	private:
+		// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+		GLuint			   _ssbo_transform_matrix;
+		GLuint			   _ssbo_culling_instance;
+
+		std::vector<Mat4f> _instance_transformation;
+
+		std::vector<GLuint> _vaoSubMeshes;
+		std::vector<GLuint> _vboSubMeshes;
+		std::vector<GLuint> _eboSubMeshes;
+
+		// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
+		void _bindValue(GLuint p_vao, GLuint p_id, GLint p_size, GLuint p_offset, uint p_updateFrequency) {
+			glEnableVertexArrayAttrib(p_vao, p_id);
+			glVertexArrayAttribFormat(p_vao, p_id, p_size, GL_FLOAT, GL_FALSE, p_offset);
+			glVertexArrayAttribBinding(p_vao, p_id, 0);
+			glVertexArrayBindingDivisor(p_vao, p_id, p_updateFrequency);
+		}
+	};
+}

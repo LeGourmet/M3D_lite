@@ -1,5 +1,4 @@
-#ifndef __CHRONO_HPP__
-#define __CHRONO_HPP__
+#pragma once
 
 #include <chrono>
 
@@ -20,5 +19,3 @@ namespace M3D
 		Clock::time_point _end;
 	};
 }
-
-#endif

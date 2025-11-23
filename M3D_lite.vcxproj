@@ -19,42 +19,50 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="lib\fastgltf\base64.cpp" />
-    <ClCompile Include="lib\fastgltf\fastgltf.cpp" />
-    <ClCompile Include="lib\gl3w\GL\gl3w.c" />
+    <ClCompile Include="lib\imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="lib\imgui\backends\imgui_impl_sdl3.cpp" />
     <ClCompile Include="lib\imgui\imgui.cpp" />
     <ClCompile Include="lib\imgui\imgui_demo.cpp" />
     <ClCompile Include="lib\imgui\imgui_draw.cpp" />
-    <ClCompile Include="lib\imgui\imgui_impl_opengl3.cpp" />
-    <ClCompile Include="lib\imgui\imgui_impl_sdl3.cpp" />
     <ClCompile Include="lib\imgui\imgui_tables.cpp" />
     <ClCompile Include="lib\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="lib\lodepng\lodepng.cpp" />
+    <ClCompile Include="src\input_output\log\console.cpp" />
+    <ClCompile Include="lib\fastgltf\base64.cpp" />
+    <ClCompile Include="lib\fastgltf\fastgltf.cpp" />
+    <ClCompile Include="lib\fastgltf\fastgltf.ixx" />
+    <ClCompile Include="lib\fastgltf\io.cpp" />
+    <ClCompile Include="lib\gl3w\GL\gl3w.c" />
     <ClCompile Include="lib\simdjson\simdjson.cpp" />
     <ClCompile Include="src\application.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\renderer\OpenGL\renderer_ogl.cpp" />
+    <ClCompile Include="src\renderer\renderer.cpp" />
     <ClCompile Include="src\scene\scene_manager.cpp" />
     <ClCompile Include="src\input_output\window.cpp" />
     <ClCompile Include="src\user_interface\graphical_user_interface.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lib\imgui\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="lib\imgui\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="lib\imgui\backends\imgui_impl_sdl3.h" />
+    <ClInclude Include="lib\imgui\imconfig.h" />
+    <ClInclude Include="lib\imgui\imgui.h" />
+    <ClInclude Include="lib\imgui\imgui_internal.h" />
+    <ClInclude Include="lib\imgui\imstb_rectpack.h" />
+    <ClInclude Include="lib\imgui\imstb_textedit.h" />
+    <ClInclude Include="lib\imgui\imstb_truetype.h" />
+    <ClInclude Include="lib\lodepng\lodepng.h" />
+    <ClInclude Include="src\input_output\log\console.hpp" />
     <ClInclude Include="lib\fastgltf\base64.hpp" />
     <ClInclude Include="lib\fastgltf\core.hpp" />
+    <ClInclude Include="lib\fastgltf\dxmath_element_traits.hpp" />
     <ClInclude Include="lib\fastgltf\glm_element_traits.hpp" />
+    <ClInclude Include="lib\fastgltf\math.hpp" />
     <ClInclude Include="lib\fastgltf\tools.hpp" />
     <ClInclude Include="lib\fastgltf\types.hpp" />
     <ClInclude Include="lib\fastgltf\util.hpp" />
     <ClInclude Include="lib\gl3w\GL\gl3w.h" />
     <ClInclude Include="lib\gl3w\GL\glcorearb.h" />
-    <ClInclude Include="lib\imgui\imconfig.h" />
-    <ClInclude Include="lib\imgui\imgui.h" />
-    <ClInclude Include="lib\imgui\imgui_impl_opengl3.h" />
-    <ClInclude Include="lib\imgui\imgui_impl_opengl3_loader.h" />
-    <ClInclude Include="lib\imgui\imgui_impl_sdl3.h" />
-    <ClInclude Include="lib\imgui\imgui_internal.h" />
-    <ClInclude Include="lib\imgui\imstb_rectpack.h" />
-    <ClInclude Include="lib\imgui\imstb_textedit.h" />
-    <ClInclude Include="lib\imgui\imstb_truetype.h" />
     <ClInclude Include="lib\SDL3\include\SDL.h" />
     <ClInclude Include="lib\SDL3\include\SDL_assert.h" />
     <ClInclude Include="lib\SDL3\include\SDL_atomic.h" />
@@ -535,37 +543,33 @@
     <ClInclude Include="lib\SDL3\src\video\yuv2rgb\yuv_rgb_sse_func.h" />
     <ClInclude Include="lib\SDL3\src\video\yuv2rgb\yuv_rgb_std_func.h" />
     <ClInclude Include="lib\simdjson\simdjson.h" />
-    <ClInclude Include="lib\stb\stb_image.h" />
-    <ClInclude Include="lib\stb\stb_image_write.h" />
     <ClInclude Include="src\application.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\stages\stage_geometry_ogl.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\stages\stage_lighting_ogl.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\stages\stage_post_processing_ogl.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\stages\stage_ogl.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\texture_ogl.hpp" />
+    <ClInclude Include="src\renderer\stages\stage_geometry_ogl.hpp" />
+    <ClInclude Include="src\renderer\stages\stage_lighting_ogl.hpp" />
+    <ClInclude Include="src\renderer\stages\stage_post_processing_ogl.hpp" />
+    <ClInclude Include="src\renderer\stages\stage_ogl.hpp" />
+    <ClInclude Include="src\renderer\ogl_texture.hpp" />
     <ClInclude Include="src\scene\objects\meshes\material.hpp" />
     <ClInclude Include="src\scene\objects\meshes\sub_mesh.hpp" />
     <ClInclude Include="src\scene\objects\meshes\vertex.hpp" />
     <ClInclude Include="src\scene\objects\object.hpp" />
     <ClInclude Include="src\scene\scene_graph_node.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\mesh_ogl.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\program_ogl.hpp" />
-    <ClInclude Include="src\renderer\OpenGL\renderer_ogl.hpp" />
+    <ClInclude Include="src\renderer\ogl_mesh.hpp" />
+    <ClInclude Include="src\renderer\ogl_program.hpp" />
     <ClInclude Include="src\renderer\renderer.hpp" />
     <ClInclude Include="src\scene\objects\cameras\camera.hpp" />
-    <ClInclude Include="src\controller\gamepad_controller.hpp" />
-    <ClInclude Include="src\controller\keyboard_controller.hpp" />
-    <ClInclude Include="src\controller\mouse_controller.hpp" />
+    <ClInclude Include="src\input_output\controller\gamepad_controller.hpp" />
+    <ClInclude Include="src\input_output\controller\keyboard_controller.hpp" />
+    <ClInclude Include="src\input_output\controller\mouse_controller.hpp" />
     <ClInclude Include="src\scene\objects\lights\light.hpp" />
     <ClInclude Include="src\scene\objects\meshes\mesh.hpp" />
     <ClInclude Include="src\scene\scene_manager.hpp" />
     <ClInclude Include="src\user_interface\graphical_user_interface.hpp" />
     <ClInclude Include="src\utils\chrono.hpp" />
-    <ClInclude Include="src\utils\define.hpp" />
+    <ClInclude Include="src\utils\defines.hpp" />
     <ClInclude Include="src\input_output\window.hpp" />
-    <ClInclude Include="src\utils\image.hpp" />
+    <ClInclude Include="src\scene\objects\meshes\image.hpp" />
     <ClInclude Include="src\scene\objects\meshes\texture.hpp" />
-    <ClInclude Include="src\utils\random.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\SDL3\src\hidapi\windows\ddk_build\hidapi.def" />
@@ -623,10 +627,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IntDir>$(SolutionDir)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)out\tmp\$(Configuration)_$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)out\bin\$(Configuration)_$(Platform)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IntDir>$(SolutionDir)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)out\tmp\$(Configuration)_$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)out\bin\$(Configuration)_$(Platform)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -671,7 +677,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\fastgltf;$(ProjectDir)\lib\simdjson;$(ProjectDir)\lib\portableFileDialogs;$(ProjectDir)\lib\imgui;$(ProjectDir)\lib\SDL3\include;$(ProjectDir)\lib\SDL3\include\SDL3;$(ProjectDir)\lib\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\fastgltf;$(ProjectDir)\lib\simdjson;$(ProjectDir)\lib\portable-file-dialogs;$(ProjectDir)\lib\imgui;$(ProjectDir)\lib\imgui\backends;$(ProjectDir)\lib\SDL3\include;$(ProjectDir)\lib\gl3w;$(ProjectDir)lib\lodepng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MaxSpeed</Optimization>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -686,6 +692,9 @@
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
+    <PostBuildEvent>
+      <Command>xcopy /Y /Q /D "$(SolutionDir)lib\SDL3\src\Debug_x64\SDL3.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -696,7 +705,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\stb;$(ProjectDir)\lib\fastgltf;$(ProjectDir)\lib\simdjson;$(ProjectDir)\lib\portableFileDialogs;$(ProjectDir)\lib\imgui;$(ProjectDir)\lib\SDL3\include;$(ProjectDir)\lib\SDL3\include\SDL3;$(ProjectDir)\lib\gl3w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\fastgltf;$(ProjectDir)\lib\simdjson;$(ProjectDir)\lib\portable-file-dialogs;$(ProjectDir)\lib\imgui;$(ProjectDir)\lib\imgui\backends;$(ProjectDir)\lib\SDL3\include;$(ProjectDir)\lib\gl3w;$(ProjectDir)lib\lodepng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
@@ -711,6 +720,9 @@
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
+    <PostBuildEvent>
+      <Command>xcopy /Y /Q /D "$(SolutionDir)lib\SDL3\src\Release_x64\SDL3.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

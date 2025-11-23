@@ -1,0 +1,22 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "C:\\Users\\babow\\Desktop\\M3D_lite\\out\\tmp\\Release_x64\\fastgltf.ixx.obj",
+            "outputs": [
+                "C:\\Users\\babow\\Desktop\\M3D_lite\\out\\tmp\\Release_x64\\vc143.pdb",
+                "C:\\Users\\babow\\Desktop\\M3D_lite\\out\\tmp\\Release_x64\\",
+                "C:\\Users\\babow\\Desktop\\M3D_lite\\out\\tmp\\Release_x64\\fastgltf.ixx.ifc"
+            ],
+            "provides": [
+                {
+                    "logical-name": "fastgltf",
+                    "source-path": "c:\\users\\babow\\desktop\\m3d_lite\\lib\\fastgltf\\fastgltf.ixx",
+                    "is-interface": true
+                }
+            ],
+            "requires": []
+        }
+    ]
+}

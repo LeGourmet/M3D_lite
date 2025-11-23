@@ -1,7 +1,6 @@
-#ifndef __TEXTURE_HPP__
-#define __TEXTURE_HPP__
+#pragma once
 
-#include "utils/image.hpp"
+#include "image.hpp"
 
 namespace M3D
 {
@@ -9,16 +8,12 @@ namespace M3D
 	enum MINIFICATION_TYPE { MIN_LINEAR, MIN_NEAREST, MIN_NEAREST_MIPMAP_NEAREST, MIN_NEAREST_MIPMAP_LINEAR, MIN_LINEAR_MIPMAP_NEAREST, MIN_LINEAR_MIPMAP_LINEAR };
 	enum WRAPPING_TYPE { REPEAT, MIRRORED_REPEAT, CLAMP_TO_EDGE };
 
-	namespace Scene {
-		struct Texture {
-			MINIFICATION_TYPE	_minification = MINIFICATION_TYPE::MIN_NEAREST;
-			MAGNIFICATION_TYPE	_magnification = MAGNIFICATION_TYPE::MAG_NEAREST;
-			WRAPPING_TYPE		_wrappingR = WRAPPING_TYPE::REPEAT;
-			WRAPPING_TYPE		_wrappingS = WRAPPING_TYPE::REPEAT;
-			WRAPPING_TYPE		_wrappingT = WRAPPING_TYPE::REPEAT;
-			Image*				_image = nullptr;
-		};
-	}
+	struct Texture {
+		MINIFICATION_TYPE	_minification = MINIFICATION_TYPE::MIN_NEAREST;
+		MAGNIFICATION_TYPE	_magnification = MAGNIFICATION_TYPE::MAG_NEAREST;
+		WRAPPING_TYPE		_wrappingR = WRAPPING_TYPE::REPEAT;
+		WRAPPING_TYPE		_wrappingS = WRAPPING_TYPE::REPEAT;
+		WRAPPING_TYPE		_wrappingT = WRAPPING_TYPE::REPEAT;
+		Image*				_image = nullptr;
+	};
 }
-
-#endif

@@ -1,51 +1,62 @@
-#ifndef __RENDERER_HPP__
-#define __RENDERER_HPP__
+#pragma once
 
-#include <SDL_video.h>
+#include <SDL3/SDL_video.h>
 
-#include "utils/define.hpp"
+#include "utils/defines.hpp"
+
 #include "scene/objects/meshes/texture.hpp"
+#include "renderer/ogl_texture.hpp"
 
 #include "scene/objects/meshes/mesh.hpp"
+#include "renderer/ogl_mesh.hpp"
+
+#include "renderer/stages/stage_geometry_ogl.hpp"
+#include "renderer/stages/stage_lighting_ogl.hpp"
+#include "renderer/stages/stage_post_processing_ogl.hpp"
+
+#include <map>
 
 namespace M3D
 {
-    enum AA_TYPE { NONE, FXAA, SMAA };
+	enum AA_TYPE { NONE, FXAA, SMAA };
 
-    namespace Renderer
-    {
-        class Renderer
-        {
-        public:
-            // --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
-            Renderer() {}
-            //virtual Renderer(SDL_Window* p_window) = 0;
-            virtual ~Renderer() = default;
+	class Renderer
+	{
+	public:
+		// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
+		Renderer(SDL_Window* p_window);
+		~Renderer();
 
-            // ------------------------------------------------------ GETTERS ------------------------------------------------------
-            inline float getBloomPower() { return _bloomPower; }
-            inline AA_TYPE getAAType() { return _aaType; }
+		// ------------------------------------------------------ GETTERS ------------------------------------------------------
+		inline float getBloomPower() const { return _bloomPower; }
+		inline AA_TYPE getAAType() const { return _aaType; }
 
-            inline void setAAType(AA_TYPE p_aa_type) { _aaType = p_aa_type; }
+		// ------------------------------------------------------ SETTERS ------------------------------------------------------
+		inline void setAAType(AA_TYPE p_aa_type) { _aaType = p_aa_type; }
 
-            // ----------------------------------------------------- FONCTIONS -----------------------------------------------------
-            virtual void resize(const int p_width, const int p_height) = 0;
-            virtual void drawFrame() = 0;
+		// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
+		void resize(const uint p_width, const uint p_height);
+		void drawFrame();
 
-            virtual void createMesh(Scene::Mesh* p_mesh) = 0;
-            virtual void createTexture(Scene::Texture* p_texture) = 0;
+		void createMesh(Mesh* p_mesh);
+		void createTexture(Texture* p_texture);
 
-            virtual void addInstanceMesh(Scene::Mesh* p_mesh, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) = 0;
-            virtual void updateInstanceMesh(Scene::Mesh* p_mesh, unsigned int p_id, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix) = 0;
+		void addInstanceMesh(Mesh* p_mesh, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix);
+		void updateInstanceMesh(Mesh* p_mesh, uint p_id, const Mat4f& p_M_matrix, const Mat4f& p_V_matrix, const Mat4f& p_P_matrix);
 
-            virtual void deleteMesh(Scene::Mesh* p_mesh) = 0;
-            virtual void deleteTexture(Scene::Texture* p_texture) = 0;
+		void deleteMesh(Mesh* p_mesh);
+		void deleteTexture(Texture* p_texture);
 
-        protected:
-            float _bloomPower = 0.04f;
-            AA_TYPE _aaType = AA_TYPE::FXAA;
-        };
-    }
+	private:
+		// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+		StageGeometryOGL* _stageGeometryOGL;
+		StageLightingOGL* _stageLightingOGL;
+		StagePostProcessingOGL* _stagePostProcessingOGL;
+
+		std::map<Mesh*, MeshOGL*> _meshes;
+		std::map<Texture*, TextureOGL*> _textures;
+
+		float _bloomPower = 0.04f;
+		AA_TYPE _aaType = AA_TYPE::FXAA;
+	};
 }
-
-#endif

@@ -1,0 +1,186 @@
+#pragma once
+
+#include "GL/gl3w.h"
+#include "glm/gtc/type_ptr.hpp"
+
+#include "stage_ogl.hpp"
+
+#include "application.hpp"
+#include "renderer/renderer.hpp"
+#include "scene/objects/meshes/mesh.hpp"
+#include "renderer/ogl_mesh.hpp"
+#include "renderer/ogl_texture.hpp"
+#include "renderer/ogl_program.hpp"
+
+namespace M3D
+{
+	class StageGeometryOGL : public StageOGL {
+	public:
+		// --------------------------------------------- DESTRUCTOR / CONSTRUCTOR ----------------------------------------------
+		StageGeometryOGL() {
+			_GeometryPass.addUniform("uAlbedo");
+			_GeometryPass.addUniform("uMetalness");
+			_GeometryPass.addUniform("uRoughness");
+			_GeometryPass.addUniform("uEmissiveColor");
+			_GeometryPass.addUniform("uEmissiveStrength");
+			_GeometryPass.addUniform("uAlphaCutOff");
+
+			_GeometryPass.addUniform("uHasAlbedoMap");
+			_GeometryPass.addUniform("uHasNormalMap");
+			_GeometryPass.addUniform("uHasMetalnessRoughnessMap");
+			_GeometryPass.addUniform("uHasEmissiveMap");
+
+			_GeometryPass.addUniform("uNbTranspFragsMax");
+
+			glCreateFramebuffers(1, &_fbo);
+			generateMap(&_albedoMap, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+			attachColorMap(_fbo, _albedoMap, 0);
+			generateMap(&_normalMap, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+			attachColorMap(_fbo, _normalMap, 1);
+			generateMap(&_metalnessRoughnessMap, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+			attachColorMap(_fbo, _metalnessRoughnessMap, 2);
+			generateMap(&_emissiveMap, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+			attachColorMap(_fbo, _emissiveMap, 3);
+			generateMap(&_depthMap, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+			attachDepthMap(_fbo, _depthMap);
+			GLenum DrawBuffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+			glNamedFramebufferDrawBuffers(_fbo, 4, DrawBuffers);
+
+			generateMap(&_rootTransparency, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+			glCreateBuffers(1, &_ssboTransparency);
+			glCreateBuffers(1, &_counterTransparency);
+
+			glNamedBufferStorage(_counterTransparency, sizeof(uint), nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+			glCreateVertexArrays(1, &_emptyVAO);
+		}
+
+		~StageGeometryOGL() {
+			glDeleteTextures(1, &_albedoMap);
+			glDeleteTextures(1, &_normalMap);
+			glDeleteTextures(1, &_metalnessRoughnessMap);
+			glDeleteTextures(1, &_emissiveMap);
+			glDeleteTextures(1, &_depthMap);
+			glDeleteFramebuffers(1, &_fbo);
+
+			glDeleteTextures(1, &_rootTransparency);
+			glDeleteBuffers(1, &_ssboTransparency);
+			glDeleteBuffers(1, &_counterTransparency);
+
+			glDeleteVertexArrays(1, &_emptyVAO);
+		}
+
+		// ------------------------------------------------------ GETTERS ------------------------------------------------------
+		GLuint getAlbedoMap() { return _albedoMap; }
+		GLuint getNormalMap() { return _normalMap; }
+		GLuint getMetalnessRoughnessMap() { return _metalnessRoughnessMap; }
+		GLuint getEmissiveMap() { return _emissiveMap; }
+		GLuint getDepthMap() { return _depthMap; }
+		GLuint getRootTransparency() { return _rootTransparency; }
+		GLuint getSSBOTransparency() { return _ssboTransparency; }
+
+		// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
+		void resize(uint p_width, uint p_height) {
+			resizeColorMap(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, p_width, p_height, _albedoMap);
+			resizeColorMap(GL_RGB16F, GL_RGB, GL_FLOAT, p_width, p_height, _normalMap);
+			resizeColorMap(GL_RG8, GL_RG, GL_UNSIGNED_BYTE, p_width, p_height, _metalnessRoughnessMap);
+			resizeColorMap(GL_RGB16F, GL_RGB, GL_FLOAT, p_width, p_height, _emissiveMap);
+			resizeColorMap(GL_R32F, GL_RED, GL_FLOAT, p_width, p_height, _rootTransparency);
+			resizeDepthMap(p_width, p_height, _depthMap);
+
+			_maxTransparentFragments = 10 * p_width * p_height;
+			glDeleteBuffers(1, &_ssboTransparency);
+			glCreateBuffers(1, &_ssboTransparency);
+			glNamedBufferStorage(_ssboTransparency, _maxTransparentFragments * (16 * sizeof(float) + sizeof(uint)), nullptr, GL_DYNAMIC_STORAGE_BIT);
+		}
+
+		void execute(uint p_width, uint p_height, std::map<Mesh*, MeshOGL*> p_meshes, std::map<Texture*, TextureOGL*> p_textures) {
+			glViewport(0, 0, p_width, p_height);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+
+			glEnable(GL_DEPTH_TEST);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			glUseProgram(_GeometryPass.getProgram());
+
+			glClearTexImage(_rootTransparency, 0, GL_RED, GL_UNSIGNED_INT, &_clearValue);
+			glBindImageTexture(5, _rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, _ssboTransparency);
+
+			glNamedBufferSubData(_counterTransparency, 0, sizeof(uint), &_clearValue);
+			glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 7, _counterTransparency);
+
+			glProgramUniform1ui(_GeometryPass.getProgram(), _GeometryPass.getUniform("uNbTranspFragsMax"), _maxTransparentFragments);
+
+			for (std::pair<Mesh*, MeshOGL*> mesh : p_meshes) {
+				// todo call gpu bvh scene for instance frustum culling
+				for (uint i = 0; i < mesh.first->getSubMeshes().size();i++) {
+					SubMesh subMesh = mesh.first->getSubMeshes()[i];
+
+					if (subMesh.getMaterial().isDoubleSide()) { glEnable(GL_CULL_FACE); glCullFace(GL_BACK); }
+					else { glDisable(GL_CULL_FACE); }
+
+					glProgramUniform4fv(_GeometryPass.getProgram(), _GeometryPass.getUniform("uAlbedo"), 1, glm::value_ptr(subMesh.getMaterial().getAlbedo()));
+					glProgramUniform1i(_GeometryPass.getProgram(), _GeometryPass.getUniform("uHasAlbedoMap"), subMesh.getMaterial().getAlbedoMap() != nullptr);
+					if (subMesh.getMaterial().getAlbedoMap() != nullptr) glBindTextureUnit(1, p_textures.at(subMesh.getMaterial().getAlbedoMap())->getId());
+
+					glProgramUniform1i(_GeometryPass.getProgram(), _GeometryPass.getUniform("uHasNormalMap"), subMesh.getMaterial().getNormalMap() != nullptr);
+					if (subMesh.getMaterial().getNormalMap() != nullptr) glBindTextureUnit(2, p_textures.at(subMesh.getMaterial().getNormalMap())->getId());
+
+					glProgramUniform1f(_GeometryPass.getProgram(), _GeometryPass.getUniform("uMetalness"), subMesh.getMaterial().getMetalness());
+					glProgramUniform1f(_GeometryPass.getProgram(), _GeometryPass.getUniform("uRoughness"), subMesh.getMaterial().getRoughness());
+					glProgramUniform1i(_GeometryPass.getProgram(), _GeometryPass.getUniform("uHasMetalnessRoughnessMap"), subMesh.getMaterial().getMetalnessRoughnessMap() != nullptr);
+					if (subMesh.getMaterial().getMetalnessRoughnessMap() != nullptr) glBindTextureUnit(3, p_textures.at(subMesh.getMaterial().getMetalnessRoughnessMap())->getId());
+
+					glProgramUniform3fv(_GeometryPass.getProgram(), _GeometryPass.getUniform("uEmissiveColor"), 1, glm::value_ptr(subMesh.getMaterial().getEmissiveColor()));
+					glProgramUniform1f(_GeometryPass.getProgram(), _GeometryPass.getUniform("uEmissiveStrength"), subMesh.getMaterial().getEmissiveStrength());
+					glProgramUniform1i(_GeometryPass.getProgram(), _GeometryPass.getUniform("uHasEmissiveMap"), subMesh.getMaterial().getEmissiveMap() != nullptr);
+					if (subMesh.getMaterial().getEmissiveMap() != nullptr) glBindTextureUnit(4, p_textures.at(subMesh.getMaterial().getEmissiveMap())->getId());
+
+					glProgramUniform1f(_GeometryPass.getProgram(), _GeometryPass.getUniform("uAlphaCutOff"), subMesh.getMaterial().getAlphaCutOff());
+
+					mesh.second->bind(i);
+					glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)subMesh.getIndices().size(), GL_UNSIGNED_INT, 0, (GLsizei)mesh.first->getNumberInstances());
+					glBindVertexArray(0);
+				}
+			}
+
+			glDisable(GL_CULL_FACE);
+			glDisable(GL_DEPTH_TEST);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			glUseProgram(_FilterAndSortTranspFragsPass.getProgram());
+
+			glBindTextureUnit(0, _depthMap);
+			glBindImageTexture(1, _rootTransparency, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, _ssboTransparency);
+
+			glBindVertexArray(_emptyVAO);
+			glDrawArrays(GL_TRIANGLES, 0, 3);
+			glBindVertexArray(0);
+		}
+
+	private:
+		// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
+		GLuint _emptyVAO = GL_INVALID_INDEX;
+
+		uint _maxTransparentFragments = 0;
+		uint _clearValue = 0;
+
+		GLuint _albedoMap = GL_INVALID_INDEX;
+		GLuint _normalMap = GL_INVALID_INDEX;
+		GLuint _metalnessRoughnessMap = GL_INVALID_INDEX;
+		GLuint _emissiveMap = GL_INVALID_INDEX;
+		GLuint _depthMap = GL_INVALID_INDEX;
+		GLuint _rootTransparency = GL_INVALID_INDEX;
+		GLuint _ssboTransparency = GL_INVALID_INDEX;
+		GLuint _counterTransparency = GL_INVALID_INDEX;
+
+		GLuint _fbo = GL_INVALID_INDEX;
+
+		ProgramOGL _GeometryPass = ProgramOGL("resources/shaders/geometry/GeometryPass.vert", "", "resources/shaders/geometry/GeometryPass.frag");
+		ProgramOGL _FilterAndSortTranspFragsPass = ProgramOGL("resources/shaders/utils/QuadScreen.vert", "", "resources/shaders/geometry/FilterAndSortTranspFrags.frag");
+	};
+}

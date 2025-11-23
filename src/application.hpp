@@ -1,16 +1,16 @@
-#ifndef __APPLICATION_HPP__
-#define __APPLICATION_HPP__
+#pragma once
 
+#include "utils/defines.hpp"
 #include "utils/chrono.hpp"
 
 #include <string>
 
 namespace M3D
 {
-	namespace InputOutput { class Window; }
-	namespace UserInterface { class GraphicalUserInterface; }
-	namespace Scene { class SceneManager; }
-	namespace Renderer { class Renderer; }
+	class Window;
+	class GraphicalUserInterface;
+	class SceneManager;
+	class Renderer;
 
 	class Application final
 	{
@@ -30,39 +30,37 @@ namespace M3D
 
 		// ------------------------------------------------------ GETTERS ------------------------------------------------------
 		inline std::string getTitle() const { return _title; }
-		inline int getWidth() const { return _width; }
-		inline int getHeight() const { return _height; }
+		inline uint getWidth() const { return _width; }
+		inline uint getHeight() const { return _height; }
 		inline bool isRunning() const { return _running; }
 		
-		inline InputOutput::Window& getWindow() const { return *_window; }
-		inline UserInterface::GraphicalUserInterface& getGraphicalUserInterface() const { return *_gui; }
-		inline Scene::SceneManager& getSceneManager() const { return *_sceneManager; }
-		inline Renderer::Renderer& getRenderer() const { return *_renderer; }
+		inline Window& getWindow() const { return *_window; }
+		inline GraphicalUserInterface& getGraphicalUserInterface() const { return *_gui; }
+		inline SceneManager& getSceneManager() const { return *_sceneManager; }
+		inline Renderer& getRenderer() const { return *_renderer; }
 
 		// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 		void start();
 		void stop();
 		void pause();
 		void resume();
-		void resize(int p_width, int p_height);
+		void resize(uint p_width, uint p_height);
 
 	private:
 		// ----------------------------------------------------- ATTRIBUTS -----------------------------------------------------
-		std::string _title;
-		int		    _width;
-		int		    _height;
-		bool		_running;
+		std::string				_title;
+		uint					_width;
+		uint					_height;
+		bool					_running;
 
-		InputOutput::Window*					_window{};
-		UserInterface::GraphicalUserInterface*	_gui{};
-		Scene::SceneManager*					_sceneManager{};
-		Renderer::Renderer*						_renderer{};
+		Window*					_window{};
+		GraphicalUserInterface*	_gui{};
+		SceneManager*			_sceneManager{};
+		Renderer*				_renderer{};
 
-		Chrono _chrono;
+		Chrono					_chrono;
 
 		// ----------------------------------------------------- FONCTIONS -----------------------------------------------------
 		void _update();
 	};
 }
-
-#endif

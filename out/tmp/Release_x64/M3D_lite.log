@@ -1,9 +1,10 @@
 ﻿  Analyse des sources à la recherche des dépendances de module...
-  graphical_user_interface.cpp
+  fastgltf.ixx
+  Compilation...
+  fastgltf.ixx
   Génération de code en cours
-  5 of 11832 functions (<0.1%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    138 functions had inline decision re-evaluated but remain unchanged
+  Previous IPDB was built with incompatible compiler, fall back to full compilation.
+  All 11832 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Fin de la génération du code
   M3D_lite.vcxproj -> C:\Users\babow\Desktop\M3D_lite\out\bin\Release_x64\M3D_lite.exe
   0 fichier(s) copiÚ(s)
